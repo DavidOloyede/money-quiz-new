@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
-import { generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
+import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
 import { EmptyState } from './EmptyState'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
 import type { View } from './Nav'
@@ -235,7 +235,10 @@ function Results({
   const correct = score(questions, answers)
   const total = questions.length
   const pct = Math.round((correct / total) * 100)
-  const insights = useMemo(() => quizInsights(transactions), [transactions])
+  const insights = useMemo(
+    () => quizInsights(transactions, askedKinds(questions)),
+    [transactions, questions],
+  )
 
   const verdict =
     pct >= 80

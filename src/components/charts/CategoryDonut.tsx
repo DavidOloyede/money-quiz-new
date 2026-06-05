@@ -1,11 +1,13 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { CategoryTotal } from '../../lib/analysis'
+import type { Category } from '../../types'
 import { CATEGORY_META } from '../../types'
 import { formatCurrency, formatPercent } from '../../lib/format'
 
 interface Props {
   data: CategoryTotal[]
   total: number
+  onSelect?: (category: Category) => void
 }
 
 interface TooltipProps {
@@ -30,7 +32,7 @@ function DonutTooltip({ active, payload, total }: TooltipProps) {
   )
 }
 
-export function CategoryDonut({ data, total }: Props) {
+export function CategoryDonut({ data, total, onSelect }: Props) {
   return (
     <div className="relative h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -43,6 +45,8 @@ export function CategoryDonut({ data, total }: Props) {
             outerRadius="92%"
             paddingAngle={1.5}
             stroke="none"
+            onClick={onSelect ? (d) => onSelect((d as CategoryTotal).category) : undefined}
+            className={onSelect ? 'cursor-pointer focus:outline-none' : undefined}
           >
             {data.map((d) => (
               <Cell key={d.category} fill={CATEGORY_META[d.category].color} />

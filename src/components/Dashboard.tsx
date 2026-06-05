@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import {
+  excludedSummary,
   filterByRange,
   headlineStats,
   monthlyTrend,
@@ -8,10 +9,12 @@ import {
   topExpenses,
   type TimeRange,
 } from '../lib/analysis'
+import type { Category } from '../types'
 import { CATEGORY_META, categoryLabel } from '../types'
 import { formatCurrency, formatDate, formatPercent } from '../lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
+import { CategoryDetailModal } from './CategoryDetailModal'
 import { StatCard } from './StatCard'
 import { EmptyState } from './EmptyState'
 import { ChartIcon } from './icons'
@@ -34,6 +37,7 @@ export function Dashboard({ onNavigate }: Props) {
   const [range, setRange] = useState<TimeRange>('all')
   const [sortKey, setSortKey] = useState<SortKey>('total')
   const [sortAsc, setSortAsc] = useState(false)
+  const [drill, setDrill] = useState<Category | null>(null)
 
   const filtered = useMemo(
     () => filterByRange(transactions, range),
@@ -42,6 +46,7 @@ export function Dashboard({ onNavigate }: Props) {
   const stats = useMemo(() => headlineStats(filtered), [filtered])
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
   const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
+  const excluded = useMemo(() => excludedSummary(filtered), [filtered])
   const trend = useMemo(() => monthlyTrend(transactions), [transactions])
 
   const sortedCats = useMemo(() => {
@@ -172,7 +177,7 @@ export function Dashboard({ onNavigate }: Props) {
                 <p className="mt-6 text-sm text-slate-500">No spending in this range.</p>
               ) : (
                 <>
-                  <CategoryDonut data={cats} total={stats.totalSpending} />
+                  <CategoryDonut data={cats} total={stats.totalSpending} onSelect={setDrill} />
                   <div className="mt-4 overflow-hidden rounded-lg border border-slate-100">
                     <table className="w-full text-sm">
                       <thead>
@@ -203,14 +208,20 @@ export function Dashboard({ onNavigate }: Props) {
                               ? (c.total / stats.totalSpending) * 100
                               : 0
                           return (
-                            <tr key={c.category}>
+                            <tr
+                              key={c.category}
+                              onClick={() => setDrill(c.category)}
+                              className="cursor-pointer hover:bg-slate-50"
+                            >
                               <td className="px-3 py-2">
                                 <span className="inline-flex items-center gap-2">
                                   <span
                                     className="inline-block w-2.5 h-2.5 rounded-sm"
                                     style={{ background: CATEGORY_META[c.category].color }}
                                   />
-                                  {categoryLabel(c.category)}
+                                  <span className="font-medium text-slate-700 underline-offset-2 hover:underline">
+                                    {categoryLabel(c.category)}
+                                  </span>
                                   <span className="text-slate-400">· {c.count}</span>
                                 </span>
                               </td>
@@ -265,7 +276,53 @@ export function Dashboard({ onNavigate }: Props) {
               </div>
             </div>
           </div>
+
+          {excluded.length > 0 && (
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="font-semibold text-slate-800">Transfers &amp; Zelle</h3>
+                <span className="text-xs text-slate-400">Not counted as spending or income</span>
+              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                Money moved between your own accounts (or paying off a card) is tracked here so it
+                doesn&apos;t distort your spending. Click one to review or recategorize.
+              </p>
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {excluded.map((e) => (
+                  <button
+                    key={e.category}
+                    onClick={() => setDrill(e.category)}
+                    className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
+                      style={{ background: `${CATEGORY_META[e.category].color}1a` }}
+                      aria-hidden
+                    >
+                      {CATEGORY_META[e.category].emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-medium text-slate-700">
+                        {categoryLabel(e.category)}
+                        <span className="ml-1 text-xs font-normal text-slate-400">
+                          · {e.count}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 tabular-nums">
+                        {formatCurrency(e.out)} out
+                        {e.in > 0 && ` · ${formatCurrency(e.in)} in`}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+      )}
+
+      {drill && (
+        <CategoryDetailModal category={drill} range={range} onClose={() => setDrill(null)} />
       )}
     </ViewShell>
   )

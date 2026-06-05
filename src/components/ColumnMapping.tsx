@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react'
-import type { AmountMode, ColumnMapping, CsvRow } from '../types'
+import type { AccountType, AmountMode, ColumnMapping, CsvRow } from '../types'
 import { CATEGORY_META } from '../types'
-import { guessMapping, mappingFitsHeaders, rowsToTransactions } from '../lib/importCsv'
+import {
+  guessAccountType,
+  guessMapping,
+  mappingFitsHeaders,
+  rowsToTransactions,
+} from '../lib/importCsv'
 import { formatCurrency, formatDate } from '../lib/format'
 
 interface Props {
@@ -51,9 +56,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: Props) {
-  const [mapping, setMapping] = useState<ColumnMapping>(() =>
-    initial && mappingFitsHeaders(initial, headers) ? initial : guessMapping(headers),
-  );
+  const [mapping, setMapping] = useState<ColumnMapping>(() => {
+    if (initial && mappingFitsHeaders(initial, headers)) return initial
+    return { ...guessMapping(headers), accountType: guessAccountType(headers, rows) }
+  })
 
   const update = (patch: Partial<ColumnMapping>) =>
     setMapping((m) => ({ ...m, ...patch }))
@@ -81,6 +87,38 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
           <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
             Using your saved mapping
           </span>
+        )}
+      </div>
+
+      <div className="mt-5">
+        <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400">
+          What kind of account is this?
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              { id: 'bank', label: 'Bank / checking' },
+              { id: 'credit', label: 'Credit card' },
+            ] as { id: AccountType; label: string }[]
+          ).map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => update({ accountType: opt.id })}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                (mapping.accountType ?? 'bank') === opt.id
+                  ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-300 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {(mapping.accountType ?? 'bank') === 'credit' && (
+          <p className="mt-1.5 text-xs text-slate-500">
+            Card <span className="font-medium">payments</span> will be removed — they&apos;re
+            already counted as money leaving your checking account. Purchases and refunds are kept.
+          </p>
         )}
       </div>
 
@@ -185,6 +223,9 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
           </span>
           <span className="text-xs text-slate-500">
             {full.transactions.length} of {full.total} rows will import
+            {full.droppedPayments > 0 && (
+              <span className="text-sky-600"> · {full.droppedPayments} card payment{full.droppedPayments === 1 ? '' : 's'} removed</span>
+            )}
             {full.skipped > 0 && (
               <span className="text-amber-600"> · {full.skipped} skipped</span>
             )}

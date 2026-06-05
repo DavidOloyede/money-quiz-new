@@ -1,10 +1,12 @@
 import { useRef, useState } from 'react'
 import Papa from 'papaparse'
-import type { ColumnMapping, CsvRow } from '../types'
+import type { ColumnMapping, CsvRow, ImportSource } from '../types'
 import { useStore } from '../store'
 import { rowsToTransactions } from '../lib/importCsv'
+import { newId } from '../lib/storage'
 import { sampleCsv } from '../data/sampleData'
 import { TransactionTable } from './TransactionTable'
+import { ImportedFiles } from './ImportedFiles'
 import { ColumnMapping as ColumnMappingStep } from './ColumnMapping'
 import { CheckIcon, DownloadIcon, ShieldIcon, UploadIcon, XIcon } from './icons'
 
@@ -19,7 +21,9 @@ export function ImportView({ onNavigate }: Props) {
     transactions,
     hasData,
     mapping,
-    importTransactions,
+    sources,
+    addImport,
+    removeSource,
     saveMapping,
     loadSample,
     setCategory,
@@ -57,15 +61,30 @@ export function ImportView({ onNavigate }: Props) {
   }
 
   const onConfirmMapping = (m: ColumnMapping) => {
-    const result = rowsToTransactions(rows, m)
-    importTransactions(result.transactions)
+    const sourceId = newId()
+    const result = rowsToTransactions(rows, m, { sourceId })
+    const source: ImportSource = {
+      id: sourceId,
+      fileName: fileName || 'Imported file',
+      importedAt: new Date().toISOString(),
+      accountType: m.accountType ?? 'bank',
+      count: result.transactions.length,
+      dropped: result.droppedPayments,
+    }
+    const duplicate = sources.some((s) => s.fileName === source.fileName)
+    addImport(result.transactions, source)
     saveMapping(m)
     setStage('idle')
     setRows([])
     setHeaders([])
     setNotice(
-      `Imported ${result.transactions.length} transactions from ${fileName}` +
-        (result.skipped > 0 ? ` (${result.skipped} rows skipped).` : '.'),
+      `Added ${result.transactions.length} transactions from ${source.fileName}` +
+        (result.droppedPayments > 0
+          ? ` (${result.droppedPayments} card payment${result.droppedPayments === 1 ? '' : 's'} removed)`
+          : '') +
+        (result.skipped > 0 ? ` · ${result.skipped} rows skipped` : '') +
+        '.' +
+        (duplicate ? ' Note: you already imported a file with this name.' : ''),
     )
   }
 
@@ -84,7 +103,8 @@ export function ImportView({ onNavigate }: Props) {
       <div className="mb-4">
         <h2 className="text-xl font-bold text-slate-800">Import transactions</h2>
         <p className="text-sm text-slate-500">
-          Upload a bank CSV or load the sample data to get started.
+          Upload one or more bank CSVs — each adds to what&apos;s already here — or load the sample
+          data to get started.
         </p>
       </div>
 
@@ -100,11 +120,11 @@ export function ImportView({ onNavigate }: Props) {
 
       {notice && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 bg-white p-3 text-sm text-emerald-700">
-          <CheckIcon className="h-4 w-4" />
+          <CheckIcon className="h-4 w-4 shrink-0" />
           {notice}
           <button
             onClick={() => onNavigate('dashboard')}
-            className="ml-auto font-medium text-emerald-700 underline-offset-2 hover:underline"
+            className="ml-auto shrink-0 font-medium text-emerald-700 underline-offset-2 hover:underline"
           >
             View dashboard →
           </button>
@@ -152,7 +172,9 @@ export function ImportView({ onNavigate }: Props) {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
               <UploadIcon className="h-7 w-7" />
             </div>
-            <h3 className="mt-4 font-semibold text-slate-800">Drop a CSV here</h3>
+            <h3 className="mt-4 font-semibold text-slate-800">
+              {hasData ? 'Add another CSV' : 'Drop a CSV here'}
+            </h3>
             <p className="mt-1 text-sm text-slate-500">or choose a file from your computer</p>
             <button
               onClick={() => inputRef.current?.click()}
@@ -198,6 +220,12 @@ export function ImportView({ onNavigate }: Props) {
               Download sample CSV
             </button>
           </div>
+        </div>
+      )}
+
+      {sources.length > 0 && stage === 'idle' && (
+        <div className="mt-6">
+          <ImportedFiles sources={sources} onRemove={removeSource} />
         </div>
       )}
 

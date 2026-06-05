@@ -7,6 +7,7 @@ export const STORAGE_KEYS = {
   transactions: 'moneyquiz.transactions.v1',
   mapping: 'moneyquiz.mapping.v1',
   overrides: 'moneyquiz.overrides.v1',
+  sources: 'moneyquiz.sources.v1',
 } as const
 
 export function loadJSON<T>(key: string, fallback: T): T {

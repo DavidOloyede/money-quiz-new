@@ -571,24 +571,35 @@ export function generateQuiz(
   return pickSpread(shuffle(candidates), desired)
 }
 
-/** A few plain-language insights for the end-of-quiz summary. */
-export function quizInsights(transactions: Transaction[], now: Date = new Date()): string[] {
+/**
+ * A few plain-language insights for the end-of-quiz summary. Each insight is
+ * only shown when the quiz actually asked about that topic, so "What this quiz
+ * revealed" never surfaces a figure (like your largest expense) that the player
+ * was never quizzed on. Pass the set of base question kinds that were asked;
+ * omit it to show everything.
+ */
+export function quizInsights(transactions: Transaction[], askedKinds?: Set<string>): string[] {
   if (transactions.length === 0) return []
+  const wants = (...kinds: string[]) => !askedKinds || kinds.some((k) => askedKinds.has(k))
   const out: string[] = []
   const cats = spendingByCategory(transactions)
   const spend = totalSpending(transactions)
   const income = totalIncome(transactions)
 
-  if (cats[0] && spend > 0) {
+  if (wants('biggestCategory', 'pctCategory', 'categorySpend') && cats[0] && spend > 0) {
     out.push(
       `Your biggest spending category is ${categoryLabel(cats[0].category)} at ${formatCurrency(cats[0].total)} (${formatPercent((cats[0].total / spend) * 100)} of all spending).`,
     )
   }
-  const top = topExpenses(transactions, 1)[0]
-  if (top) {
-    out.push(`Your single largest expense was ${formatCurrency(top.amount)} at ${top.description}.`)
+  if (wants('largestExpenseAmt', 'largestExpenseMerchant')) {
+    const top = topExpenses(transactions, 1)[0]
+    if (top) {
+      out.push(
+        `Your single largest expense was ${formatCurrency(top.amount)} at ${top.description}.`,
+      )
+    }
   }
-  if (income > 0) {
+  if (wants('net', 'totalIncome', 'totalSpending') && income > 0) {
     const rate = ((income - spend) / income) * 100
     out.push(
       rate >= 0
@@ -596,9 +607,16 @@ export function quizInsights(transactions: Transaction[], now: Date = new Date()
         : `You spent more than you earned overall, a savings rate of ${formatPercent(rate)}.`,
     )
   }
-  const merch = merchantStats(transactions)[0]
-  if (merch && merch.count >= 3) {
-    out.push(`Your most frequent merchant is ${merch.merchant} with ${merch.count} visits.`)
+  if (wants('merchantCount')) {
+    const merch = merchantStats(transactions)[0]
+    if (merch && merch.count >= 3) {
+      out.push(`Your most frequent merchant is ${merch.merchant} with ${merch.count} visits.`)
+    }
   }
   return out
+}
+
+/** The set of base question types present in a quiz (e.g. "biggestCategory"). */
+export function askedKinds(questions: QuizQuestion[]): Set<string> {
+  return new Set(questions.map((q) => baseType(q.kind)))
 }

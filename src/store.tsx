@@ -8,18 +8,24 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import type { Category, ColumnMapping, Transaction } from './types'
+import type { Category, ColumnMapping, ImportSource, Transaction } from './types'
 import { applyOverrides, overrideKey } from './lib/categorize'
 import { clearAllStorage, loadJSON, saveJSON, STORAGE_KEYS } from './lib/storage'
 import { loadSampleTransactions } from './data/sampleData'
+
+const SAMPLE_SOURCE_ID = 'sample-data'
 
 interface StoreValue {
   transactions: Transaction[]
   hasData: boolean
   mapping: ColumnMapping | null
   overrides: Record<string, Category>
-  /** Replace the dataset with a freshly imported set (overrides re-applied). */
-  importTransactions: (tx: Transaction[]) => void
+  /** Every file imported so far, newest last. */
+  sources: ImportSource[]
+  /** Append a freshly imported file's transactions (overrides re-applied). */
+  addImport: (tx: Transaction[], source: ImportSource) => void
+  /** Remove one imported file and all of the transactions it contributed. */
+  removeSource: (sourceId: string) => void
   loadSample: () => void
   /** Edit one transaction's category and remember it for future imports. */
   setCategory: (id: string, category: Category) => void
@@ -39,10 +45,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [overrides, setOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.overrides, {}),
   )
+  const [sources, setSources] = useState<ImportSource[]>(() =>
+    loadJSON<ImportSource[]>(STORAGE_KEYS.sources, []),
+  )
 
-  // Always-current snapshot so setCategory can read descriptions without going stale.
+  // Always-current snapshots so callbacks can read state without nesting state
+  // updaters (which React StrictMode double-invokes, duplicating appended rows).
   const txRef = useRef(transactions)
   txRef.current = transactions
+  const overridesRef = useRef(overrides)
+  overridesRef.current = overrides
 
   useEffect(() => {
     saveJSON(STORAGE_KEYS.transactions, transactions)
@@ -53,19 +65,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     saveJSON(STORAGE_KEYS.overrides, overrides)
   }, [overrides])
+  useEffect(() => {
+    saveJSON(STORAGE_KEYS.sources, sources)
+  }, [sources])
 
-  const importTransactions = useCallback((tx: Transaction[]) => {
-    setOverrides((current) => {
-      setTransactions(applyOverrides(tx, current))
-      return current
-    })
+  const addImport = useCallback((tx: Transaction[], source: ImportSource) => {
+    const withOverrides = applyOverrides(tx, overridesRef.current)
+    setTransactions((prev) => [...prev, ...withOverrides])
+    setSources((prev) => [...prev, source])
+  }, [])
+
+  const removeSource = useCallback((sourceId: string) => {
+    setTransactions((prev) => prev.filter((t) => t.sourceId !== sourceId))
+    setSources((prev) => prev.filter((s) => s.id !== sourceId))
   }, [])
 
   const loadSample = useCallback(() => {
-    setOverrides((current) => {
-      setTransactions(applyOverrides(loadSampleTransactions(), current))
-      return current
-    })
+    const tx = loadSampleTransactions().map((t) => ({ ...t, sourceId: SAMPLE_SOURCE_ID }))
+    setTransactions(applyOverrides(tx, overridesRef.current))
+    setSources([
+      {
+        id: SAMPLE_SOURCE_ID,
+        fileName: 'Sample data',
+        importedAt: new Date().toISOString(),
+        accountType: 'bank',
+        count: tx.length,
+        dropped: 0,
+      },
+    ])
   }, [])
 
   const setCategory = useCallback((id: string, category: Category) => {
@@ -85,6 +112,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTransactions([])
     setMapping(null)
     setOverrides({})
+    setSources([])
   }, [])
 
   const value = useMemo<StoreValue>(
@@ -93,7 +121,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       hasData: transactions.length > 0,
       mapping,
       overrides,
-      importTransactions,
+      sources,
+      addImport,
+      removeSource,
       loadSample,
       setCategory,
       saveMapping,
@@ -103,7 +133,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       transactions,
       mapping,
       overrides,
-      importTransactions,
+      sources,
+      addImport,
+      removeSource,
       loadSample,
       setCategory,
       saveMapping,

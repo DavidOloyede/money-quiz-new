@@ -1,6 +1,17 @@
 import type { Category, Transaction } from '../types'
+import { isExcludedCategory } from '../types'
 
 export type TimeRange = 'thisMonth' | 'lastMonth' | 'all'
+
+/**
+ * Transfers and Zelle move money between your own accounts (or pay off a card)
+ * rather than being real spending or income, so they're excluded from every
+ * total, the category breakdown, and the trend. They're surfaced on their own
+ * via `excludedSummary` instead.
+ */
+export function countsTowardTotals(t: Transaction): boolean {
+  return !isExcludedCategory(t.category)
+}
 
 function pad(n: number): string {
   return String(n).padStart(2, '0')
@@ -51,15 +62,21 @@ export function rangeLabel(range: TimeRange): string {
 }
 
 export function totalSpending(transactions: Transaction[]): number {
-  return transactions.reduce((sum, t) => (t.amount < 0 ? sum - t.amount : sum), 0)
+  return transactions.reduce(
+    (sum, t) => (t.amount < 0 && countsTowardTotals(t) ? sum - t.amount : sum),
+    0,
+  )
 }
 
 export function totalIncome(transactions: Transaction[]): number {
-  return transactions.reduce((sum, t) => (t.amount > 0 ? sum + t.amount : sum), 0)
+  return transactions.reduce(
+    (sum, t) => (t.amount > 0 && countsTowardTotals(t) ? sum + t.amount : sum),
+    0,
+  )
 }
 
 export function netTotal(transactions: Transaction[]): number {
-  return transactions.reduce((sum, t) => sum + t.amount, 0)
+  return transactions.reduce((sum, t) => (countsTowardTotals(t) ? sum + t.amount : sum), 0)
 }
 
 export interface CategoryTotal {
@@ -72,7 +89,7 @@ export interface CategoryTotal {
 export function spendingByCategory(transactions: Transaction[]): CategoryTotal[] {
   const map = new Map<Category, { total: number; count: number }>()
   for (const t of transactions) {
-    if (t.amount >= 0) continue
+    if (t.amount >= 0 || !countsTowardTotals(t)) continue
     const entry = map.get(t.category) ?? { total: 0, count: 0 }
     entry.total += -t.amount
     entry.count += 1
@@ -94,7 +111,7 @@ export interface ExpenseItem {
 /** Largest individual expenses, biggest first. */
 export function topExpenses(transactions: Transaction[], n = 5): ExpenseItem[] {
   return transactions
-    .filter((t) => t.amount < 0)
+    .filter((t) => t.amount < 0 && countsTowardTotals(t))
     .map((t) => ({
       id: t.id,
       description: t.description,
@@ -117,6 +134,7 @@ export interface MonthlyPoint {
 export function monthlyTrend(transactions: Transaction[]): MonthlyPoint[] {
   const map = new Map<string, { spending: number; income: number }>()
   for (const t of transactions) {
+    if (!countsTowardTotals(t)) continue
     const k = monthKey(t.date)
     const entry = map.get(k) ?? { spending: 0, income: 0 }
     if (t.amount < 0) entry.spending += -t.amount
@@ -166,7 +184,7 @@ export interface MerchantStat {
 export function merchantStats(transactions: Transaction[]): MerchantStat[] {
   const map = new Map<string, { count: number; total: number }>()
   for (const t of transactions) {
-    if (t.amount >= 0) continue
+    if (t.amount >= 0 || !countsTowardTotals(t)) continue
     const name = t.description.trim()
     const entry = map.get(name) ?? { count: 0, total: 0 }
     entry.count += 1
@@ -206,4 +224,30 @@ export function headlineStats(transactions: Transaction[]): HeadlineStats {
 export function monthsPresent(transactions: Transaction[]): string[] {
   const set = new Set(transactions.map((t) => monthKey(t.date)))
   return [...set].sort((a, b) => a.localeCompare(b))
+}
+
+export interface ExcludedTotal {
+  category: Category
+  out: number
+  in: number
+  count: number
+}
+
+/**
+ * Per-category in/out totals for the categories excluded from spending
+ * (transfers, Zelle), so they can be shown on their own. Largest activity first.
+ */
+export function excludedSummary(transactions: Transaction[]): ExcludedTotal[] {
+  const map = new Map<Category, { out: number; in: number; count: number }>()
+  for (const t of transactions) {
+    if (countsTowardTotals(t)) continue
+    const entry = map.get(t.category) ?? { out: 0, in: 0, count: 0 }
+    if (t.amount < 0) entry.out += -t.amount
+    else entry.in += t.amount
+    entry.count += 1
+    map.set(t.category, entry)
+  }
+  return [...map.entries()]
+    .map(([category, v]) => ({ category, out: v.out, in: v.in, count: v.count }))
+    .sort((a, b) => b.out + b.in - (a.out + a.in))
 }
