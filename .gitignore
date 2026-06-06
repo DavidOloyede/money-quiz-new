@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Plaid backend: never commit secrets or stored access tokens
+.env
+.env.*
+!.env.example
+server/.data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

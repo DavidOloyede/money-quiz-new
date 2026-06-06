@@ -7,7 +7,24 @@ export const STORAGE_KEYS = {
   transactions: 'moneyquiz.transactions.v1',
   mapping: 'moneyquiz.mapping.v1',
   overrides: 'moneyquiz.overrides.v1',
+  sources: 'moneyquiz.sources.v1',
+  merchantOverrides: 'moneyquiz.merchantOverrides.v1',
+  categories: 'moneyquiz.categories.v1',
+  budgets: 'moneyquiz.budgets.v1',
+  quizHistory: 'moneyquiz.quizHistory.v1',
+  theme: 'moneyquiz.theme.v1',
 } as const
+
+/** Keys that hold imported data / edits (wiped by "Clear all data"). */
+export const DATA_KEYS: string[] = [
+  STORAGE_KEYS.transactions,
+  STORAGE_KEYS.mapping,
+  STORAGE_KEYS.overrides,
+  STORAGE_KEYS.sources,
+  STORAGE_KEYS.merchantOverrides,
+  STORAGE_KEYS.budgets,
+  STORAGE_KEYS.quizHistory,
+]
 
 export function loadJSON<T>(key: string, fallback: T): T {
   try {

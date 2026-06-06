@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
-import { generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
+import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
+import { QuizHistory } from './QuizHistory'
 import { EmptyState } from './EmptyState'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
 import type { View } from './Nav'
@@ -12,15 +13,16 @@ interface Props {
 }
 
 export function QuizView({ onNavigate }: Props) {
-  const { transactions, hasData, loadSample } = useStore()
+  const { transactions, hasData, loadSample, budgets, quizHistory, recordQuizResult } = useStore()
   const [phase, setPhase] = useState<Phase>('intro')
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>([])
   const [tooSparse, setTooSparse] = useState(false)
+  const recordedRef = useRef(false)
 
   const start = () => {
-    const qs = generateQuiz(transactions)
+    const qs = generateQuiz(transactions, { budgets })
     if (qs.length < 3) {
       setTooSparse(true)
       return
@@ -29,13 +31,14 @@ export function QuizView({ onNavigate }: Props) {
     setQuestions(qs)
     setAnswers(Array(qs.length).fill(null))
     setIndex(0)
+    recordedRef.current = false
     setPhase('playing')
   }
 
   if (!hasData) {
     return (
       <Shell>
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <EmptyState
             icon={<QuizIcon className="h-7 w-7" />}
             title="Your quiz is waiting for data"
@@ -49,7 +52,7 @@ export function QuizView({ onNavigate }: Props) {
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               Go to Import
             </button>
@@ -62,20 +65,20 @@ export function QuizView({ onNavigate }: Props) {
   if (phase === 'intro') {
     return (
       <Shell>
-        <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-50 to-white p-8 text-center">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-white p-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white">
             <QuizIcon className="h-8 w-8" />
           </div>
-          <h3 className="mt-5 text-xl font-bold text-slate-800">
+          <h3 className="mt-5 text-xl font-bold text-slate-800 dark:text-slate-100">
             How well do you know your money?
           </h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
+          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
             We&apos;ll generate up to 10 multiple-choice questions from your own transactions.
             Each one teaches you something about your habits — and a fresh mix appears every time
             you play.
           </p>
           {tooSparse && (
-            <p className="mx-auto mt-4 max-w-md rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+            <p className="mx-auto mt-4 max-w-md rounded-lg bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
               There isn&apos;t quite enough data to build a good quiz yet. Try importing more
               transactions or loading the sample data.
             </p>
@@ -87,6 +90,11 @@ export function QuizView({ onNavigate }: Props) {
             Start quiz
           </button>
         </div>
+        {quizHistory.length > 0 && (
+          <div className="mt-4">
+            <QuizHistory history={quizHistory} />
+          </div>
+        )}
       </Shell>
     )
   }
@@ -124,15 +132,20 @@ export function QuizView({ onNavigate }: Props) {
   }
 
   const goNext = () => {
-    if (isLast) setPhase('done')
-    else setIndex((i) => i + 1)
+    if (isLast) {
+      if (!recordedRef.current) {
+        recordQuizResult(score(questions, answers), questions.length)
+        recordedRef.current = true
+      }
+      setPhase('done')
+    } else setIndex((i) => i + 1)
   }
 
   return (
     <Shell>
       <div className="mx-auto max-w-2xl">
         <div className="mb-4">
-          <div className="mb-1 flex items-center justify-between text-xs font-medium text-slate-500">
+          <div className="mb-1 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
             <span>
               Question {index + 1} of {questions.length}
             </span>
@@ -146,19 +159,19 @@ export function QuizView({ onNavigate }: Props) {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="text-lg font-semibold text-slate-800">{q.prompt}</h3>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{q.prompt}</h3>
 
           <div className="mt-4 space-y-2.5">
             {q.options.map((opt, i) => {
               const isCorrect = i === q.correctIndex
               const isChosen = i === selected
               let cls =
-                'border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-slate-700'
+                'border-slate-200 dark:border-slate-700 hover:border-emerald-400 hover:bg-emerald-50/40 text-slate-700 dark:text-slate-200'
               if (answered) {
-                if (isCorrect) cls = 'border-emerald-500 bg-emerald-50 text-emerald-800'
-                else if (isChosen) cls = 'border-rose-400 bg-rose-50 text-rose-700'
-                else cls = 'border-slate-200 text-slate-400'
+                if (isCorrect) cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                else if (isChosen) cls = 'border-rose-400 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
+                else cls = 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
               }
               return (
                 <button
@@ -184,8 +197,8 @@ export function QuizView({ onNavigate }: Props) {
               <div
                 className={`rounded-xl p-4 text-sm ${
                   selected === q.correctIndex
-                    ? 'bg-emerald-50 text-emerald-800'
-                    : 'bg-rose-50 text-rose-800'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300'
                 }`}
               >
                 <div className="font-semibold">
@@ -193,7 +206,7 @@ export function QuizView({ onNavigate }: Props) {
                 </div>
                 <div className="mt-0.5">{q.answerDetail}</div>
               </div>
-              <div className="flex items-start gap-2 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+              <div className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-sm text-slate-600 dark:text-slate-300">
                 <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                 <span>{q.takeaway}</span>
               </div>
@@ -231,11 +244,14 @@ function Results({
   onRetake: () => void
   onReview: () => void
 }) {
-  const { transactions } = useStore()
+  const { transactions, quizHistory } = useStore()
   const correct = score(questions, answers)
   const total = questions.length
   const pct = Math.round((correct / total) * 100)
-  const insights = useMemo(() => quizInsights(transactions), [transactions])
+  const insights = useMemo(
+    () => quizInsights(transactions, askedKinds(questions)),
+    [transactions, questions],
+  )
 
   const verdict =
     pct >= 80
@@ -246,16 +262,16 @@ function Results({
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-        <div className="text-sm font-medium uppercase tracking-wide text-slate-400">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center">
+        <div className="text-sm font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
           Your score
         </div>
-        <div className="mt-1 text-5xl font-bold text-slate-800">
+        <div className="mt-1 text-5xl font-bold text-slate-800 dark:text-slate-100">
           {correct}
-          <span className="text-2xl text-slate-400"> / {total}</span>
+          <span className="text-2xl text-slate-400 dark:text-slate-500"> / {total}</span>
         </div>
         <div className="mt-1 text-sm font-medium text-emerald-600">{pct}%</div>
-        <p className="mx-auto mt-3 max-w-sm text-sm text-slate-500">{verdict}</p>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-slate-500 dark:text-slate-400">{verdict}</p>
         <div className="mt-6 flex justify-center gap-3">
           <button
             onClick={onRetake}
@@ -265,19 +281,21 @@ function Results({
           </button>
           <button
             onClick={onReview}
-            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             Review answers
           </button>
         </div>
       </div>
 
+      {quizHistory.length > 0 && <QuizHistory history={quizHistory} />}
+
       {insights.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="font-semibold text-slate-800">What this quiz revealed</h3>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+          <h3 className="font-semibold text-slate-800 dark:text-slate-100">What this quiz revealed</h3>
           <ul className="mt-3 space-y-2">
             {insights.map((text, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                 <span>{text}</span>
               </li>
@@ -286,8 +304,8 @@ function Results({
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <h3 className="font-semibold text-slate-800">Question review</h3>
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Question review</h3>
         <ul className="mt-3 space-y-3">
           {questions.map((q, i) => {
             const right = answers[i] === q.correctIndex
@@ -301,8 +319,8 @@ function Results({
                   {right ? <CheckIcon className="h-3.5 w-3.5" /> : <XIcon className="h-3.5 w-3.5" />}
                 </span>
                 <div>
-                  <div className="font-medium text-slate-700">{q.prompt}</div>
-                  <div className="text-slate-500">{q.answerDetail}</div>
+                  <div className="font-medium text-slate-700 dark:text-slate-200">{q.prompt}</div>
+                  <div className="text-slate-500 dark:text-slate-400">{q.answerDetail}</div>
                 </div>
               </li>
             )
@@ -316,7 +334,7 @@ function Results({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold text-slate-800">Quiz</h2>
+      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-slate-100">Quiz</h2>
       {children}
     </div>
   )
