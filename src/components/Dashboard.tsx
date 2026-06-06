@@ -1,29 +1,40 @@
 import { useMemo, useState } from 'react'
 import { useStore } from '../store'
 import {
+  currentMonthKey,
   excludedSummary,
+  filterByDateRange,
   filterByRange,
   headlineStats,
   monthlyTrend,
+  prevMonthKey,
+  rangeLabel,
   spendingByCategory,
   topExpenses,
   type TimeRange,
 } from '../lib/analysis'
 import type { Category } from '../types'
-import { CATEGORY_META, categoryLabel } from '../types'
+import { categoryLabel, categoryMeta } from '../lib/categories'
 import { formatCurrency, formatDate, formatPercent } from '../lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal } from './CategoryDetailModal'
+import { BudgetsCard } from './BudgetsCard'
+import { RecurringCard } from './RecurringCard'
+import { TrendsCard } from './TrendsCard'
+import { TopMerchantsCard } from './TopMerchantsCard'
 import { StatCard } from './StatCard'
 import { EmptyState } from './EmptyState'
 import { ChartIcon } from './icons'
 import type { View } from './Nav'
 
-const RANGES: { id: TimeRange; label: string }[] = [
+type RangeId = TimeRange | 'custom'
+
+const RANGES: { id: RangeId; label: string }[] = [
   { id: 'thisMonth', label: 'This month' },
   { id: 'lastMonth', label: 'Last month' },
   { id: 'all', label: 'All time' },
+  { id: 'custom', label: 'Custom' },
 ]
 
 type SortKey = 'category' | 'total'
@@ -33,16 +44,29 @@ interface Props {
 }
 
 export function Dashboard({ onNavigate }: Props) {
-  const { transactions, hasData, loadSample } = useStore()
-  const [range, setRange] = useState<TimeRange>('all')
+  const { transactions, hasData, loadSample, budgets, setBudget } = useStore()
+  const [range, setRange] = useState<RangeId>('all')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('total')
   const [sortAsc, setSortAsc] = useState(false)
   const [drill, setDrill] = useState<Category | null>(null)
 
   const filtered = useMemo(
-    () => filterByRange(transactions, range),
-    [transactions, range],
+    () =>
+      range === 'custom'
+        ? filterByDateRange(transactions, customFrom || undefined, customTo || undefined)
+        : filterByRange(transactions, range),
+    [transactions, range, customFrom, customTo],
   )
+  const budgetMonth =
+    range === 'lastMonth' ? prevMonthKey() : currentMonthKey()
+  const scopeLabel =
+    range === 'custom'
+      ? customFrom && customTo
+        ? `${formatDate(customFrom)} – ${formatDate(customTo)}`
+        : 'custom range'
+      : rangeLabel(range)
   const stats = useMemo(() => headlineStats(filtered), [filtered])
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
   const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
@@ -64,7 +88,7 @@ export function Dashboard({ onNavigate }: Props) {
   if (!hasData) {
     return (
       <ViewShell title="Dashboard">
-        <div className="rounded-xl border border-slate-200 bg-white">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <EmptyState
             icon={<ChartIcon className="w-7 h-7" />}
             title="No data to analyze yet"
@@ -78,7 +102,7 @@ export function Dashboard({ onNavigate }: Props) {
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               Go to Import
             </button>
@@ -103,25 +127,46 @@ export function Dashboard({ onNavigate }: Props) {
     <ViewShell
       title="Dashboard"
       action={
-        <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => setRange(r.id)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                range === r.id
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5">
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setRange(r.id)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  range === r.id
+                    ? 'bg-emerald-600 text-white'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+          {range === 'custom' && (
+            <div className="flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+                aria-label="From date"
+              />
+              <span>–</span>
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+                aria-label="To date"
+              />
+            </div>
+          )}
         </div>
       }
     >
       {isRangeEmpty ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center text-sm text-slate-500 dark:text-slate-400">
           No transactions in this time range. Try a different range.
         </div>
       ) : (
@@ -171,17 +216,17 @@ export function Dashboard({ onNavigate }: Props) {
 
           {/* Category breakdown + trend */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
-              <h3 className="font-semibold text-slate-800">Spending by category</h3>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100">Spending by category</h3>
               {cats.length === 0 ? (
-                <p className="mt-6 text-sm text-slate-500">No spending in this range.</p>
+                <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">No spending in this range.</p>
               ) : (
                 <>
                   <CategoryDonut data={cats} total={stats.totalSpending} onSelect={setDrill} />
-                  <div className="mt-4 overflow-hidden rounded-lg border border-slate-100">
+                  <div className="mt-4 overflow-hidden rounded-lg border border-slate-100 dark:border-slate-800">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
+                        <tr className="bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
                           <th className="px-3 py-2">
                             <button
                               onClick={() => toggleSort('category')}
@@ -201,7 +246,7 @@ export function Dashboard({ onNavigate }: Props) {
                           <th className="px-3 py-2 text-right">Share</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {sortedCats.map((c) => {
                           const pct =
                             stats.totalSpending > 0
@@ -211,24 +256,24 @@ export function Dashboard({ onNavigate }: Props) {
                             <tr
                               key={c.category}
                               onClick={() => setDrill(c.category)}
-                              className="cursor-pointer hover:bg-slate-50"
+                              className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
                             >
                               <td className="px-3 py-2">
                                 <span className="inline-flex items-center gap-2">
                                   <span
                                     className="inline-block w-2.5 h-2.5 rounded-sm"
-                                    style={{ background: CATEGORY_META[c.category].color }}
+                                    style={{ background: categoryMeta(c.category).color }}
                                   />
-                                  <span className="font-medium text-slate-700 underline-offset-2 hover:underline">
+                                  <span className="font-medium text-slate-700 dark:text-slate-200 underline-offset-2 hover:underline">
                                     {categoryLabel(c.category)}
                                   </span>
-                                  <span className="text-slate-400">· {c.count}</span>
+                                  <span className="text-slate-400 dark:text-slate-500">· {c.count}</span>
                                 </span>
                               </td>
-                              <td className="px-3 py-2 text-right tabular-nums font-medium text-slate-700">
+                              <td className="px-3 py-2 text-right tabular-nums font-medium text-slate-700 dark:text-slate-200">
                                 {formatCurrency(c.total)}
                               </td>
-                              <td className="px-3 py-2 text-right tabular-nums text-slate-500">
+                              <td className="px-3 py-2 text-right tabular-nums text-slate-500 dark:text-slate-400">
                                 {formatPercent(pct)}
                               </td>
                             </tr>
@@ -242,32 +287,32 @@ export function Dashboard({ onNavigate }: Props) {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-800">Monthly trend</h3>
-                  <span className="text-xs text-slate-400">All time</span>
+                  <h3 className="font-semibold text-slate-800 dark:text-slate-100">Monthly trend</h3>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">All time</span>
                 </div>
                 <div className="mt-2">
                   <MonthlyTrend data={trend} />
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-5">
-                <h3 className="font-semibold text-slate-800">Top 5 expenses</h3>
-                <ul className="mt-3 divide-y divide-slate-100">
+              <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">Top 5 expenses</h3>
+                <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
                   {top5.map((e, i) => (
                     <li key={e.id} className="flex items-center gap-3 py-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-500">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400">
                         {i + 1}
                       </span>
-                      <span aria-hidden>{CATEGORY_META[e.category].emoji}</span>
+                      <span aria-hidden>{categoryMeta(e.category).emoji}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-slate-700">
+                        <div className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
                           {e.description}
                         </div>
-                        <div className="text-xs text-slate-400">{formatDate(e.date)}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">{formatDate(e.date)}</div>
                       </div>
-                      <div className="tabular-nums text-sm font-semibold text-slate-800">
+                      <div className="tabular-nums text-sm font-semibold text-slate-800 dark:text-slate-100">
                         {formatCurrency(e.amount)}
                       </div>
                     </li>
@@ -277,13 +322,26 @@ export function Dashboard({ onNavigate }: Props) {
             </div>
           </div>
 
+          {/* Budgets, recurring, trends, top merchants */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <BudgetsCard
+              transactions={transactions}
+              monthKey={budgetMonth}
+              budgets={budgets}
+              onSetBudget={setBudget}
+            />
+            <TopMerchantsCard transactions={filtered} />
+            <RecurringCard transactions={transactions} />
+            <TrendsCard transactions={transactions} />
+          </div>
+
           {excluded.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-semibold text-slate-800">Transfers &amp; Zelle</h3>
-                <span className="text-xs text-slate-400">Not counted as spending or income</span>
+                <h3 className="font-semibold text-slate-800 dark:text-slate-100">Transfers &amp; Zelle</h3>
+                <span className="text-xs text-slate-400 dark:text-slate-500">Not counted as spending or income</span>
               </div>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                 Money moved between your own accounts (or paying off a card) is tracked here so it
                 doesn&apos;t distort your spending. Click one to review or recategorize.
               </p>
@@ -292,23 +350,23 @@ export function Dashboard({ onNavigate }: Props) {
                   <button
                     key={e.category}
                     onClick={() => setDrill(e.category)}
-                    className="flex items-center gap-3 rounded-lg border border-slate-200 p-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50"
+                    className="flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 p-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                   >
                     <span
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
-                      style={{ background: `${CATEGORY_META[e.category].color}1a` }}
+                      style={{ background: `${categoryMeta(e.category).color}1a` }}
                       aria-hidden
                     >
-                      {CATEGORY_META[e.category].emoji}
+                      {categoryMeta(e.category).emoji}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-medium text-slate-700">
+                      <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
                         {categoryLabel(e.category)}
-                        <span className="ml-1 text-xs font-normal text-slate-400">
+                        <span className="ml-1 text-xs font-normal text-slate-400 dark:text-slate-500">
                           · {e.count}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-500 tabular-nums">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                         {formatCurrency(e.out)} out
                         {e.in > 0 && ` · ${formatCurrency(e.in)} in`}
                       </div>
@@ -322,7 +380,12 @@ export function Dashboard({ onNavigate }: Props) {
       )}
 
       {drill && (
-        <CategoryDetailModal category={drill} range={range} onClose={() => setDrill(null)} />
+        <CategoryDetailModal
+          category={drill}
+          transactions={filtered}
+          scopeLabel={scopeLabel}
+          onClose={() => setDrill(null)}
+        />
       )}
     </ViewShell>
   )
@@ -345,7 +408,7 @@ function ViewShell({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">{title}</h2>
         {action}
       </div>
       {children}

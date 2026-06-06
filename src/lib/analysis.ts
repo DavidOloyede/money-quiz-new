@@ -1,5 +1,6 @@
 import type { Category, Transaction } from '../types'
-import { isExcludedCategory } from '../types'
+import { isExcludedCategory } from './categories'
+import { merchantKey, merchantLabel } from './merchant'
 
 export type TimeRange = 'thisMonth' | 'lastMonth' | 'all'
 
@@ -182,18 +183,26 @@ export interface MerchantStat {
 
 /** Expense merchants by visit count (then spend), most frequent first. */
 export function merchantStats(transactions: Transaction[]): MerchantStat[] {
-  const map = new Map<string, { count: number; total: number }>()
+  const map = new Map<string, { label: string; count: number; total: number }>()
   for (const t of transactions) {
     if (t.amount >= 0 || !countsTowardTotals(t)) continue
-    const name = t.description.trim()
-    const entry = map.get(name) ?? { count: 0, total: 0 }
+    const key = merchantKey(t.description)
+    const entry = map.get(key) ?? { label: merchantLabel(t.description), count: 0, total: 0 }
     entry.count += 1
     entry.total += -t.amount
-    map.set(name, entry)
+    map.set(key, entry)
   }
-  return [...map.entries()]
-    .map(([merchant, v]) => ({ merchant, count: v.count, total: v.total }))
+  return [...map.values()]
+    .map((v) => ({ merchant: v.label, count: v.count, total: v.total }))
     .sort((a, b) => b.count - a.count || b.total - a.total)
+}
+
+/** Expense merchants by total spend, biggest first. */
+export function topMerchants(transactions: Transaction[], n = 8): MerchantStat[] {
+  return merchantStats(transactions)
+    .slice()
+    .sort((a, b) => b.total - a.total)
+    .slice(0, n)
 }
 
 export interface HeadlineStats {
@@ -224,6 +233,143 @@ export function headlineStats(transactions: Transaction[]): HeadlineStats {
 export function monthsPresent(transactions: Transaction[]): string[] {
   const set = new Set(transactions.map((t) => monthKey(t.date)))
   return [...set].sort((a, b) => a.localeCompare(b))
+}
+
+/** Filter to an inclusive custom date window (ISO YYYY-MM-DD bounds). */
+export function filterByDateRange(
+  transactions: Transaction[],
+  from?: string,
+  to?: string,
+): Transaction[] {
+  return transactions.filter((t) => (!from || t.date >= from) && (!to || t.date <= to))
+}
+
+/** Shift a "YYYY-MM" key back by N months. */
+function shiftMonth(key: string, back: number): string {
+  const [y, m] = key.split('-').map(Number)
+  const d = new Date(Date.UTC(y, m - 1 - back, 1))
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`
+}
+
+export interface RecurringPayment {
+  merchant: string
+  category: Category
+  count: number
+  months: number
+  avgAmount: number
+  monthlyEstimate: number
+  lastDate: string
+}
+
+/**
+ * Charges that repeat across at least 3 different months for the same merchant —
+ * subscriptions, rent, utilities, frequent stops. Sorted by monthly cost.
+ */
+export function recurringPayments(transactions: Transaction[]): RecurringPayment[] {
+  const map = new Map<
+    string,
+    { label: string; cat: Category; amounts: number[]; months: Set<string>; total: number; last: string }
+  >()
+  for (const t of transactions) {
+    if (t.amount >= 0 || !countsTowardTotals(t)) continue
+    const key = merchantKey(t.description)
+    const e =
+      map.get(key) ??
+      { label: merchantLabel(t.description), cat: t.category, amounts: [], months: new Set<string>(), total: 0, last: '' }
+    e.amounts.push(-t.amount)
+    e.months.add(monthKey(t.date))
+    e.total += -t.amount
+    e.cat = t.category
+    if (t.date > e.last) e.last = t.date
+    map.set(key, e)
+  }
+  const out: RecurringPayment[] = []
+  for (const e of map.values()) {
+    const months = e.months.size
+    if (e.amounts.length >= 3 && months >= 3) {
+      out.push({
+        merchant: e.label,
+        category: e.cat,
+        count: e.amounts.length,
+        months,
+        avgAmount: e.total / e.amounts.length,
+        monthlyEstimate: e.total / months,
+        lastDate: e.last,
+      })
+    }
+  }
+  return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
+}
+
+export interface CategoryTrend {
+  category: Category
+  monthKey: string
+  current: number
+  baseline: number
+  delta: number
+  deltaPct: number
+}
+
+/**
+ * Per-category change in the latest full month versus the average of the prior
+ * up-to-3 months. Only material moves (>=25% and >=$25) are returned, biggest
+ * dollar move first — the basis for "Dining is up 40%" style callouts.
+ */
+export function spendingTrends(transactions: Transaction[], now: Date = new Date()): CategoryTrend[] {
+  const curKey = prevMonthKey(now)
+  const baseKeys = [1, 2, 3].map((b) => shiftMonth(curKey, b))
+  const curMap = new Map(
+    spendingByCategory(transactions.filter((t) => monthKey(t.date) === curKey)).map((c) => [
+      c.category,
+      c.total,
+    ]),
+  )
+  const baseTotals = new Map<Category, number[]>()
+  for (const mk of baseKeys) {
+    for (const c of spendingByCategory(transactions.filter((t) => monthKey(t.date) === mk))) {
+      const arr = baseTotals.get(c.category) ?? []
+      arr.push(c.total)
+      baseTotals.set(c.category, arr)
+    }
+  }
+  const cats = new Set<Category>([...curMap.keys(), ...baseTotals.keys()])
+  const out: CategoryTrend[] = []
+  for (const cat of cats) {
+    const current = curMap.get(cat) ?? 0
+    const arr = baseTotals.get(cat) ?? []
+    const baseline = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0
+    const delta = current - baseline
+    if (Math.abs(delta) < 25) continue
+    const deltaPct = baseline > 0 ? (delta / baseline) * 100 : 100
+    if (baseline > 0 && Math.abs(deltaPct) < 25) continue
+    out.push({ category: cat, monthKey: curKey, current, baseline, delta, deltaPct })
+  }
+  return out.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+}
+
+export interface BudgetStatusItem {
+  category: Category
+  budget: number
+  spent: number
+  pct: number
+  over: boolean
+}
+
+/** Spend vs budget for a given "YYYY-MM", only for categories with a budget set. */
+export function budgetStatus(
+  transactions: Transaction[],
+  budgets: Record<string, number>,
+  monthKeyStr: string,
+): BudgetStatusItem[] {
+  const monthTx = transactions.filter((t) => monthKey(t.date) === monthKeyStr)
+  const spentByCat = new Map(spendingByCategory(monthTx).map((c) => [c.category, c.total]))
+  return Object.entries(budgets)
+    .filter(([, b]) => b > 0)
+    .map(([category, budget]) => {
+      const spent = spentByCat.get(category) ?? 0
+      return { category, budget, spent, pct: budget > 0 ? (spent / budget) * 100 : 0, over: spent > budget }
+    })
+    .sort((a, b) => b.pct - a.pct)
 }
 
 export interface ExcludedTotal {

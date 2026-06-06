@@ -58,31 +58,44 @@ npm run preview   # serve the production build locally
    and how many card payments were removed. Click **Import**. Your mapping is
    remembered for next time.
 
-Auto-categorization uses keyword rules (groceries, dining, transport, utilities,
-rent/mortgage, shopping, entertainment, health, **Zelle**, income, **transfers**,
-other). **Zelle** and **transfers** (card payments, account-to-account moves) are
+Auto-categorization uses keyword rules across groceries, dining, transport,
+utilities, rent/mortgage, shopping, entertainment, **subscriptions** (Apple,
+Google, GitHub, Figma, etc.), health, **Zelle**, income, **transfers**, and
+other. **Zelle** and **transfers** (card payments, account-to-account moves) are
 tracked on their own and *excluded* from spending and income totals, so moving
-money between your own accounts doesn't distort the picture. You can change any
-transaction's category inline — in the table, or by clicking a category on the
-dashboard to drill in — and your edits are remembered and re-applied to future
-imports of the same merchant.
+money between your own accounts doesn't distort the picture.
+
+You can change any transaction's category inline — in the table, or by clicking a
+category on the dashboard to drill in. When you recategorize one transaction
+we'll offer to **apply the change to every matching merchant** at once, and you
+can multi-select rows for bulk edits. Your edits are remembered and re-applied to
+future imports of the same merchant.
 
 You can also click **Download sample CSV** on the Import tab to see exactly the
 shape the importer expects (`Date,Description,Amount`).
 
 ## What you get
 
-- **Dashboard** — income / spending / net for this month, last month, or all
-  time; spending-by-category donut with a sortable breakdown; top 5 expenses; a
-  monthly trend chart; and headline stats (biggest category, largest expense,
-  average daily spend, transaction count). Click any category (in the donut or
-  the breakdown) to drill into its transactions and recategorize them. A separate
-  **Transfers & Zelle** panel shows the money that's tracked but not counted.
+- **Dashboard** — income / spending / net for this month, last month, all time,
+  or a **custom date range**; a spending-by-category donut with a sortable
+  breakdown; top 5 expenses; a monthly trend chart; and headline stats. Click any
+  category to drill into its transactions and recategorize them. Plus:
+  - **Budgets** — set a monthly budget per category and track progress with
+    over/under alerts.
+  - **Recurring payments** — automatically detected subscriptions and bills with
+    an estimated monthly cost.
+  - **Trends & anomalies** — callouts like *"Dining is up 40% vs your 3-month
+    average."*
+  - **Top merchants** and a **Transfers & Zelle** panel for the money that's
+    tracked but not counted.
 - **Quiz** — 8–10 multiple-choice questions computed from your real numbers
-  (e.g. *"How much did you spend on Dining last month?"*, *"What was your single
-  largest expense?"*, *"Did your Groceries spending go up or down?"*). Each answer
-  reveals the real figure and a one-sentence takeaway. Retake for a fresh,
-  randomized set.
+  (spending by category, largest expense, month-over-month changes, recurring
+  costs, busiest spending day, budget vs actual, and more). Each answer reveals
+  the real figure and a one-sentence takeaway, and your **scores, best result,
+  and day streak** are tracked across attempts. Retake for a fresh set.
+- **Settings** — light/dark theme, fully customizable categories (rename,
+  recolor, add your own), and one-click **export** of your data (CSV / JSON) or a
+  printable summary report.
 
 ## Tech stack
 

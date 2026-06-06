@@ -1,13 +1,15 @@
 import type { Transaction } from '../types'
-import { CATEGORIES, categoryLabel } from '../types'
+import { allCategories, categoryLabel } from './categories'
 import { formatAbs, formatCurrency, formatMonth, formatPercent } from './format'
 import {
   avgDailySpend,
+  countsTowardTotals,
   filterByRange,
   merchantStats,
   monthKey,
   netTotal,
   rangeLabel,
+  recurringPayments,
   spanDays,
   spendingByCategory,
   topExpenses,
@@ -228,11 +230,16 @@ function posNegLabel(x: number): string {
 interface Ctx {
   now: Date
   all: Transaction[]
+  budgets: Record<string, number>
   rangesWithData: TimeRange[]
   tx: (r: TimeRange) => Transaction[]
 }
 
-function buildCtx(transactions: Transaction[], now: Date): Ctx {
+function buildCtx(
+  transactions: Transaction[],
+  now: Date,
+  budgets: Record<string, number>,
+): Ctx {
   const cache = new Map<TimeRange, Transaction[]>()
   const tx = (r: TimeRange) => {
     if (!cache.has(r)) cache.set(r, filterByRange(transactions, r, now))
@@ -241,7 +248,7 @@ function buildCtx(transactions: Transaction[], now: Date): Ctx {
   const rangesWithData = (['thisMonth', 'lastMonth', 'all'] as TimeRange[]).filter(
     (r) => tx(r).length > 0,
   )
-  return { now, all: transactions, rangesWithData, tx }
+  return { now, all: transactions, budgets, rangesWithData, tx }
 }
 
 function mk(
@@ -287,9 +294,9 @@ function genBiggestCategory(ctx: Ctx, range: TimeRange): QuizQuestion | null {
   const total = totalSpending(txs)
   const winner = cats[0]
   const present = cats.slice(1).map((c) => categoryLabel(c.category))
-  const extra = CATEGORIES.filter(
-    (c) => c !== 'income' && c !== winner.category,
-  ).map(categoryLabel)
+  const extra = allCategories()
+    .filter((d) => d.kind === 'spending' && d.id !== winner.category)
+    .map((d) => d.label)
   const distractors = [...present, ...extra.filter((e) => !present.includes(e))]
   const choices = assemble(categoryLabel(winner.category), distractors)
   if (!choices) return null
@@ -488,6 +495,89 @@ function genCategoryTrend(ctx: Ctx): QuizQuestion | null {
   )
 }
 
+const DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+function genBusiestDay(ctx: Ctx): QuizQuestion | null {
+  const byDow = [0, 0, 0, 0, 0, 0, 0]
+  for (const t of ctx.all) {
+    if (t.amount < 0 && countsTowardTotals(t)) {
+      const dow = new Date(`${t.date}T00:00:00Z`).getUTCDay()
+      byDow[dow] += -t.amount
+    }
+  }
+  const total = byDow.reduce((a, b) => a + b, 0)
+  const active = byDow.filter((v) => v > 0).length
+  if (total <= 0 || active < 3) return null
+  let maxIdx = 0
+  for (let i = 1; i < 7; i++) if (byDow[i] > byDow[maxIdx]) maxIdx = i
+  const winner = DOW[maxIdx]
+  const choices = assemble(
+    winner,
+    DOW.filter((_, i) => i !== maxIdx),
+  )
+  if (!choices) return null
+  return mk(
+    'busiestDay',
+    'Which day of the week do you spend the most on?',
+    choices,
+    `You spend the most on ${winner}s — ${formatCurrency(byDow[maxIdx])} in total.`,
+    'Knowing your heaviest spending day can reveal habits worth a second look.',
+  )
+}
+
+function genRecurringCount(ctx: Ctx): QuizQuestion | null {
+  const rec = recurringPayments(ctx.all)
+  if (rec.length < 3) return null
+  const choices = countChoices(rec.length, 'recurring payment')
+  if (!choices) return null
+  return mk(
+    'recurringCount',
+    'How many recurring payments do you have (charges that repeat across 3+ months)?',
+    choices,
+    `We spotted ${rec.length} recurring payments, like ${rec[0].merchant} and ${rec[1].merchant}.`,
+    'Recurring charges are easy to forget — counting them is the first step to pruning.',
+  )
+}
+
+function genRecurringTotal(ctx: Ctx): QuizQuestion | null {
+  const rec = recurringPayments(ctx.all)
+  if (rec.length < 2) return null
+  const monthly = rec.reduce((s, r) => s + r.monthlyEstimate, 0)
+  const choices = moneyChoices(monthly)
+  if (!choices) return null
+  return mk(
+    'recurringTotal',
+    'About how much do your recurring payments cost you per month?',
+    choices,
+    `Your recurring payments run about ${formatCurrency(monthly)} per month across ${rec.length} merchants.`,
+    'Recurring costs quietly set your baseline — trimming one compounds every month.',
+  )
+}
+
+function genBudget(ctx: Ctx): QuizQuestion | null {
+  const budgeted = Object.entries(ctx.budgets).filter(([, b]) => b > 0)
+  if (budgeted.length === 0) return null
+  const lastKey = monthOffsetKey(ctx.now, 1)
+  const lastTx = ctx.all.filter((t) => monthKey(t.date) === lastKey)
+  const spent = new Map(spendingByCategory(lastTx).map((c) => [c.category, c.total]))
+  const candidates = budgeted
+    .map(([cat, budget]) => ({ cat, budget, spend: spent.get(cat) ?? 0 }))
+    .filter((c) => c.spend > 0)
+  if (candidates.length === 0) return null
+  const choice = pick(candidates)
+  const choices = moneyChoices(choice.spend)
+  if (!choices) return null
+  const label = categoryLabel(choice.cat)
+  const verdict = choice.spend > choice.budget ? 'over' : 'under'
+  return mk(
+    'budget',
+    `You set a ${formatCurrency(choice.budget)} budget for ${label}. About how much did you actually spend last month?`,
+    choices,
+    `You spent ${formatCurrency(choice.spend)} on ${label} last month — ${verdict} your ${formatCurrency(choice.budget)} budget.`,
+    'Comparing real spend to your budget is where intentions meet reality.',
+  )
+}
+
 // ----------------------------- assembly -----------------------------
 
 const RANGE_GENERATORS: ((ctx: Ctx, r: TimeRange) => QuizQuestion | null)[] = [
@@ -536,6 +626,7 @@ function pickSpread(questions: QuizQuestion[], n: number): QuizQuestion[] {
 export interface QuizOptions {
   now?: Date
   count?: number
+  budgets?: Record<string, number>
 }
 
 /**
@@ -549,7 +640,7 @@ export function generateQuiz(
 ): QuizQuestion[] {
   const now = opts.now ?? new Date()
   const desired = Math.min(10, Math.max(5, opts.count ?? 10))
-  const ctx = buildCtx(transactions, now)
+  const ctx = buildCtx(transactions, now, opts.budgets ?? {})
   if (ctx.all.length === 0) return []
 
   const candidates: QuizQuestion[] = []
@@ -567,6 +658,10 @@ export function generateQuiz(
     }
   }
   add(genCategoryTrend(ctx))
+  add(genBusiestDay(ctx))
+  add(genRecurringCount(ctx))
+  add(genRecurringTotal(ctx))
+  add(genBudget(ctx))
 
   return pickSpread(shuffle(candidates), desired)
 }
@@ -611,6 +706,28 @@ export function quizInsights(transactions: Transaction[], askedKinds?: Set<strin
     const merch = merchantStats(transactions)[0]
     if (merch && merch.count >= 3) {
       out.push(`Your most frequent merchant is ${merch.merchant} with ${merch.count} visits.`)
+    }
+  }
+  if (wants('recurringCount', 'recurringTotal')) {
+    const rec = recurringPayments(transactions)
+    if (rec.length >= 2) {
+      const monthly = rec.reduce((s, r) => s + r.monthlyEstimate, 0)
+      out.push(
+        `You have ${rec.length} recurring payments costing about ${formatCurrency(monthly)}/month.`,
+      )
+    }
+  }
+  if (wants('busiestDay')) {
+    const byDow = [0, 0, 0, 0, 0, 0, 0]
+    for (const t of transactions) {
+      if (t.amount < 0 && countsTowardTotals(t)) {
+        byDow[new Date(`${t.date}T00:00:00Z`).getUTCDay()] += -t.amount
+      }
+    }
+    if (byDow.some((v) => v > 0)) {
+      let maxIdx = 0
+      for (let i = 1; i < 7; i++) if (byDow[i] > byDow[maxIdx]) maxIdx = i
+      out.push(`${DOW[maxIdx]} is your heaviest spending day of the week.`)
     }
   }
   return out

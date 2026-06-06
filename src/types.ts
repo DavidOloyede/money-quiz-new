@@ -1,4 +1,11 @@
-export type Category =
+/**
+ * A category id. Built-in ids are listed in BUILTIN_CATEGORIES; users can also
+ * add their own, so this is a plain string resolved through lib/categories.
+ */
+export type Category = string
+
+/** The built-in ids, handy where we only ever produce those (categorize()). */
+export type BuiltinCategory =
   | 'groceries'
   | 'dining'
   | 'transport'
@@ -6,6 +13,7 @@ export type Category =
   | 'rent'
   | 'shopping'
   | 'entertainment'
+  | 'subscriptions'
   | 'health'
   | 'zelle'
   | 'income'
@@ -68,54 +76,15 @@ export interface ImportSource {
   dropped: number
 }
 
-export const CATEGORIES: Category[] = [
-  'groceries',
-  'dining',
-  'transport',
-  'utilities',
-  'rent',
-  'shopping',
-  'entertainment',
-  'health',
-  'zelle',
-  'income',
-  'transfers',
-  'other',
-]
+/** Monthly budget per category (category id -> dollars). */
+export type Budgets = Record<string, number>
 
-export interface CategoryMeta {
-  label: string
-  color: string
-  emoji: string
+/** One recorded quiz attempt, for history & streaks. */
+export interface QuizResult {
+  /** ISO timestamp */
+  at: string
+  correct: number
+  total: number
 }
 
-export const CATEGORY_META: Record<Category, CategoryMeta> = {
-  groceries: { label: 'Groceries', color: '#10b981', emoji: '🛒' },
-  dining: { label: 'Dining', color: '#f59e0b', emoji: '🍽️' },
-  transport: { label: 'Transport', color: '#3b82f6', emoji: '🚗' },
-  utilities: { label: 'Utilities', color: '#6366f1', emoji: '💡' },
-  rent: { label: 'Rent / Mortgage', color: '#ef4444', emoji: '🏠' },
-  shopping: { label: 'Shopping', color: '#ec4899', emoji: '🛍️' },
-  entertainment: { label: 'Entertainment', color: '#8b5cf6', emoji: '🎬' },
-  health: { label: 'Health', color: '#14b8a6', emoji: '➕' },
-  zelle: { label: 'Zelle', color: '#0ea5e9', emoji: '💸' },
-  income: { label: 'Income', color: '#22c55e', emoji: '💰' },
-  transfers: { label: 'Transfers', color: '#64748b', emoji: '🔁' },
-  other: { label: 'Other', color: '#94a3b8', emoji: '📦' },
-}
-
-/**
- * Categories that represent money moving between your own accounts (or paying
- * off a card) rather than real spending or income. They're tracked and shown
- * on their own, but excluded from spending/income totals so the analysis stays
- * meaningful.
- */
-export const EXCLUDED_CATEGORIES: Category[] = ['transfers', 'zelle']
-
-export function isExcludedCategory(c: Category): boolean {
-  return EXCLUDED_CATEGORIES.includes(c)
-}
-
-export function categoryLabel(c: Category): string {
-  return CATEGORY_META[c].label
-}
+export type ThemeMode = 'light' | 'dark'

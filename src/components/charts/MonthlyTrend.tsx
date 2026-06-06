@@ -24,16 +24,16 @@ interface TooltipProps {
 function TrendTooltip({ active, label, payload }: TooltipProps) {
   if (!active || !payload || payload.length === 0) return null
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm text-sm">
-      <div className="font-medium text-slate-800">{formatMonth(String(label))}</div>
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 shadow-sm text-sm">
+      <div className="font-medium text-slate-800 dark:text-slate-100">{formatMonth(String(label))}</div>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2 text-slate-500">
+        <div key={p.name} className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm"
             style={{ background: p.color }}
           />
           <span className="capitalize">{p.name}</span>
-          <span className="ml-auto font-medium text-slate-700">
+          <span className="ml-auto font-medium text-slate-700 dark:text-slate-200">
             {formatCurrency(p.value ?? 0)}
           </span>
         </div>
@@ -65,7 +65,7 @@ export function MonthlyTrend({ data }: Props) {
           <Tooltip content={<TrendTooltip />} cursor={{ fill: '#f1f5f9' }} />
           <Legend
             wrapperStyle={{ fontSize: 12 }}
-            formatter={(v) => <span className="capitalize text-slate-600">{v}</span>}
+            formatter={(v) => <span className="capitalize text-slate-600 dark:text-slate-300">{v}</span>}
           />
           <Bar dataKey="income" name="income" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={48} />
           <Bar dataKey="spending" name="spending" fill="#fb7185" radius={[4, 4, 0, 0]} maxBarSize={48} />

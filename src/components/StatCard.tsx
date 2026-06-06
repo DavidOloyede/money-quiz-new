@@ -8,17 +8,17 @@ interface StatCardProps {
   icon?: ReactNode
 }
 
-export function StatCard({ label, value, sub, accent = 'text-slate-800', icon }: StatCardProps) {
+export function StatCard({ label, value, sub, accent = 'text-slate-800 dark:text-slate-100', icon }: StatCardProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
+        <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
           {label}
         </span>
         {icon && <span className="text-slate-300">{icon}</span>}
       </div>
       <div className={`mt-1 text-2xl font-bold tabular-nums ${accent}`}>{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-slate-500 truncate">{sub}</div>}
+      {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{sub}</div>}
     </div>
   )
 }

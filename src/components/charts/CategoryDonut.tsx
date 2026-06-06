@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import type { CategoryTotal } from '../../lib/analysis'
 import type { Category } from '../../types'
-import { CATEGORY_META } from '../../types'
+import { categoryMeta } from '../../lib/categories'
 import { formatCurrency, formatPercent } from '../../lib/format'
 
 interface Props {
@@ -21,11 +21,11 @@ function DonutTooltip({ active, payload, total }: TooltipProps) {
   const d = payload[0].payload
   const pct = total > 0 ? (d.total / total) * 100 : 0
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm text-sm">
-      <div className="font-medium text-slate-800">
-        {CATEGORY_META[d.category].emoji} {CATEGORY_META[d.category].label}
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 shadow-sm text-sm">
+      <div className="font-medium text-slate-800 dark:text-slate-100">
+        {categoryMeta(d.category).emoji} {categoryMeta(d.category).label}
       </div>
-      <div className="text-slate-500">
+      <div className="text-slate-500 dark:text-slate-400">
         {formatCurrency(d.total)} · {formatPercent(pct)}
       </div>
     </div>
@@ -49,15 +49,15 @@ export function CategoryDonut({ data, total, onSelect }: Props) {
             className={onSelect ? 'cursor-pointer focus:outline-none' : undefined}
           >
             {data.map((d) => (
-              <Cell key={d.category} fill={CATEGORY_META[d.category].color} />
+              <Cell key={d.category} fill={categoryMeta(d.category).color} />
             ))}
           </Pie>
           <Tooltip content={<DonutTooltip total={total} />} />
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xs uppercase tracking-wide text-slate-400">Spending</span>
-        <span className="text-xl font-bold text-slate-800">{formatCurrency(total)}</span>
+        <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">Spending</span>
+        <span className="text-xl font-bold text-slate-800 dark:text-slate-100">{formatCurrency(total)}</span>
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
 import type { AccountType, Category, ColumnMapping, CsvRow, Transaction } from '../types'
-import { CATEGORIES } from '../types'
+import { allCategories } from './categories'
 import { parseAmount, parseDate } from './parse'
 import { categorize } from './categorize'
 import { newId } from './storage'
@@ -28,8 +28,8 @@ function coerceCategory(value: string | undefined): Category | null {
   if (!value) return null
   const s = value.trim().toLowerCase()
   if (!s) return null
-  const direct = CATEGORIES.find((c) => c === s)
-  if (direct) return direct
+  const direct = allCategories().find((d) => d.id === s || d.label.toLowerCase() === s)
+  if (direct) return direct.id
   for (const { match, category } of BANK_CATEGORY_PATTERNS) {
     if (match.test(s)) return category
   }
