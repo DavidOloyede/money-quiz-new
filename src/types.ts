@@ -63,17 +63,21 @@ export interface ColumnMapping {
   accountType?: AccountType
 }
 
-/** A single imported file, tracked so the user can see and remove it later. */
+/** A single imported file or connected account, tracked so the user can manage it. */
 export interface ImportSource {
   id: string
   fileName: string
   /** ISO timestamp of when it was imported */
   importedAt: string
   accountType: AccountType
-  /** how many transactions this file contributed */
+  /** how many transactions this source contributed */
   count: number
   /** card-payment rows that were removed (credit cards only) */
   dropped: number
+  /** 'file' = CSV upload (default), 'plaid' = a connected bank/card */
+  kind?: 'file' | 'plaid'
+  /** institution name for Plaid-connected sources */
+  institution?: string
 }
 
 /** Monthly budget per category (category id -> dollars). */

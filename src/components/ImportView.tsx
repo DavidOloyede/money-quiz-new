@@ -7,6 +7,7 @@ import { newId } from '../lib/storage'
 import { sampleCsv } from '../data/sampleData'
 import { TransactionTable } from './TransactionTable'
 import { ImportedFiles } from './ImportedFiles'
+import { ConnectBank } from './ConnectBank'
 import { ColumnMapping as ColumnMappingStep } from './ColumnMapping'
 import { CheckIcon, DownloadIcon, ShieldIcon, UploadIcon, XIcon } from './icons'
 
@@ -24,6 +25,7 @@ export function ImportView({ onNavigate }: Props) {
     sources,
     addImport,
     removeSource,
+    syncPlaidSource,
     saveMapping,
     loadSample,
   } = useStore()
@@ -111,11 +113,13 @@ export function ImportView({ onNavigate }: Props) {
       <div className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
         <ShieldIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
         <div className="text-sm text-emerald-800 dark:text-emerald-300">
-          <span className="font-semibold">Your data never leaves this browser.</span> We never
-          ask for bank logins — import happens entirely on your device, and everything is stored
-          locally. Use “Clear all data” anytime to wipe it.
+          <span className="font-semibold">Your data stays on your device.</span> We never ask for
+          bank logins — CSV import runs entirely in your browser, and a bank connection (Plaid) runs
+          through a local server you control. Use “Clear all data” anytime to wipe it.
         </div>
       </div>
+
+      <ConnectBank />
 
       {notice && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-900 p-3 text-sm text-emerald-700 dark:text-emerald-300">
@@ -224,7 +228,7 @@ export function ImportView({ onNavigate }: Props) {
 
       {sources.length > 0 && stage === 'idle' && (
         <div className="mt-6">
-          <ImportedFiles sources={sources} onRemove={removeSource} />
+          <ImportedFiles sources={sources} onRemove={removeSource} onSync={syncPlaidSource} />
         </div>
       )}
 

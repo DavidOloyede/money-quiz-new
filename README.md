@@ -3,10 +3,14 @@
 Import your bank transactions, see where your money goes, and take a quiz
 generated **from your own data** that teaches you about your spending habits.
 
-Everything runs in your browser. There is no backend, no account, and no bank
-login. Your transactions never leave your device — they're parsed locally and
-stored only in your browser's `localStorage`. Use **Clear all data** anytime to
-wipe everything.
+Two ways to get your data in:
+
+- **CSV import** — 100% in your browser. No backend, no account, no bank login;
+  transactions are parsed locally and stored only in `localStorage`.
+- **Connect a bank with Plaid** *(optional)* — runs through a small local server
+  you control (see below). Still no third-party of ours touches your data.
+
+Use **Clear all data** anytime to wipe everything.
 
 ## Quick start
 
@@ -25,6 +29,7 @@ Other commands:
 ```bash
 npm run build     # type-check + production build into dist/
 npm run preview   # serve the production build locally
+npm run server    # start the optional Plaid backend (see "Connect a bank")
 ```
 
 ## Using your own bank CSV
@@ -74,6 +79,37 @@ future imports of the same merchant.
 You can also click **Download sample CSV** on the Import tab to see exactly the
 shape the importer expects (`Date,Description,Amount`).
 
+## Connect a bank with Plaid (optional)
+
+Linking a real bank or card uses [Plaid](https://plaid.com). Plaid's API secret
+can never live in the browser, so this needs the small bundled server
+(`server/plaidServer.mjs`) — it's dependency-free (plain Node) and holds the
+access token locally.
+
+```bash
+npm run server      # starts http://localhost:8787
+npm run dev         # in another terminal
+```
+
+- **Demo mode (no setup).** With no Plaid keys, the server runs in **mock mode**
+  and serves realistic sample transactions, so you can try the whole
+  *Connect → import → auto-categorize* flow end-to-end. On the Import tab, click
+  **Connect (demo)**.
+- **Real banks.** Copy `.env.example` → `.env`, add your `PLAID_CLIENT_ID` /
+  `PLAID_SECRET` and `PLAID_ENV` (from the [Plaid dashboard](https://dashboard.plaid.com)),
+  then restart the server. The Import tab switches to **Connect with Plaid**,
+  which opens Plaid Link — you authenticate with your bank inside Plaid, so this
+  app never sees your credentials.
+
+Connected accounts appear under **Imported sources** with a **Sync** button
+(re-pull the latest) and a remove button (disconnect + delete its transactions).
+Plaid's categories are mapped onto ours automatically; you can recategorize like
+any other transaction.
+
+> The server is single-user and local — it stores access tokens in
+> `server/.data/` (gitignored) and is not meant to be deployed as a multi-tenant
+> service. CSV import keeps working with the server off.
+
 ## What you get
 
 - **Dashboard** — income / spending / net for this month, last month, all time,
@@ -100,12 +136,17 @@ shape the importer expects (`Date,Description,Amount`).
 ## Tech stack
 
 React + TypeScript (Vite), Tailwind CSS v4, Recharts for charts, and PapaParse
-for CSV parsing. All logic is client-side.
+for CSV parsing. The app is client-side; the optional Plaid connector is a small
+dependency-free Node server.
 
 ## Privacy
 
-- No bank credentials are ever requested, collected, or stored. Data enters only
-  through file import.
-- Transaction data is never sent to any server or third-party API.
-- Data is persisted only in `localStorage` under keys prefixed `moneyquiz.`, and
-  the **Clear all data** button removes all of it.
+- **No bank credentials are ever requested, collected, or stored by this app.**
+  CSV import is files only; Plaid Link collects your login inside Plaid's own UI,
+  never here.
+- **CSV import** is fully local — nothing is sent anywhere.
+- **Plaid** (only if you choose to connect) routes through the local server you
+  run; your Plaid access token is stored on your machine in `server/.data/`
+  (gitignored) and transactions are saved into your browser like any other import.
+- App data is persisted only in `localStorage` under keys prefixed `moneyquiz.`,
+  and **Clear all data** removes all of it.

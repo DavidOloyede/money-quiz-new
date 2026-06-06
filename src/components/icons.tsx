@@ -125,6 +125,24 @@ export function MoonIcon({ className }: IconProps) {
   )
 }
 
+export function LinkIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+    </svg>
+  )
+}
+
+export function RefreshIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M21 12a9 9 0 11-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </svg>
+  )
+}
+
 export function CoinLogo({ className }: IconProps) {
   return (
     <svg className={className ?? 'w-8 h-8'} viewBox="0 0 32 32" fill="none">

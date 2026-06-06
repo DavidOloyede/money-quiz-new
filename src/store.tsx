@@ -19,6 +19,8 @@ import type {
 } from './types'
 import { overrideKey } from './lib/categorize'
 import { merchantKey } from './lib/merchant'
+import { plaidApi, type PlaidItemSummary } from './lib/plaid'
+import { mapPlaidTransactions } from './lib/plaidMap'
 import {
   applyCategoryConfig,
   BUILTIN_CATEGORIES,
@@ -43,6 +45,10 @@ interface StoreValue {
   theme: ThemeMode
   addImport: (tx: Transaction[], source: ImportSource) => void
   removeSource: (sourceId: string) => void
+  /** Register a Plaid-connected account as a source. */
+  addPlaidSource: (item: PlaidItemSummary) => void
+  /** Pull the latest transactions for a connected account and merge them in. */
+  syncPlaidSource: (sourceId: string) => Promise<number>
   loadSample: () => void
   /** Edit one transaction's category (remembered by exact description). */
   setCategory: (id: string, category: Category) => void
@@ -110,6 +116,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   merchantOverridesRef.current = merchantOverrides
   const configRef = useRef(categoryConfig)
   configRef.current = categoryConfig
+  const sourcesRef = useRef(sources)
+  sourcesRef.current = sources
 
   useEffect(() => saveJSON(STORAGE_KEYS.transactions, transactions), [transactions])
   useEffect(() => {
@@ -149,9 +157,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
 
   const removeSource = useCallback((sourceId: string) => {
+    const src = sourcesRef.current.find((s) => s.id === sourceId)
+    if (src?.kind === 'plaid') void plaidApi.removeItem(sourceId).catch(() => {})
     setTransactions((prev) => prev.filter((t) => t.sourceId !== sourceId))
     setSources((prev) => prev.filter((s) => s.id !== sourceId))
   }, [])
+
+  const addPlaidSource = useCallback((item: PlaidItemSummary) => {
+    setSources((prev) => {
+      const src: ImportSource = {
+        id: item.id,
+        fileName: item.institution,
+        importedAt: new Date().toISOString(),
+        accountType: item.accountType,
+        count: item.count,
+        dropped: 0,
+        kind: 'plaid',
+        institution: item.institution,
+      }
+      const existing = prev.find((s) => s.id === item.id)
+      return existing
+        ? prev.map((s) => (s.id === item.id ? { ...s, ...src, importedAt: s.importedAt } : s))
+        : [...prev, src]
+    })
+  }, [])
+
+  const syncPlaidSource = useCallback(
+    async (sourceId: string) => {
+      const { transactions: ptx } = await plaidApi.sync(sourceId)
+      const mapped = withOverrides(mapPlaidTransactions(ptx, sourceId))
+      setTransactions((prev) => [...prev.filter((t) => t.sourceId !== sourceId), ...mapped])
+      setSources((prev) => prev.map((s) => (s.id === sourceId ? { ...s, count: mapped.length } : s)))
+      return mapped.length
+    },
+    [withOverrides],
+  )
 
   const loadSample = useCallback(() => {
     const tx = loadSampleTransactions().map((t) => ({ ...t, sourceId: SAMPLE_SOURCE_ID }))
@@ -303,6 +343,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       theme,
       addImport,
       removeSource,
+      addPlaidSource,
+      syncPlaidSource,
       loadSample,
       setCategory,
       setCategoryBulk,
@@ -328,6 +370,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       theme,
       addImport,
       removeSource,
+      addPlaidSource,
+      syncPlaidSource,
       loadSample,
       setCategory,
       setCategoryBulk,
