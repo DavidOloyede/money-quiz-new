@@ -92,14 +92,25 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
   search, filter, and **change a category**. You can also select many at once.
+  Each row has a **★ star** to flag the charge as a **subscription** (remembered
+  for every charge from that store), plus a "Subscriptions" filter to show only
+  those.
 - **`ApplyToSimilar.tsx`** — The little popup that says *"Want to change the
   other 5 'Starbucks' charges too?"* so you don't have to fix them one by one.
 - **`CategoryDetailModal.tsx`** — When you click a category, this window shows
   every transaction in it.
 - **`Dashboard.tsx`** — The charts-and-numbers screen.
-- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `TrendsCard.tsx`,
-  `TopMerchantsCard.tsx`** — The four info boxes on the Dashboard
-  (budgets, repeating bills, "spending went up/down", and favorite stores).
+- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `SubscriptionsCard.tsx`,
+  `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
+  (budgets, repeating bills, your subscriptions, "spending went up/down", and
+  favorite stores).
+  - **`RecurringCard.tsx`** lists everything that repeats — fixed monthly
+    payments (rent, student loan), subscriptions, and variable bills (power,
+    water) **averaged** to a per-month number. Charges that are the **same
+    amount** each time are marked "fixed"; you can ★-flag any of them as a
+    subscription right from the card.
+  - **`SubscriptionsCard.tsx`** is just the things you flagged as
+    subscriptions, gathered in one place with a combined monthly total.
 - **`charts/CategoryDonut.tsx`, `charts/MonthlyTrend.tsx`** — The actual pie
   chart and bar chart (drawn with a tool called Recharts).
 - **`QuizView.tsx`** — The Quiz screen.
@@ -122,9 +133,12 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   category using keywords (e.g., the word "Starbucks" → Dining). It also gives
   **Zelle** and **Transfers** (money you move between your own accounts) their own
   groups so they don't look like real spending.
-- **`categories.ts`** — The **list of bins** (Groceries, Dining, etc.) — their
-  names, colors, and emojis. This is also what lets you **make your own
-  categories** in Settings.
+- **`categories.ts`** — The **list of bins** and their names, colors, and emojis.
+  There's a rich built-in set — Groceries, Dining, Transport, Utilities,
+  Rent/Mortgage, **Home & HOA**, **Insurance**, **Loans & Debt**, Shopping,
+  **Personal Care**, Entertainment, Subscriptions, **Education**, Health,
+  **Pets**, **Charity & Gifts**, **Fees & Taxes** — plus Zelle/Income/Transfers/
+  Other. This is also what lets you **make your own categories** in Settings.
 - **`merchant.ts`** — Cleans up ugly store names so "STARBUCKS #123 SEATTLE" and
   "STARBUCKS 8th AVE" are recognized as the **same store**. Used for
   "apply to similar" and for finding repeating bills.
@@ -133,6 +147,11 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`analysis.ts`** — The **calculator**: totals, spending by category, monthly
   trends, repeating payments, budgets, and top stores. It purposely **ignores**
   Transfers and Zelle so the picture isn't messed up by money you moved around.
+  Its time ranges are **This month / Last month / This year** (plus a custom
+  date window). Its `recurringPayments` groups charges by store but leans on the
+  **same amount** repeating to decide what's a real recurring bill (fixed) vs. a
+  variable one that gets **averaged** per month, and it folds in anything you
+  flagged as a subscription; `subscriptions` returns just your flagged ones.
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?") and the end-of-quiz insights.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
@@ -152,11 +171,15 @@ try the whole app without uploading anything.
 
 - **`types.ts`** — The **shapes** of the data. It says "a Transaction always has
   a date, a description, an amount, and a category." It's like a form with blanks
-  that must be filled in.
+  that must be filled in. A Transaction can also carry an optional `subscription`
+  flag once you mark it as one.
 - **`store.tsx`** — The **central brain**. It holds *all* the data (transactions,
-  your category edits, budgets, quiz scores, theme) and provides the **actions**
-  the screens use: add an import, change a category, set a budget, connect a bank,
-  and so on. Whenever the data changes, it automatically saves to the notebook.
+  your category edits, **subscription flags**, budgets, quiz scores, theme) and
+  provides the **actions** the screens use: add an import, change a category,
+  flag a subscription, set a budget, connect a bank, and so on. Subscription
+  flags are remembered **per store** (like category edits) so they survive a
+  re-import and group every charge from that store together. Whenever the data
+  changes, it automatically saves to the notebook.
 
 Every screen "plugs into" the store to read data and to make changes, so
 everything stays in sync. Change a category in one place and the charts update
@@ -200,6 +223,11 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **localStorage** — the browser's private notebook that remembers your data.
 - **Transaction** — one purchase or deposit (date, store, amount, category).
 - **Category** — a bin like Groceries or Dining.
+- **Subscription** — a charge you've ★-flagged as a recurring sign-up (Netflix,
+  iCloud…). Shown in its own list and folded into Recurring payments.
+- **Recurring payment** — anything that repeats monthly: subscriptions, fixed
+  bills (rent, student loan), and variable bills (power, water) averaged per
+  month.
 - **Source** — one thing you added (an uploaded file or a connected bank).
 - **Transfer / Zelle** — money moved between your own accounts; tracked but not
   counted as spending.

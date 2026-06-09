@@ -11,10 +11,18 @@ export type BuiltinCategory =
   | 'transport'
   | 'utilities'
   | 'rent'
+  | 'home'
+  | 'insurance'
+  | 'loans'
   | 'shopping'
+  | 'personal'
   | 'entertainment'
   | 'subscriptions'
+  | 'education'
   | 'health'
+  | 'pets'
+  | 'charity'
+  | 'fees'
   | 'zelle'
   | 'income'
   | 'transfers'
@@ -30,6 +38,12 @@ export interface Transaction {
   category: Category
   /** True when the user has manually changed the category */
   overridden?: boolean
+  /**
+   * True when the user has flagged this charge as a subscription. Flagging is
+   * remembered per-merchant (see store), so every charge from the same merchant
+   * is treated as a subscription and the flag survives re-imports.
+   */
+  subscription?: boolean
   /** Which imported file this transaction came from (so it can be removed). */
   sourceId?: string
 }

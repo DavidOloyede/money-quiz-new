@@ -56,6 +56,10 @@ interface StoreValue {
   setCategoryBulk: (ids: string[], category: Category) => void
   /** Apply a category to every transaction from the same merchant + remember it. */
   setCategoryForMerchant: (key: string, category: Category) => void
+  /** Flag/unflag every transaction from a merchant as a subscription (remembered). */
+  setMerchantSubscription: (key: string, value: boolean) => void
+  /** Toggle the subscription flag for the merchant of one transaction. */
+  toggleSubscription: (id: string) => void
   /** How many other transactions share this one's merchant (for "apply to similar"). */
   similarCount: (id: string) => number
   addCustomCategory: (label: string, color: string, emoji: string) => void
@@ -92,6 +96,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [merchantOverrides, setMerchantOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.merchantOverrides, {}),
   )
+  // Merchant keys the user flagged as subscriptions. Stored by merchant (like
+  // merchantOverrides) so the flag survives re-imports and groups all charges.
+  const [subscriptionMerchants, setSubscriptionMerchants] = useState<Record<string, true>>(() =>
+    loadJSON<Record<string, true>>(STORAGE_KEYS.subscriptions, {}),
+  )
   const [sources, setSources] = useState<ImportSource[]>(() =>
     loadJSON<ImportSource[]>(STORAGE_KEYS.sources, []),
   )
@@ -114,6 +123,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   overridesRef.current = overrides
   const merchantOverridesRef = useRef(merchantOverrides)
   merchantOverridesRef.current = merchantOverrides
+  const subscriptionMerchantsRef = useRef(subscriptionMerchants)
+  subscriptionMerchantsRef.current = subscriptionMerchants
   const configRef = useRef(categoryConfig)
   configRef.current = categoryConfig
   const sourcesRef = useRef(sources)
@@ -125,6 +136,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [mapping])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
+  useEffect(() => saveJSON(STORAGE_KEYS.subscriptions, subscriptionMerchants), [subscriptionMerchants])
   useEffect(() => saveJSON(STORAGE_KEYS.sources, sources), [sources])
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
@@ -134,16 +146,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     root.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
-  /** Re-apply remembered category edits (exact description first, then merchant). */
+  /**
+   * Re-apply remembered edits to a fresh set: subscription flag (by merchant),
+   * then category (exact description first, then merchant).
+   */
   const withOverrides = useCallback((tx: Transaction[]): Transaction[] => {
     const desc = overridesRef.current
     const merch = merchantOverridesRef.current
+    const subs = subscriptionMerchantsRef.current
     return tx.map((t) => {
+      const key = merchantKey(t.description)
+      const subscription = subs[key] ? true : undefined
       const byDesc = desc[overrideKey(t.description)]
-      if (byDesc) return { ...t, category: byDesc, overridden: true }
-      const byMerchant = merch[merchantKey(t.description)]
-      if (byMerchant) return { ...t, category: byMerchant, overridden: true }
-      return t
+      if (byDesc) return { ...t, subscription, category: byDesc, overridden: true }
+      const byMerchant = merch[key]
+      if (byMerchant) return { ...t, subscription, category: byMerchant, overridden: true }
+      return { ...t, subscription }
     })
   }, [])
 
@@ -194,8 +212,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
 
   const loadSample = useCallback(() => {
+    // Pre-flag a couple of streaming subscriptions so the Subscriptions list has
+    // something to show off out of the box.
+    const seed: Record<string, true> = {
+      [merchantKey('Netflix')]: true,
+      [merchantKey('Spotify')]: true,
+    }
     const tx = loadSampleTransactions().map((t) => ({ ...t, sourceId: SAMPLE_SOURCE_ID }))
-    setTransactions(withOverrides(tx))
+    const prepared = withOverrides(tx).map((t) =>
+      seed[merchantKey(t.description)] ? { ...t, subscription: true } : t,
+    )
+    setSubscriptionMerchants(seed)
+    setTransactions(prepared)
     setSources([
       {
         id: SAMPLE_SOURCE_ID,
@@ -237,6 +265,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     )
     setMerchantOverrides((o) => ({ ...o, [key]: category }))
   }, [])
+
+  const setMerchantSubscription = useCallback((key: string, value: boolean) => {
+    setTransactions((prev) =>
+      prev.map((t) =>
+        merchantKey(t.description) === key ? { ...t, subscription: value ? true : undefined } : t,
+      ),
+    )
+    setSubscriptionMerchants((prev) => {
+      const next = { ...prev }
+      if (value) next[key] = true
+      else delete next[key]
+      return next
+    })
+  }, [])
+
+  const toggleSubscription = useCallback(
+    (id: string) => {
+      const t = txRef.current.find((x) => x.id === id)
+      if (!t) return
+      setMerchantSubscription(merchantKey(t.description), !t.subscription)
+    },
+    [setMerchantSubscription],
+  )
 
   const similarCount = useCallback((id: string) => {
     const target = txRef.current.find((t) => t.id === id)
@@ -325,6 +376,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setMapping(null)
     setOverrides({})
     setMerchantOverrides({})
+    setSubscriptionMerchants({})
     setSources([])
     setBudgets({})
     setQuizHistory([])
@@ -349,6 +401,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategory,
       setCategoryBulk,
       setCategoryForMerchant,
+      setMerchantSubscription,
+      toggleSubscription,
       similarCount,
       addCustomCategory,
       updateCategory,
@@ -376,6 +430,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategory,
       setCategoryBulk,
       setCategoryForMerchant,
+      setMerchantSubscription,
+      toggleSubscription,
       similarCount,
       addCustomCategory,
       updateCategory,

@@ -245,7 +245,7 @@ function buildCtx(
     if (!cache.has(r)) cache.set(r, filterByRange(transactions, r, now))
     return cache.get(r)!
   }
-  const rangesWithData = (['thisMonth', 'lastMonth', 'all'] as TimeRange[]).filter(
+  const rangesWithData = (['thisMonth', 'lastMonth', 'thisYear'] as TimeRange[]).filter(
     (r) => tx(r).length > 0,
   )
   return { now, all: transactions, budgets, rangesWithData, tx }
@@ -363,7 +363,7 @@ function genLargestExpenseMerchant(ctx: Ctx, range: TimeRange): QuizQuestion | n
 }
 
 function genMerchantCount(ctx: Ctx, range: TimeRange): QuizQuestion | null {
-  const minCount = range === 'all' ? 3 : 2
+  const minCount = range === 'thisYear' ? 3 : 2
   const merchants = merchantStats(ctx.tx(range)).filter((m) => m.count >= minCount)
   if (merchants.length === 0) return null
   const m = pick(merchants.slice(0, Math.min(4, merchants.length)))

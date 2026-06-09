@@ -9,6 +9,7 @@ export const STORAGE_KEYS = {
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
+  subscriptions: 'moneyquiz.subscriptions.v1',
   categories: 'moneyquiz.categories.v1',
   budgets: 'moneyquiz.budgets.v1',
   quizHistory: 'moneyquiz.quizHistory.v1',
@@ -22,6 +23,7 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,
+  STORAGE_KEYS.subscriptions,
   STORAGE_KEYS.budgets,
   STORAGE_KEYS.quizHistory,
 ]

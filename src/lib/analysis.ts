@@ -2,7 +2,7 @@ import type { Category, Transaction } from '../types'
 import { isExcludedCategory } from './categories'
 import { merchantKey, merchantLabel } from './merchant'
 
-export type TimeRange = 'thisMonth' | 'lastMonth' | 'all'
+export type TimeRange = 'thisMonth' | 'lastMonth' | 'thisYear'
 
 /**
  * Transfers and Zelle move money between your own accounts (or pay off a card)
@@ -46,7 +46,10 @@ export function filterByRange(
   range: TimeRange,
   now: Date = new Date(),
 ): Transaction[] {
-  if (range === 'all') return transactions
+  if (range === 'thisYear') {
+    const year = String(now.getFullYear())
+    return transactions.filter((t) => t.date.slice(0, 4) === year)
+  }
   const key = range === 'thisMonth' ? currentMonthKey(now) : prevMonthKey(now)
   return transactions.filter((t) => monthKey(t.date) === key)
 }
@@ -57,8 +60,8 @@ export function rangeLabel(range: TimeRange): string {
       return 'this month'
     case 'lastMonth':
       return 'last month'
-    case 'all':
-      return 'all time'
+    case 'thisYear':
+      return 'this year'
   }
 }
 
@@ -253,50 +256,133 @@ function shiftMonth(key: string, back: number): string {
 
 export interface RecurringPayment {
   merchant: string
+  /** Stable merchant key, so callers can flag/unflag the subscription. */
+  merchantKey: string
   category: Category
   count: number
   months: number
+  /** Average charge size. */
   avgAmount: number
+  /** The typical (most common, to-the-cent) charge amount. */
+  recurringAmount: number
+  /** Normalized monthly cost: total spend / number of months it spanned. */
   monthlyEstimate: number
+  /** True when the charge is essentially the same amount every time. */
+  fixed: boolean
+  /** True when the user flagged this merchant as a subscription. */
+  isSubscription: boolean
   lastDate: string
 }
 
-/**
- * Charges that repeat across at least 3 different months for the same merchant —
- * subscriptions, rent, utilities, frequent stops. Sorted by monthly cost.
- */
-export function recurringPayments(transactions: Transaction[]): RecurringPayment[] {
-  const map = new Map<
-    string,
-    { label: string; cat: Category; amounts: number[]; months: Set<string>; total: number; last: string }
-  >()
+interface RecurringGroup {
+  label: string
+  key: string
+  cat: Category
+  amounts: number[]
+  months: Set<string>
+  total: number
+  last: string
+  sub: boolean
+}
+
+/** Bucket expenses by merchant, tracking amounts, months, and the subscription flag. */
+function groupRecurring(transactions: Transaction[]): RecurringGroup[] {
+  const map = new Map<string, RecurringGroup>()
   for (const t of transactions) {
     if (t.amount >= 0 || !countsTowardTotals(t)) continue
     const key = merchantKey(t.description)
     const e =
       map.get(key) ??
-      { label: merchantLabel(t.description), cat: t.category, amounts: [], months: new Set<string>(), total: 0, last: '' }
+      {
+        label: merchantLabel(t.description),
+        key,
+        cat: t.category,
+        amounts: [],
+        months: new Set<string>(),
+        total: 0,
+        last: '',
+        sub: false,
+      }
     e.amounts.push(-t.amount)
     e.months.add(monthKey(t.date))
     e.total += -t.amount
     e.cat = t.category
+    if (t.subscription) e.sub = true
     if (t.date > e.last) e.last = t.date
     map.set(key, e)
   }
-  const out: RecurringPayment[] = []
-  for (const e of map.values()) {
-    const months = e.months.size
-    if (e.amounts.length >= 3 && months >= 3) {
-      out.push({
-        merchant: e.label,
-        category: e.cat,
-        count: e.amounts.length,
-        months,
-        avgAmount: e.total / e.amounts.length,
-        monthlyEstimate: e.total / months,
-        lastDate: e.last,
-      })
+  return [...map.values()]
+}
+
+/** The most common amount (rounded to the cent) and how many times it recurs. */
+function modeAmount(amounts: number[]): { value: number; freq: number } {
+  const counts = new Map<number, number>()
+  for (const a of amounts) {
+    const cents = Math.round(a * 100) / 100
+    counts.set(cents, (counts.get(cents) ?? 0) + 1)
+  }
+  let value = amounts[0] ?? 0
+  let freq = 0
+  for (const [v, f] of counts) {
+    if (f > freq || (f === freq && v > value)) {
+      value = v
+      freq = f
     }
+  }
+  return { value, freq }
+}
+
+function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): RecurringPayment {
+  const count = e.amounts.length
+  // A single charge can't show variance, so assume it's fixed; otherwise the
+  // same amount must dominate (repeat and cover at least half the charges).
+  const fixed = count <= 1 ? true : mode.freq >= 2 && mode.freq / count >= 0.5
+  return {
+    merchant: e.label,
+    merchantKey: e.key,
+    category: e.cat,
+    count,
+    months: e.months.size,
+    avgAmount: e.total / count,
+    recurringAmount: mode.value,
+    monthlyEstimate: e.total / Math.max(1, e.months.size),
+    fixed,
+    isSubscription: e.sub,
+    lastDate: e.last,
+  }
+}
+
+/**
+ * Recurring charges — subscriptions, fixed bills (rent, student loans), and
+ * averaged variable bills (water, power). A merchant qualifies when:
+ *  - the user flagged it as a subscription, OR
+ *  - it repeats across 3+ months, OR
+ *  - the *same amount* recurs 3+ times — so a fixed monthly payment is caught
+ *    even with a short history (the "same amount" emphasis).
+ *
+ * `monthlyEstimate` normalizes everything to a per-month cost, so variable
+ * bills are effectively averaged. Sorted by monthly cost, biggest first.
+ */
+export function recurringPayments(transactions: Transaction[]): RecurringPayment[] {
+  const out: RecurringPayment[] = []
+  for (const e of groupRecurring(transactions)) {
+    const mode = modeAmount(e.amounts)
+    const r = toRecurring(e, mode)
+    const qualifies =
+      r.isSubscription || (r.count >= 3 && r.months >= 3) || (r.fixed && mode.freq >= 3)
+    if (qualifies) out.push(r)
+  }
+  return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
+}
+
+/**
+ * Just the merchants the user flagged as subscriptions, summarized like
+ * recurring payments — the "all my subscriptions in one place" list.
+ */
+export function subscriptions(transactions: Transaction[]): RecurringPayment[] {
+  const out: RecurringPayment[] = []
+  for (const e of groupRecurring(transactions)) {
+    if (e.sub) out.push(toRecurring(e, modeAmount(e.amounts)))
   }
   return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
 }
