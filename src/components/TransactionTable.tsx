@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Category, Transaction } from '../types'
 import { useStore } from '../store'
 import { allCategories, categoryMeta } from '../lib/categories'
+import { displayDescription } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { StarIcon } from './icons'
@@ -13,7 +14,7 @@ interface Props {
 type SortKey = 'date' | 'amount'
 
 export function TransactionTable({ transactions }: Props) {
-  const { setCategoryBulk, toggleSubscription } = useStore()
+  const { setCategoryBulk, toggleSubscription, aliases } = useStore()
   const { change, node } = useApplyToSimilar()
   const [query, setQuery] = useState('')
   const [catFilter, setCatFilter] = useState<Category | 'all'>('all')
@@ -208,7 +209,7 @@ export function TransactionTable({ transactions }: Props) {
                     >
                       <StarIcon className="h-4 w-4" filled={!!t.subscription} />
                     </button>
-                    {t.description}
+                    {displayDescription(t.description, aliases)}
                     {t.subscription && (
                       <span className="rounded bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
                         subscription

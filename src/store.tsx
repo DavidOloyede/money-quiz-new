@@ -14,11 +14,13 @@ import type {
   ColumnMapping,
   ImportSource,
   QuizResult,
+  SubscriptionMeta,
   ThemeMode,
   Transaction,
 } from './types'
 import { overrideKey } from './lib/categorize'
 import { merchantKey } from './lib/merchant'
+import { recurringTransferIds } from './lib/analysis'
 import { plaidApi, type PlaidItemSummary } from './lib/plaid'
 import { mapPlaidTransactions } from './lib/plaidMap'
 import {
@@ -43,6 +45,12 @@ interface StoreValue {
   budgets: Budgets
   quizHistory: QuizResult[]
   theme: ThemeMode
+  /** Clean display names keyed by merchant key (user renames). */
+  aliases: Record<string, string>
+  /** Per-merchant subscription details (cadence, billing day, renewal/ended dates). */
+  subscriptionMeta: Record<string, SubscriptionMeta>
+  /** Recurring-transfer group keys the user opted OUT of counting toward totals. */
+  ignoredTransfers: Record<string, true>
   addImport: (tx: Transaction[], source: ImportSource) => void
   removeSource: (sourceId: string) => void
   /** Register a Plaid-connected account as a source. */
@@ -60,6 +68,14 @@ interface StoreValue {
   setMerchantSubscription: (key: string, value: boolean) => void
   /** Toggle the subscription flag for the merchant of one transaction. */
   toggleSubscription: (id: string) => void
+  /** Flag/unflag a whole group (all merchant keys behind the given transactions). */
+  setGroupSubscription: (ids: string[], value: boolean) => void
+  /** Update subscription details (cadence, billing day, renewal/ended) for a group's merchants. */
+  setSubscriptionMeta: (keys: string[], patch: SubscriptionMeta) => void
+  /** Rename a group: set a clean display name for the merchant key(s) behind these transactions. */
+  setAlias: (ids: string[], name: string) => void
+  /** Choose whether a detected recurring transfer counts toward spending/income. */
+  setTransferCounted: (key: string, value: boolean) => void
   /** How many other transactions share this one's merchant (for "apply to similar"). */
   similarCount: (id: string) => number
   addCustomCategory: (label: string, color: string, emoji: string) => void
@@ -83,8 +99,17 @@ function initialTheme(): ThemeMode {
   return 'light'
 }
 
+/** Coerce a persisted subscriptions map (older versions stored `true`) into meta objects. */
+function normalizeSubs(
+  raw: Record<string, SubscriptionMeta | true>,
+): Record<string, SubscriptionMeta> {
+  const out: Record<string, SubscriptionMeta> = {}
+  for (const [k, v] of Object.entries(raw ?? {})) out[k] = v === true || !v ? {} : v
+  return out
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [transactions, setTransactions] = useState<Transaction[]>(() =>
+  const [rawTransactions, setRawTransactions] = useState<Transaction[]>(() =>
     loadJSON<Transaction[]>(STORAGE_KEYS.transactions, []),
   )
   const [mapping, setMapping] = useState<ColumnMapping | null>(() =>
@@ -96,10 +121,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [merchantOverrides, setMerchantOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.merchantOverrides, {}),
   )
-  // Merchant keys the user flagged as subscriptions. Stored by merchant (like
-  // merchantOverrides) so the flag survives re-imports and groups all charges.
-  const [subscriptionMerchants, setSubscriptionMerchants] = useState<Record<string, true>>(() =>
-    loadJSON<Record<string, true>>(STORAGE_KEYS.subscriptions, {}),
+  // Subscriptions keyed by merchant key. Presence = flagged; the value holds the
+  // optional details (cadence, billing day, renewal/ended dates). Stored by
+  // merchant so the flag + details survive re-imports and group all charges.
+  const [subscriptions, setSubscriptions] = useState<Record<string, SubscriptionMeta>>(() =>
+    normalizeSubs(loadJSON<Record<string, SubscriptionMeta | true>>(STORAGE_KEYS.subscriptions, {})),
+  )
+  // Clean display names keyed by merchant key (renames), applied to grouping + display.
+  const [aliases, setAliases] = useState<Record<string, string>>(() =>
+    loadJSON<Record<string, string>>(STORAGE_KEYS.aliases, {}),
+  )
+  // Recurring-transfer groups the user said should NOT count toward totals.
+  const [ignoredTransfers, setIgnoredTransfers] = useState<Record<string, true>>(() =>
+    loadJSON<Record<string, true>>(STORAGE_KEYS.ignoredTransfers, {}),
   )
   const [sources, setSources] = useState<ImportSource[]>(() =>
     loadJSON<ImportSource[]>(STORAGE_KEYS.sources, []),
@@ -117,26 +151,40 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Refs so callbacks can read current state without nesting state updaters
   // (React StrictMode double-invokes updaters, which would duplicate appends).
-  const txRef = useRef(transactions)
-  txRef.current = transactions
+  const txRef = useRef(rawTransactions)
+  txRef.current = rawTransactions
   const overridesRef = useRef(overrides)
   overridesRef.current = overrides
   const merchantOverridesRef = useRef(merchantOverrides)
   merchantOverridesRef.current = merchantOverrides
-  const subscriptionMerchantsRef = useRef(subscriptionMerchants)
-  subscriptionMerchantsRef.current = subscriptionMerchants
+  const subscriptionsRef = useRef(subscriptions)
+  subscriptionsRef.current = subscriptions
+  const aliasesRef = useRef(aliases)
+  aliasesRef.current = aliases
   const configRef = useRef(categoryConfig)
   configRef.current = categoryConfig
   const sourcesRef = useRef(sources)
   sourcesRef.current = sources
 
-  useEffect(() => saveJSON(STORAGE_KEYS.transactions, transactions), [transactions])
+  // Recurring, same-amount transfers/Zelle (e.g. a monthly phone Zelle) are
+  // promoted to count toward spending/income — unless the user opted that group
+  // out. Derived so it stays in sync as data/aliases change; the raw
+  // transactions (persisted) never carry the `counts` flag.
+  const transactions = useMemo(() => {
+    const ids = recurringTransferIds(rawTransactions, aliases, ignoredTransfers)
+    if (ids.size === 0) return rawTransactions
+    return rawTransactions.map((t) => (ids.has(t.id) ? { ...t, counts: true } : t))
+  }, [rawTransactions, aliases, ignoredTransfers])
+
+  useEffect(() => saveJSON(STORAGE_KEYS.transactions, rawTransactions), [rawTransactions])
   useEffect(() => {
     if (mapping) saveJSON(STORAGE_KEYS.mapping, mapping)
   }, [mapping])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
-  useEffect(() => saveJSON(STORAGE_KEYS.subscriptions, subscriptionMerchants), [subscriptionMerchants])
+  useEffect(() => saveJSON(STORAGE_KEYS.subscriptions, subscriptions), [subscriptions])
+  useEffect(() => saveJSON(STORAGE_KEYS.aliases, aliases), [aliases])
+  useEffect(() => saveJSON(STORAGE_KEYS.ignoredTransfers, ignoredTransfers), [ignoredTransfers])
   useEffect(() => saveJSON(STORAGE_KEYS.sources, sources), [sources])
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
@@ -153,10 +201,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const withOverrides = useCallback((tx: Transaction[]): Transaction[] => {
     const desc = overridesRef.current
     const merch = merchantOverridesRef.current
-    const subs = subscriptionMerchantsRef.current
+    const subs = subscriptionsRef.current
     return tx.map((t) => {
       const key = merchantKey(t.description)
-      const subscription = subs[key] ? true : undefined
+      const subscription = key in subs ? true : undefined
       const byDesc = desc[overrideKey(t.description)]
       if (byDesc) return { ...t, subscription, category: byDesc, overridden: true }
       const byMerchant = merch[key]
@@ -168,7 +216,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addImport = useCallback(
     (tx: Transaction[], source: ImportSource) => {
       const prepared = withOverrides(tx)
-      setTransactions((prev) => [...prev, ...prepared])
+      setRawTransactions((prev) => [...prev, ...prepared])
       setSources((prev) => [...prev, source])
     },
     [withOverrides],
@@ -177,7 +225,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const removeSource = useCallback((sourceId: string) => {
     const src = sourcesRef.current.find((s) => s.id === sourceId)
     if (src?.kind === 'plaid') void plaidApi.removeItem(sourceId).catch(() => {})
-    setTransactions((prev) => prev.filter((t) => t.sourceId !== sourceId))
+    setRawTransactions((prev) => prev.filter((t) => t.sourceId !== sourceId))
     setSources((prev) => prev.filter((s) => s.id !== sourceId))
   }, [])
 
@@ -204,7 +252,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     async (sourceId: string) => {
       const { transactions: ptx } = await plaidApi.sync(sourceId)
       const mapped = withOverrides(mapPlaidTransactions(ptx, sourceId))
-      setTransactions((prev) => [...prev.filter((t) => t.sourceId !== sourceId), ...mapped])
+      setRawTransactions((prev) => [...prev.filter((t) => t.sourceId !== sourceId), ...mapped])
       setSources((prev) => prev.map((s) => (s.id === sourceId ? { ...s, count: mapped.length } : s)))
       return mapped.length
     },
@@ -213,17 +261,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const loadSample = useCallback(() => {
     // Pre-flag a couple of streaming subscriptions so the Subscriptions list has
-    // something to show off out of the box.
-    const seed: Record<string, true> = {
-      [merchantKey('Netflix')]: true,
-      [merchantKey('Spotify')]: true,
+    // something to show off out of the box (with example cadence details).
+    const seed: Record<string, SubscriptionMeta> = {
+      [merchantKey('Netflix')]: { cadence: 'monthly', billingDay: 6 },
+      [merchantKey('Spotify')]: { cadence: 'monthly', billingDay: 26 },
     }
     const tx = loadSampleTransactions().map((t) => ({ ...t, sourceId: SAMPLE_SOURCE_ID }))
     const prepared = withOverrides(tx).map((t) =>
-      seed[merchantKey(t.description)] ? { ...t, subscription: true } : t,
+      merchantKey(t.description) in seed ? { ...t, subscription: true } : t,
     )
-    setSubscriptionMerchants(seed)
-    setTransactions(prepared)
+    setSubscriptions(seed)
+    setRawTransactions(prepared)
     setSources([
       {
         id: SAMPLE_SOURCE_ID,
@@ -238,7 +286,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const setCategory = useCallback((id: string, category: Category) => {
     const target = txRef.current.find((t) => t.id === id)
-    setTransactions((prev) =>
+    setRawTransactions((prev) =>
       prev.map((t) => (t.id === id ? { ...t, category, overridden: true } : t)),
     )
     if (target) {
@@ -249,7 +297,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const setCategoryBulk = useCallback((ids: string[], category: Category) => {
     const idset = new Set(ids)
     const affected = txRef.current.filter((t) => idset.has(t.id))
-    setTransactions((prev) =>
+    setRawTransactions((prev) =>
       prev.map((t) => (idset.has(t.id) ? { ...t, category, overridden: true } : t)),
     )
     setOverrides((o) => {
@@ -260,34 +308,95 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setCategoryForMerchant = useCallback((key: string, category: Category) => {
-    setTransactions((prev) =>
+    setRawTransactions((prev) =>
       prev.map((t) => (merchantKey(t.description) === key ? { ...t, category, overridden: true } : t)),
     )
     setMerchantOverrides((o) => ({ ...o, [key]: category }))
   }, [])
 
-  const setMerchantSubscription = useCallback((key: string, value: boolean) => {
-    setTransactions((prev) =>
+  /** Set the subscription flag for one or more merchant keys at once. */
+  const setMerchantSubscriptions = useCallback((keys: string[], value: boolean) => {
+    const keySet = new Set(keys)
+    setRawTransactions((prev) =>
       prev.map((t) =>
-        merchantKey(t.description) === key ? { ...t, subscription: value ? true : undefined } : t,
+        keySet.has(merchantKey(t.description)) ? { ...t, subscription: value ? true : undefined } : t,
       ),
     )
-    setSubscriptionMerchants((prev) => {
+    setSubscriptions((prev) => {
       const next = { ...prev }
-      if (value) next[key] = true
-      else delete next[key]
+      for (const k of keySet) {
+        if (value) next[k] = next[k] ?? {}
+        else delete next[k]
+      }
       return next
     })
   }, [])
+
+  const setMerchantSubscription = useCallback(
+    (key: string, value: boolean) => setMerchantSubscriptions([key], value),
+    [setMerchantSubscriptions],
+  )
 
   const toggleSubscription = useCallback(
     (id: string) => {
       const t = txRef.current.find((x) => x.id === id)
       if (!t) return
-      setMerchantSubscription(merchantKey(t.description), !t.subscription)
+      setMerchantSubscriptions([merchantKey(t.description)], !t.subscription)
     },
-    [setMerchantSubscription],
+    [setMerchantSubscriptions],
   )
+
+  /** Map a set of transaction ids to the distinct merchant keys behind them. */
+  const keysForIds = useCallback((ids: string[]): string[] => {
+    const idset = new Set(ids)
+    const keys = new Set<string>()
+    for (const t of txRef.current) if (idset.has(t.id)) keys.add(merchantKey(t.description))
+    return [...keys]
+  }, [])
+
+  const setGroupSubscription = useCallback(
+    (ids: string[], value: boolean) => {
+      const keys = keysForIds(ids)
+      if (keys.length) setMerchantSubscriptions(keys, value)
+    },
+    [keysForIds, setMerchantSubscriptions],
+  )
+
+  const setSubscriptionMeta = useCallback((keys: string[], patch: SubscriptionMeta) => {
+    if (keys.length === 0) return
+    setSubscriptions((prev) => {
+      const next = { ...prev }
+      for (const k of keys) next[k] = { ...(next[k] ?? {}), ...patch }
+      return next
+    })
+  }, [])
+
+  const setAlias = useCallback(
+    (ids: string[], name: string) => {
+      const clean = name.trim()
+      const keys = keysForIds(ids)
+      if (keys.length === 0) return
+      setAliases((prev) => {
+        const next = { ...prev }
+        for (const k of keys) {
+          if (clean) next[k] = clean
+          else delete next[k]
+        }
+        return next
+      })
+    },
+    [keysForIds],
+  )
+
+  const setTransferCounted = useCallback((key: string, value: boolean) => {
+    setIgnoredTransfers((prev) => {
+      const next = { ...prev }
+      // value=true means "count it" -> NOT ignored; value=false -> ignored.
+      if (value) delete next[key]
+      else next[key] = true
+      return next
+    })
+  }, [])
 
   const similarCount = useCallback((id: string) => {
     const target = txRef.current.find((t) => t.id === id)
@@ -335,7 +444,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const deleteCategory = useCallback(
     (id: string) => {
       if (BUILTIN_CATEGORIES.some((b) => b.id === id)) return // built-ins can't be deleted
-      setTransactions((prev) =>
+      setRawTransactions((prev) =>
         prev.map((t) => (t.category === id ? { ...t, category: 'other' } : t)),
       )
       setOverrides((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== id)))
@@ -372,11 +481,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const clearAll = useCallback(() => {
     DATA_KEYS.forEach(removeKey)
-    setTransactions([])
+    setRawTransactions([])
     setMapping(null)
     setOverrides({})
     setMerchantOverrides({})
-    setSubscriptionMerchants({})
+    setSubscriptions({})
+    setAliases({})
+    setIgnoredTransfers({})
     setSources([])
     setBudgets({})
     setQuizHistory([])
@@ -393,6 +504,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      aliases,
+      subscriptionMeta: subscriptions,
+      ignoredTransfers,
       addImport,
       removeSource,
       addPlaidSource,
@@ -403,6 +517,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategoryForMerchant,
       setMerchantSubscription,
       toggleSubscription,
+      setGroupSubscription,
+      setSubscriptionMeta,
+      setAlias,
+      setTransferCounted,
       similarCount,
       addCustomCategory,
       updateCategory,
@@ -422,6 +540,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      aliases,
+      subscriptions,
+      ignoredTransfers,
       addImport,
       removeSource,
       addPlaidSource,
@@ -432,6 +553,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategoryForMerchant,
       setMerchantSubscription,
       toggleSubscription,
+      setGroupSubscription,
+      setSubscriptionMeta,
+      setAlias,
+      setTransferCounted,
       similarCount,
       addCustomCategory,
       updateCategory,

@@ -22,6 +22,7 @@ export type BuiltinCategory =
   | 'health'
   | 'pets'
   | 'charity'
+  | 'tithes'
   | 'fees'
   | 'zelle'
   | 'income'
@@ -44,8 +45,32 @@ export interface Transaction {
    * is treated as a subscription and the flag survives re-imports.
    */
   subscription?: boolean
+  /**
+   * Forces this transaction to count toward spending/income even though its
+   * category is normally excluded (transfers/Zelle). Set automatically on
+   * recurring, same-amount, same-day transfers (e.g. a monthly phone Zelle).
+   */
+  counts?: boolean
   /** Which imported file this transaction came from (so it can be removed). */
   sourceId?: string
+}
+
+/** How often a subscription bills. */
+export type SubscriptionCadence = 'monthly' | 'annual'
+
+/**
+ * Optional details a user can attach to a subscription, remembered per-merchant.
+ * Lets us track yearly vs monthly billing, when the next charge lands, and
+ * whether the subscription has since ended.
+ */
+export interface SubscriptionMeta {
+  cadence?: SubscriptionCadence
+  /** Day of month (1-31) a monthly subscription is charged. */
+  billingDay?: number
+  /** ISO date (YYYY-MM-DD) of the next renewal, for annual subscriptions. */
+  renewalDate?: string
+  /** ISO date the subscription ended, if it's no longer active. */
+  endedDate?: string
 }
 
 /** A raw row coming out of PapaParse: header -> cell value */

@@ -64,6 +64,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
     keywords: [
       'student loan',
       'studentloan',
+      'studntloan',
       'sallie mae',
       'salliemae',
       'nelnet',
@@ -75,8 +76,11 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'college access',
       'dept of education',
       'department of education',
+      'advs ed serv',
+      'thecb',
       'earnest',
       'loan payment',
+      'loan pymt',
       'loan pmt',
       'auto loan',
       'car loan',
@@ -447,12 +451,16 @@ const RULES: { category: Category; keywords: string[] }[] = [
     ],
   },
   {
-    // Tithes, donations, and gifts. Placed near the end so it only catches
-    // explicit giving keywords.
+    // Tithes & offerings get their own bucket (kept separate from charity so the
+    // giving total is clear and quiz questions can lean on it).
+    category: 'tithes',
+    keywords: ['tithe', 'tithes', 'tithing', 'offering', 'offerings', 'firstfruits'],
+  },
+  {
+    // Donations and gifts. Placed near the end so it only catches explicit
+    // giving keywords.
     category: 'charity',
     keywords: [
-      'tithe',
-      'tithes',
       'donation',
       'donate',
       'charitable',

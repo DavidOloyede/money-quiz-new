@@ -578,6 +578,75 @@ function genBudget(ctx: Ctx): QuizQuestion | null {
   )
 }
 
+// --- giving & debt (faith-informed) ---
+
+/** The widest range with data (this year if present), for once-per-quiz topics. */
+function scopeTx(ctx: Ctx): { txs: Transaction[]; label: string } {
+  if (ctx.rangesWithData.includes('thisYear')) {
+    return { txs: ctx.tx('thisYear'), label: rangeLabel('thisYear') }
+  }
+  return { txs: ctx.all, label: 'so far' }
+}
+
+function categoryTotal(txs: Transaction[], id: string): number {
+  return spendingByCategory(txs).find((c) => c.category === id)?.total ?? 0
+}
+
+function genTitheGiving(ctx: Ctx): QuizQuestion | null {
+  const { txs, label } = scopeTx(ctx)
+  const total = categoryTotal(txs, 'tithes')
+  if (total <= 0) return null
+  const choices = moneyChoices(total)
+  if (!choices) return null
+  return mk(
+    'titheGiving',
+    `How much did you give in tithes & offerings ${label}?`,
+    choices,
+    `You gave ${formatCurrency(total)} in tithes & offerings ${label}.`,
+    pick([
+      '“Bring the whole tithe into the storehouse…” (Malachi 3:10) — giving first sets the tone for everything else.',
+      '“Honor the Lord with your wealth, with the firstfruits of all your crops.” (Proverbs 3:9)',
+      '“Each of you should give what you have decided… for God loves a cheerful giver.” (2 Corinthians 9:7)',
+    ]),
+  )
+}
+
+function genTithePercent(ctx: Ctx): QuizQuestion | null {
+  const { txs, label } = scopeTx(ctx)
+  const income = totalIncome(txs)
+  const tithes = categoryTotal(txs, 'tithes')
+  if (income <= 0 || tithes <= 0) return null
+  const pct = (tithes / income) * 100
+  const choices = pctChoices(pct)
+  if (!choices) return null
+  return mk(
+    'tithePercent',
+    `About what percent of your income went to tithes & offerings ${label}?`,
+    choices,
+    `Tithes & offerings were ${formatPercent(pct)} of your ${formatCurrency(income)} in income ${label}.`,
+    'A tithe is traditionally a tenth (Leviticus 27:30) — a simple yardstick for giving off the top.',
+  )
+}
+
+function genDebtPayments(ctx: Ctx): QuizQuestion | null {
+  const { txs, label } = scopeTx(ctx)
+  const total = categoryTotal(txs, 'loans')
+  if (total <= 0) return null
+  const choices = moneyChoices(total)
+  if (!choices) return null
+  return mk(
+    'debtPayments',
+    `How much went to loan & debt payments ${label}?`,
+    choices,
+    `You put ${formatCurrency(total)} toward loans & debt ${label}.`,
+    pick([
+      '“The rich rule over the poor, and the borrower is slave to the lender.” (Proverbs 22:7) — every dollar of debt retired buys back freedom.',
+      '“Let no debt remain outstanding, except the continuing debt to love one another.” (Romans 13:8)',
+      'Knocking out debt frees future income to save and to give — momentum compounds.',
+    ]),
+  )
+}
+
 // ----------------------------- assembly -----------------------------
 
 const RANGE_GENERATORS: ((ctx: Ctx, r: TimeRange) => QuizQuestion | null)[] = [
@@ -662,6 +731,9 @@ export function generateQuiz(
   add(genRecurringCount(ctx))
   add(genRecurringTotal(ctx))
   add(genBudget(ctx))
+  add(genTitheGiving(ctx))
+  add(genTithePercent(ctx))
+  add(genDebtPayments(ctx))
 
   return pickSpread(shuffle(candidates), desired)
 }
@@ -728,6 +800,19 @@ export function quizInsights(transactions: Transaction[], askedKinds?: Set<strin
       let maxIdx = 0
       for (let i = 1; i < 7; i++) if (byDow[i] > byDow[maxIdx]) maxIdx = i
       out.push(`${DOW[maxIdx]} is your heaviest spending day of the week.`)
+    }
+  }
+  if (wants('titheGiving', 'tithePercent')) {
+    const tithes = categoryTotal(transactions, 'tithes')
+    if (tithes > 0) {
+      const pct = income > 0 ? ` (${formatPercent((tithes / income) * 100)} of income)` : ''
+      out.push(`You gave ${formatCurrency(tithes)} in tithes & offerings${pct}.`)
+    }
+  }
+  if (wants('debtPayments')) {
+    const debt = categoryTotal(transactions, 'loans')
+    if (debt > 0) {
+      out.push(`You put ${formatCurrency(debt)} toward loans & debt — every dollar retired frees future income.`)
     }
   }
   return out

@@ -1,13 +1,15 @@
 import type { Transaction } from '../types'
 import { topMerchants } from '../lib/analysis'
 import { formatCurrency } from '../lib/format'
+import { useStore } from '../store'
 
 interface Props {
   transactions: Transaction[]
 }
 
 export function TopMerchantsCard({ transactions }: Props) {
-  const merchants = topMerchants(transactions, 6)
+  const { aliases } = useStore()
+  const merchants = topMerchants(transactions, 6, aliases)
   if (merchants.length === 0) return null
   const max = merchants[0].total
 

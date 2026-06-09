@@ -49,6 +49,7 @@ export const BUILTIN_CATEGORIES: CategoryDef[] = [
   { id: 'health', label: 'Health', color: '#14b8a6', emoji: '➕', kind: 'spending', builtin: true },
   { id: 'pets', label: 'Pets', color: '#a16207', emoji: '🐾', kind: 'spending', builtin: true },
   { id: 'charity', label: 'Charity & Gifts', color: '#e11d48', emoji: '🎁', kind: 'spending', builtin: true },
+  { id: 'tithes', label: 'Tithes & Offerings', color: '#9333ea', emoji: '🙏', kind: 'spending', builtin: true },
   { id: 'fees', label: 'Fees & Taxes', color: '#78716c', emoji: '🧾', kind: 'spending', builtin: true },
   { id: 'zelle', label: 'Zelle', color: '#0ea5e9', emoji: '💸', kind: 'excluded', builtin: true },
   { id: 'income', label: 'Income', color: '#22c55e', emoji: '💰', kind: 'income', builtin: true },

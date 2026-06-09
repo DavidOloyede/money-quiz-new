@@ -8,8 +8,9 @@
 
 const NOISE = new Set([
   'the', 'inc', 'llc', 'co', 'corp', 'store', 'pos', 'debit', 'credit', 'card',
-  'online', 'com', 'www', 'purchase', 'payment', 'ach', 'pmt', 'intl', 'usa',
-  'web', 'id', 'svc', 'dept', 'mktpl', 'mktplace', 'bill', 'recurring',
+  'online', 'com', 'www', 'net', 'purchase', 'payment', 'ach', 'pmt', 'intl', 'usa',
+  'web', 'id', 'svc', 'service', 'services', 'servic', 'dept', 'mktpl', 'mktplace',
+  'bill', 'recurring', 'null', 'funding', 'ppd', 'ccd', 'conf',
 ])
 
 const PREFIX = /^(sq|tst|py|dd|pp|paypal|ppd|ach|pos|web|checkcard|chkcard|visa|mc|debit|credit)\b[\s*#:.-]*/i
@@ -33,7 +34,8 @@ export function merchantKey(description: string): string {
     .replace(PREFIX, '')
     .replace(/[^a-z0-9&\s]/g, ' ')
     .split(/\s+/)
-    .filter((w) => w && !/\d/.test(w) && !NOISE.has(w))
+    // Drop blanks, single characters, pure-number/id tokens, and noise words.
+    .filter((w) => w.length > 1 && !/\d/.test(w) && !NOISE.has(w))
 
   // Drop a trailing 2-letter state code (… HOUSTON TX).
   while (words.length > 1 && /^[a-z]{2}$/.test(words[words.length - 1])) words.pop()
@@ -48,4 +50,38 @@ export function merchantLabel(description: string): string {
     .split(' ')
     .map((w) => (w === 'to' || w === 'from' ? w : w.charAt(0).toUpperCase() + w.slice(1)))
     .join(' ')
+}
+
+/**
+ * The identity used to *group* transactions in analyses (recurring, merchants,
+ * subscriptions). When the user has renamed a merchant, every variant that maps
+ * to that merchant key collapses under the alias — so fragmented bank
+ * descriptors ("REDEFINEDTV.NET PURCHASE…" vs "…REDEFINEDT…") become one group.
+ */
+export function groupKey(description: string, aliases: Record<string, string> = {}): string {
+  const mk = merchantKey(description)
+  const alias = aliases[mk]
+  return alias ? `alias:${alias.toLowerCase().trim()}` : mk
+}
+
+/** Display name for a transaction's group: the user's alias if set, else the cleaned label. */
+export function groupLabel(description: string, aliases: Record<string, string> = {}): string {
+  return aliases[merchantKey(description)] ?? merchantLabel(description)
+}
+
+/** What to show for a single transaction's description: the user's alias if set, else the raw text. */
+export function displayDescription(description: string, aliases: Record<string, string> = {}): string {
+  return aliases[merchantKey(description)] ?? description
+}
+
+/** The set of significant words in a merchant key, for "shares a name" comparisons. */
+export function nameTokens(description: string): Set<string> {
+  return new Set(merchantKey(description).split(' ').filter(Boolean))
+}
+
+/** True when two descriptions share at least one significant merchant word. */
+export function sharesName(a: string, b: string): boolean {
+  const ta = nameTokens(a)
+  for (const w of nameTokens(b)) if (ta.has(w)) return true
+  return false
 }

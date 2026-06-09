@@ -1,17 +1,21 @@
 import type { Category, Transaction } from '../types'
 import { isExcludedCategory } from './categories'
-import { merchantKey, merchantLabel } from './merchant'
+import { groupKey, groupLabel, merchantKey } from './merchant'
+
+/** Alias map (merchant key -> clean name); threaded into grouping analyses. */
+export type Aliases = Record<string, string>
 
 export type TimeRange = 'thisMonth' | 'lastMonth' | 'thisYear'
 
 /**
  * Transfers and Zelle move money between your own accounts (or pay off a card)
  * rather than being real spending or income, so they're excluded from every
- * total, the category breakdown, and the trend. They're surfaced on their own
- * via `excludedSummary` instead.
+ * total, the category breakdown, and the trend — UNLESS one is a recurring,
+ * same-amount bill (e.g. a monthly phone Zelle), which gets `counts` set so it
+ * lands in spending/income like any other expense.
  */
 export function countsTowardTotals(t: Transaction): boolean {
-  return !isExcludedCategory(t.category)
+  return t.counts === true || !isExcludedCategory(t.category)
 }
 
 function pad(n: number): string {
@@ -185,12 +189,12 @@ export interface MerchantStat {
 }
 
 /** Expense merchants by visit count (then spend), most frequent first. */
-export function merchantStats(transactions: Transaction[]): MerchantStat[] {
+export function merchantStats(transactions: Transaction[], aliases: Aliases = {}): MerchantStat[] {
   const map = new Map<string, { label: string; count: number; total: number }>()
   for (const t of transactions) {
     if (t.amount >= 0 || !countsTowardTotals(t)) continue
-    const key = merchantKey(t.description)
-    const entry = map.get(key) ?? { label: merchantLabel(t.description), count: 0, total: 0 }
+    const key = groupKey(t.description, aliases)
+    const entry = map.get(key) ?? { label: groupLabel(t.description, aliases), count: 0, total: 0 }
     entry.count += 1
     entry.total += -t.amount
     map.set(key, entry)
@@ -201,8 +205,8 @@ export function merchantStats(transactions: Transaction[]): MerchantStat[] {
 }
 
 /** Expense merchants by total spend, biggest first. */
-export function topMerchants(transactions: Transaction[], n = 8): MerchantStat[] {
-  return merchantStats(transactions)
+export function topMerchants(transactions: Transaction[], n = 8, aliases: Aliases = {}): MerchantStat[] {
+  return merchantStats(transactions, aliases)
     .slice()
     .sort((a, b) => b.total - a.total)
     .slice(0, n)
@@ -256,8 +260,12 @@ function shiftMonth(key: string, back: number): string {
 
 export interface RecurringPayment {
   merchant: string
-  /** Stable merchant key, so callers can flag/unflag the subscription. */
-  merchantKey: string
+  /** Group identity (alias-aware), so callers can address this group. */
+  groupKey: string
+  /** Distinct merchant keys folded into this group (for per-merchant settings). */
+  keys: string[]
+  /** Member transaction ids, so the group is clickable / drillable. */
+  ids: string[]
   category: Category
   count: number
   months: number
@@ -277,6 +285,8 @@ export interface RecurringPayment {
 interface RecurringGroup {
   label: string
   key: string
+  keys: Set<string>
+  ids: string[]
   cat: Category
   amounts: number[]
   months: Set<string>
@@ -285,17 +295,19 @@ interface RecurringGroup {
   sub: boolean
 }
 
-/** Bucket expenses by merchant, tracking amounts, months, and the subscription flag. */
-function groupRecurring(transactions: Transaction[]): RecurringGroup[] {
+/** Bucket expenses by group identity, tracking amounts, months, ids, and the subscription flag. */
+function groupRecurring(transactions: Transaction[], aliases: Aliases): RecurringGroup[] {
   const map = new Map<string, RecurringGroup>()
   for (const t of transactions) {
     if (t.amount >= 0 || !countsTowardTotals(t)) continue
-    const key = merchantKey(t.description)
+    const key = groupKey(t.description, aliases)
     const e =
       map.get(key) ??
       {
-        label: merchantLabel(t.description),
+        label: groupLabel(t.description, aliases),
         key,
+        keys: new Set<string>(),
+        ids: [],
         cat: t.category,
         amounts: [],
         months: new Set<string>(),
@@ -305,6 +317,8 @@ function groupRecurring(transactions: Transaction[]): RecurringGroup[] {
       }
     e.amounts.push(-t.amount)
     e.months.add(monthKey(t.date))
+    e.keys.add(merchantKey(t.description))
+    e.ids.push(t.id)
     e.total += -t.amount
     e.cat = t.category
     if (t.subscription) e.sub = true
@@ -339,7 +353,9 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
   const fixed = count <= 1 ? true : mode.freq >= 2 && mode.freq / count >= 0.5
   return {
     merchant: e.label,
-    merchantKey: e.key,
+    groupKey: e.key,
+    keys: [...e.keys],
+    ids: e.ids,
     category: e.cat,
     count,
     months: e.months.size,
@@ -363,9 +379,9 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
  * `monthlyEstimate` normalizes everything to a per-month cost, so variable
  * bills are effectively averaged. Sorted by monthly cost, biggest first.
  */
-export function recurringPayments(transactions: Transaction[]): RecurringPayment[] {
+export function recurringPayments(transactions: Transaction[], aliases: Aliases = {}): RecurringPayment[] {
   const out: RecurringPayment[] = []
-  for (const e of groupRecurring(transactions)) {
+  for (const e of groupRecurring(transactions, aliases)) {
     const mode = modeAmount(e.amounts)
     const r = toRecurring(e, mode)
     const qualifies =
@@ -377,14 +393,115 @@ export function recurringPayments(transactions: Transaction[]): RecurringPayment
 
 /**
  * Just the merchants the user flagged as subscriptions, summarized like
- * recurring payments — the "all my subscriptions in one place" list.
+ * recurring payments — the "all my subscriptions in one place" list. Includes
+ * one-time/annual subscriptions (a single charge still counts once flagged).
  */
-export function subscriptions(transactions: Transaction[]): RecurringPayment[] {
+export function subscriptions(transactions: Transaction[], aliases: Aliases = {}): RecurringPayment[] {
   const out: RecurringPayment[] = []
-  for (const e of groupRecurring(transactions)) {
+  for (const e of groupRecurring(transactions, aliases)) {
     if (e.sub) out.push(toRecurring(e, modeAmount(e.amounts)))
   }
   return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
+}
+
+function dayOfMonth(iso: string): number {
+  return Number(iso.slice(8, 10)) || 1
+}
+
+export interface RecurringTransfer {
+  key: string
+  label: string
+  direction: 'out' | 'in'
+  category: Category
+  /** The consistent amount (magnitude) that recurs. */
+  amount: number
+  count: number
+  months: number
+  /** The day of month it usually lands on. */
+  day: number
+  lastDate: string
+  ids: string[]
+}
+
+/**
+ * Transfers / Zelle that recur at the *same amount* on roughly the *same day*
+ * each month (3+ months) — e.g. a monthly phone-payment Zelle. These are real
+ * bills hiding among internal transfers; their transactions are auto-counted
+ * toward spending/income (see `recurringTransferIds`) and surfaced here so the
+ * user can confirm or recategorize them.
+ */
+export function recurringTransfers(transactions: Transaction[], aliases: Aliases = {}): RecurringTransfer[] {
+  interface G {
+    label: string
+    dir: 'out' | 'in'
+    cat: Category
+    amount: number
+    ids: string[]
+    months: Set<string>
+    days: number[]
+    last: string
+  }
+  const map = new Map<string, G>()
+  for (const t of transactions) {
+    if (!isExcludedCategory(t.category) || t.amount === 0) continue
+    const dir: 'out' | 'in' = t.amount < 0 ? 'out' : 'in'
+    const cents = Math.round(Math.abs(t.amount) * 100) / 100
+    const key = `${groupKey(t.description, aliases)}|${dir}|${cents}`
+    const e =
+      map.get(key) ??
+      {
+        label: groupLabel(t.description, aliases),
+        dir,
+        cat: t.category,
+        amount: cents,
+        ids: [],
+        months: new Set<string>(),
+        days: [],
+        last: '',
+      }
+    e.ids.push(t.id)
+    e.months.add(monthKey(t.date))
+    e.days.push(dayOfMonth(t.date))
+    if (t.date > e.last) e.last = t.date
+    map.set(key, e)
+  }
+  const out: RecurringTransfer[] = []
+  for (const [key, e] of map) {
+    const months = e.months.size
+    const spread = Math.max(...e.days) - Math.min(...e.days)
+    if (e.ids.length >= 3 && months >= 3 && spread <= 4) {
+      out.push({
+        key,
+        label: e.label,
+        direction: e.dir,
+        category: e.cat,
+        amount: e.amount,
+        count: e.ids.length,
+        months,
+        day: modeAmount(e.days).value,
+        lastDate: e.last,
+        ids: e.ids,
+      })
+    }
+  }
+  return out.sort((a, b) => b.amount * b.count - a.amount * a.count)
+}
+
+/**
+ * Ids of transfer/Zelle transactions that should auto-count (recurring
+ * same-amount bills), excluding any group the user opted out of via `ignored`.
+ */
+export function recurringTransferIds(
+  transactions: Transaction[],
+  aliases: Aliases = {},
+  ignored: Record<string, true> = {},
+): Set<string> {
+  const ids = new Set<string>()
+  for (const rt of recurringTransfers(transactions, aliases)) {
+    if (ignored[rt.key]) continue
+    for (const id of rt.ids) ids.add(id)
+  }
+  return ids
 }
 
 export interface CategoryTrend {

@@ -22,6 +22,8 @@ import { CategoryDetailModal } from './CategoryDetailModal'
 import { BudgetsCard } from './BudgetsCard'
 import { RecurringCard } from './RecurringCard'
 import { SubscriptionsCard } from './SubscriptionsCard'
+import { RecurringTransfersCard } from './RecurringTransfersCard'
+import { GroupDetailModal } from './GroupDetailModal'
 import { TrendsCard } from './TrendsCard'
 import { TopMerchantsCard } from './TopMerchantsCard'
 import { StatCard } from './StatCard'
@@ -52,6 +54,7 @@ export function Dashboard({ onNavigate }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('total')
   const [sortAsc, setSortAsc] = useState(false)
   const [drill, setDrill] = useState<Category | null>(null)
+  const [groupIds, setGroupIds] = useState<string[] | null>(null)
 
   const filtered = useMemo(
     () =>
@@ -329,8 +332,9 @@ export function Dashboard({ onNavigate }: Props) {
               onSetBudget={setBudget}
             />
             <TopMerchantsCard transactions={filtered} />
-            <RecurringCard transactions={transactions} />
-            <SubscriptionsCard transactions={transactions} />
+            <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <SubscriptionsCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <RecurringTransfersCard transactions={transactions} onOpenGroup={setGroupIds} />
             <TrendsCard transactions={transactions} />
           </div>
 
@@ -386,6 +390,8 @@ export function Dashboard({ onNavigate }: Props) {
           onClose={() => setDrill(null)}
         />
       )}
+
+      {groupIds && <GroupDetailModal ids={groupIds} onClose={() => setGroupIds(null)} />}
     </ViewShell>
   )
 }
