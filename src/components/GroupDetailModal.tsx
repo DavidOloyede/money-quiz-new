@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react'
 import type { Category, SubscriptionCadence } from '../types'
 import { useStore } from '../store'
 import { allCategories, categoryMeta } from '../lib/categories'
-import { merchantKey, groupLabel, displayDescription } from '../lib/merchant'
+import { merchantKey, groupKey, groupLabel } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
+import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { XIcon, StarIcon } from './icons'
 
 interface Props {
@@ -20,9 +21,19 @@ interface Props {
  * renewal, and ended dates.
  */
 export function GroupDetailModal({ ids, onClose }: Props) {
-  const { transactions, aliases, subscriptionMeta, setAlias, setGroupSubscription, setSubscriptionMeta } =
-    useStore()
+  const {
+    transactions,
+    aliases,
+    subscriptionMeta,
+    dismissedRecurring,
+    setAlias,
+    setGroupSubscription,
+    setSubscriptionMeta,
+    setRecurringDismissed,
+    toggleSubscription,
+  } = useStore()
   const { change, node } = useApplyToSimilar()
+  const { rename, node: renameNode } = useRenameSimilar()
 
   const idset = useMemo(() => new Set(ids), [ids])
   const items = useMemo(
@@ -36,7 +47,9 @@ export function GroupDetailModal({ ids, onClose }: Props) {
 
   if (!first) return null
 
+  const gKey = groupKey(first.description, aliases)
   const isSub = items.some((t) => t.subscription)
+  const inRecurring = !dismissedRecurring[gKey]
   const meta = keys.map((k) => subscriptionMeta[k]).find(Boolean) ?? {}
   const out = items.reduce((s, t) => (t.amount < 0 ? s - t.amount : s), 0)
   const inn = items.reduce((s, t) => (t.amount > 0 ? s + t.amount : s), 0)
@@ -95,7 +108,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
             </button>
           </div>
 
-          {/* Subscription settings */}
+          {/* Group settings */}
           <div className="border-b border-slate-100 dark:border-slate-800 p-4">
             <div className="flex flex-wrap items-center gap-3">
               <button
@@ -109,6 +122,16 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                 <StarIcon className="h-4 w-4" filled={isSub} />
                 {isSub ? 'Subscription' : 'Mark as subscription'}
               </button>
+
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={inRecurring}
+                  onChange={(e) => setRecurringDismissed(gKey, !e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                Show in recurring payments
+              </label>
 
               {isSub && (
                 <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
@@ -129,34 +152,33 @@ export function GroupDetailModal({ ids, onClose }: Props) {
               )}
             </div>
 
-            {isSub && (
-              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {meta.cadence === 'annual' ? (
-                  <Field label="Next renewal">
-                    <input
-                      type="date"
-                      value={meta.renewalDate ?? ''}
-                      onChange={(e) => patchMeta({ renewalDate: e.target.value || undefined })}
-                      className={inputCls}
-                    />
-                  </Field>
-                ) : (
-                  <Field label="Charged on day">
-                    <input
-                      type="number"
-                      min={1}
-                      max={31}
-                      value={meta.billingDay ?? ''}
-                      onChange={(e) =>
-                        patchMeta({
-                          billingDay: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="e.g. 6"
-                      className={inputCls}
-                    />
-                  </Field>
-                )}
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {/* Charge date applies to any recurring payment, not just subscriptions. */}
+              {meta.cadence === 'annual' ? (
+                <Field label="Next renewal">
+                  <input
+                    type="date"
+                    value={meta.renewalDate ?? ''}
+                    onChange={(e) => patchMeta({ renewalDate: e.target.value || undefined })}
+                    className={inputCls}
+                  />
+                </Field>
+              ) : (
+                <Field label="Charged on day">
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    value={meta.billingDay ?? ''}
+                    onChange={(e) =>
+                      patchMeta({ billingDay: e.target.value ? Number(e.target.value) : undefined })
+                    }
+                    placeholder="e.g. 6"
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+              {isSub && (
                 <Field label="Ended (if cancelled)">
                   <input
                     type="date"
@@ -165,8 +187,8 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     className={inputCls}
                   />
                 </Field>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Transactions */}
@@ -188,8 +210,19 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     </td>
                     <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">
                       <span className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => toggleSubscription(t.id)}
+                          title={t.subscription ? 'Unflag subscription' : 'Mark as subscription'}
+                          className={`shrink-0 rounded p-0.5 transition-colors ${
+                            t.subscription
+                              ? 'text-amber-500 hover:text-amber-600'
+                              : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                          }`}
+                        >
+                          <StarIcon className="h-4 w-4" filled={!!t.subscription} />
+                        </button>
                         <span aria-hidden>{categoryMeta(t.category).emoji}</span>
-                        {displayDescription(t.description, aliases)}
+                        <EditableDescription t={t} aliases={aliases} onRename={rename} />
                       </span>
                     </td>
                     <td className="px-3 py-2.5">
@@ -221,6 +254,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
         </div>
       </div>
       {node}
+      {renameNode}
     </>
   )
 }

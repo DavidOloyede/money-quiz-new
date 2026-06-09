@@ -54,14 +54,12 @@ export function merchantLabel(description: string): string {
 
 /**
  * The identity used to *group* transactions in analyses (recurring, merchants,
- * subscriptions). When the user has renamed a merchant, every variant that maps
- * to that merchant key collapses under the alias — so fragmented bank
- * descriptors ("REDEFINEDTV.NET PURCHASE…" vs "…REDEFINEDT…") become one group.
+ * subscriptions). Grouping is by the **display name** (alias if set, else the
+ * cleaned label), so renaming a merchant to match another — even one that
+ * already shows that clean label — reliably merges them into one group.
  */
 export function groupKey(description: string, aliases: Record<string, string> = {}): string {
-  const mk = merchantKey(description)
-  const alias = aliases[mk]
-  return alias ? `alias:${alias.toLowerCase().trim()}` : mk
+  return groupLabel(description, aliases).toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
 /** Display name for a transaction's group: the user's alias if set, else the cleaned label. */
@@ -77,6 +75,15 @@ export function displayDescription(description: string, aliases: Record<string, 
 /** The set of significant words in a merchant key, for "shares a name" comparisons. */
 export function nameTokens(description: string): Set<string> {
   return new Set(merchantKey(description).split(' ').filter(Boolean))
+}
+
+/**
+ * A stable signature for a single transaction (date + normalized description +
+ * amount), used to remember per-transaction flags (e.g. "this one Amazon charge
+ * is my Prime subscription") so they survive a re-import.
+ */
+export function txSignature(date: string, description: string, amount: number): string {
+  return `${date}|${description.toLowerCase().replace(/\s+/g, ' ').trim()}|${amount}`
 }
 
 /** True when two descriptions share at least one significant merchant word. */

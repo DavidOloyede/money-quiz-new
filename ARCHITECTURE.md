@@ -100,13 +100,19 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
   option to update **all** charges from that merchant (handy for a power bill
   that varies every month).
-- **`CategoryDetailModal.tsx`** — When you click a category, this window shows
-  every transaction in it.
+- **`RenameDescription.tsx`** — Inline rename for a transaction (a pencil next to
+  the name in the modals). Renaming works like a category change: it's saved as a
+  merchant alias and then offers to **rename the other similarly-named charges
+  too**, which merges fragmented descriptors into one group.
+- **`CategoryDetailModal.tsx`** — Click a category to see its transactions; each
+  row can be **recategorized**, **renamed**, or **★-flagged as a subscription**
+  (per charge — so a single Amazon = Prime).
 - **`GroupDetailModal.tsx`** — Click any recurring payment, subscription, or
-  recurring transfer to open this: it lists the underlying charges, lets you
-  **rename** the whole group, fix categories inline, and (for subscriptions) set
-  whether it's **monthly or annual**, the **billing day** / **renewal date**, and
-  an **ended date** if you've cancelled it.
+  recurring transfer to open this: it lists the underlying charges (each
+  renamable / recategorizable / ★-flaggable), lets you **rename** the whole group,
+  toggle **Show in recurring payments** (remove a false positive like "Amazon"),
+  set the **charge day** for any recurring bill, and — for subscriptions — choose
+  **monthly/annual**, the **renewal date**, and an **ended date**.
 - **`Dashboard.tsx`** — The charts-and-numbers screen.
 - **`BudgetsCard.tsx`, `RecurringCard.tsx`, `SubscriptionsCard.tsx`,
   `RecurringTransfersCard.tsx`, `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The
@@ -154,10 +160,11 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`merchant.ts`** — Cleans up ugly store names so "STARBUCKS #123 SEATTLE" and
   "STARBUCKS 8th AVE" are recognized as the **same store**. It strips bank noise
   (card masks, "null", "SVC/SERVICE", single-letter junk) so variants like
-  "CHAMPION ENERGY SVC…" and "CHAMPION ENERGY SERVIC…" collapse together. It also
-  exposes **alias-aware grouping** (`groupKey`/`groupLabel`/`displayDescription`):
-  when you **rename** a merchant, every variant that maps to it folds under that
-  one clean name — across the table, recurring list, and totals.
+  "CHAMPION ENERGY SVC…" and "CHAMPION ENERGY SERVIC…" collapse together. Grouping
+  (`groupKey`) is by the **display name** (alias if set, else the cleaned label),
+  so renaming two different descriptors to the same name reliably merges them —
+  even renaming one to match a label another already shows. `txSignature` gives a
+  stable per-transaction id (date+desc+amount) used to remember per-charge flags.
 - **`importCsv.ts`** — Turns a spreadsheet into Transaction cards. It also
   **removes credit-card "payments"** so your spending isn't counted twice.
 - **`analysis.ts`** — The **calculator**: totals, spending by category, monthly
@@ -167,9 +174,10 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   to **count** toward totals (so `countsTowardTotals` returns true for them) —
   unless you opted that group out. Its time ranges are **This month / Last month
   / This year** (plus a custom window). `recurringPayments` groups charges by the
-  alias-aware identity, leans on the **same amount** repeating to decide fixed vs.
-  **averaged** variable bills, and folds in your flagged subscriptions;
-  `subscriptions` returns just the flagged ones.
+  display-name identity, leans on the **same amount** repeating to decide fixed
+  vs. **averaged** variable bills, and skips groups you've **removed** from the
+  list; `subscriptions` returns only the **flagged** charges grouped together (so
+  one Amazon charge can be Prime while the rest of Amazon stays out).
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?"), including **faith-informed** ones on
   tithes/offerings and debt payments (with short scripture takeaways), plus the
@@ -194,16 +202,21 @@ try the whole app without uploading anything.
   marked it), `counts` (a recurring transfer promoted into your totals).
   `SubscriptionMeta` holds a subscription's cadence, billing day, renewal, and
   ended dates.
-- **`store.tsx`** — The **central brain**. It holds *all* the data and the
-  remembered edits — keyed **per merchant** so they survive re-imports:
-  - **category edits**, **subscription flags + details**, and **renames
-    (aliases)**; renaming or flagging applies to every charge from that merchant.
+- **`store.tsx`** — The **central brain**. It holds the **raw** transactions plus
+  the remembered edits, and derives the live list — stamping two flags that are
+  never persisted on the rows: `subscription` (merchant flagged **or** this exact
+  charge flagged) and `counts` (recurring same-amount transfers, minus opted-out
+  groups). The remembered edits:
+  - **category edits** and **renames (aliases)** — per merchant, survive re-imports.
+  - **subscriptions** — a per-merchant flag (whole-merchant subs like Netflix)
+    **and** `subscriptionTxns`, a per-charge flag by signature (one Amazon = Prime).
+  - **`groupMeta`** — cadence / charge day / renewal / ended for any group.
   - **`ignoredTransfers`** — recurring transfers you opted out of counting.
-  - It keeps the **raw** transactions and derives the live list, stamping
-    `counts` onto recurring same-amount transfers (minus the opted-out ones).
-  It exposes actions the screens use: import, change a category, flag/detail a
-  subscription, rename a group, choose whether a transfer counts, set a budget,
-  connect a bank, etc. Everything auto-saves to the notebook.
+  - **`dismissedRecurring`** — groups removed from the Recurring payments list.
+  It exposes the actions the screens use (import, recategorize, rename, flag a
+  subscription per-charge or per-group, set a charge/renewal date, include/exclude
+  a transfer or recurring group, budget, connect a bank, …) and auto-saves
+  everything to the notebook.
 
 Every screen "plugs into" the store to read data and to make changes, so
 everything stays in sync. Change a category in one place and the charts update

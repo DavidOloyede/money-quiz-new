@@ -11,8 +11,8 @@ interface Props {
 }
 
 export function RecurringCard({ transactions, onOpenGroup }: Props) {
-  const { aliases, setGroupSubscription } = useStore()
-  const items = recurringPayments(transactions, aliases)
+  const { aliases, subscriptionMeta, dismissedRecurring, setGroupSubscription } = useStore()
+  const items = recurringPayments(transactions, aliases, dismissedRecurring)
   if (items.length === 0) return null
   const monthlyTotal = items.reduce((s, r) => s + r.monthlyEstimate, 0)
 
@@ -68,6 +68,10 @@ export function RecurringCard({ transactions, onOpenGroup }: Props) {
                   ) : (
                     <>Varies · avg of {r.count} over {r.months} mo</>
                   )}
+                  {(() => {
+                    const day = r.keys.map((k) => subscriptionMeta[k]?.billingDay).find(Boolean)
+                    return day ? <span> · ~day {day}</span> : null
+                  })()}
                   {r.isSubscription && (
                     <span className="ml-1 text-amber-500 dark:text-amber-400">· subscription</span>
                   )}

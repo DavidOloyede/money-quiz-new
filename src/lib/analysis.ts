@@ -295,11 +295,15 @@ interface RecurringGroup {
   sub: boolean
 }
 
-/** Bucket expenses by group identity, tracking amounts, months, ids, and the subscription flag. */
-function groupRecurring(transactions: Transaction[], aliases: Aliases): RecurringGroup[] {
+/** Bucket transactions by group identity (alias-aware), tracking amounts, months, ids, and the subscription flag. */
+function groupByIdentity(
+  transactions: Transaction[],
+  aliases: Aliases,
+  include: (t: Transaction) => boolean,
+): RecurringGroup[] {
   const map = new Map<string, RecurringGroup>()
   for (const t of transactions) {
-    if (t.amount >= 0 || !countsTowardTotals(t)) continue
+    if (!include(t)) continue
     const key = groupKey(t.description, aliases)
     const e =
       map.get(key) ??
@@ -379,9 +383,15 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
  * `monthlyEstimate` normalizes everything to a per-month cost, so variable
  * bills are effectively averaged. Sorted by monthly cost, biggest first.
  */
-export function recurringPayments(transactions: Transaction[], aliases: Aliases = {}): RecurringPayment[] {
+export function recurringPayments(
+  transactions: Transaction[],
+  aliases: Aliases = {},
+  dismissed: Record<string, true> = {},
+): RecurringPayment[] {
+  const expense = (t: Transaction) => t.amount < 0 && countsTowardTotals(t)
   const out: RecurringPayment[] = []
-  for (const e of groupRecurring(transactions, aliases)) {
+  for (const e of groupByIdentity(transactions, aliases, expense)) {
+    if (dismissed[e.key]) continue // user removed this group from recurring
     const mode = modeAmount(e.amounts)
     const r = toRecurring(e, mode)
     const qualifies =
@@ -392,16 +402,16 @@ export function recurringPayments(transactions: Transaction[], aliases: Aliases 
 }
 
 /**
- * Just the merchants the user flagged as subscriptions, summarized like
- * recurring payments — the "all my subscriptions in one place" list. Includes
- * one-time/annual subscriptions (a single charge still counts once flagged).
+ * Everything the user flagged as a subscription — grouped by merchant, but only
+ * the *flagged* charges (so a single Amazon "Prime" charge shows as a
+ * subscription while the rest of Amazon stays out). Includes one-time/annual
+ * subscriptions, since a single flagged charge still counts.
  */
 export function subscriptions(transactions: Transaction[], aliases: Aliases = {}): RecurringPayment[] {
-  const out: RecurringPayment[] = []
-  for (const e of groupRecurring(transactions, aliases)) {
-    if (e.sub) out.push(toRecurring(e, modeAmount(e.amounts)))
-  }
-  return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
+  const flagged = (t: Transaction) => t.amount < 0 && !!t.subscription
+  return groupByIdentity(transactions, aliases, flagged)
+    .map((e) => toRecurring(e, modeAmount(e.amounts)))
+    .sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
 }
 
 function dayOfMonth(iso: string): number {

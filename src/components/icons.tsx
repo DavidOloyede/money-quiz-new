@@ -151,6 +151,15 @@ export function StarIcon({ className, filled }: IconProps & { filled?: boolean }
   )
 }
 
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 20h4l10-10a2 2 0 00-2.83-2.83L5.17 17.17 4 20z" />
+      <path d="M13.5 6.5l4 4" />
+    </svg>
+  )
+}
+
 export function CoinLogo({ className }: IconProps) {
   return (
     <svg className={className ?? 'w-8 h-8'} viewBox="0 0 32 32" fill="none">
