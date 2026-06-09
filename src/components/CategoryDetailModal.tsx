@@ -1,9 +1,11 @@
 import { useMemo } from 'react'
 import type { Category, Transaction } from '../types'
+import { useStore } from '../store'
 import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '../lib/categories'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
-import { XIcon } from './icons'
+import { useRenameSimilar, EditableDescription } from './RenameDescription'
+import { StarIcon, XIcon } from './icons'
 
 interface Props {
   category: Category
@@ -14,7 +16,9 @@ interface Props {
 }
 
 export function CategoryDetailModal({ category, transactions, scopeLabel, onClose }: Props) {
+  const { aliases, toggleSubscription } = useStore()
   const { change, node } = useApplyToSimilar()
+  const { rename, node: renameNode } = useRenameSimilar()
 
   const items = useMemo(
     () =>
@@ -80,7 +84,23 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                   <td className="whitespace-nowrap px-5 py-2.5 text-slate-500 dark:text-slate-400">
                     {formatDate(t.date)}
                   </td>
-                  <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">{t.description}</td>
+                  <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">
+                    <span className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => toggleSubscription(t.id)}
+                        title={t.subscription ? 'Unflag subscription' : 'Mark as subscription'}
+                        aria-pressed={!!t.subscription}
+                        className={`shrink-0 rounded p-0.5 transition-colors ${
+                          t.subscription
+                            ? 'text-amber-500 hover:text-amber-600'
+                            : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                        }`}
+                      >
+                        <StarIcon className="h-4 w-4" filled={!!t.subscription} />
+                      </button>
+                      <EditableDescription t={t} aliases={aliases} onRename={rename} />
+                    </span>
+                  </td>
                   <td className="px-3 py-2.5">
                     <select
                       value={t.category}
@@ -122,6 +142,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
       </div>
     </div>
     {node}
+    {renameNode}
     </>
   )
 }

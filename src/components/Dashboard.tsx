@@ -21,6 +21,9 @@ import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal } from './CategoryDetailModal'
 import { BudgetsCard } from './BudgetsCard'
 import { RecurringCard } from './RecurringCard'
+import { SubscriptionsCard } from './SubscriptionsCard'
+import { RecurringTransfersCard } from './RecurringTransfersCard'
+import { GroupDetailModal } from './GroupDetailModal'
 import { TrendsCard } from './TrendsCard'
 import { TopMerchantsCard } from './TopMerchantsCard'
 import { StatCard } from './StatCard'
@@ -33,7 +36,7 @@ type RangeId = TimeRange | 'custom'
 const RANGES: { id: RangeId; label: string }[] = [
   { id: 'thisMonth', label: 'This month' },
   { id: 'lastMonth', label: 'Last month' },
-  { id: 'all', label: 'All time' },
+  { id: 'thisYear', label: 'This year' },
   { id: 'custom', label: 'Custom' },
 ]
 
@@ -45,12 +48,13 @@ interface Props {
 
 export function Dashboard({ onNavigate }: Props) {
   const { transactions, hasData, loadSample, budgets, setBudget } = useStore()
-  const [range, setRange] = useState<RangeId>('all')
+  const [range, setRange] = useState<RangeId>('thisYear')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('total')
   const [sortAsc, setSortAsc] = useState(false)
   const [drill, setDrill] = useState<Category | null>(null)
+  const [groupIds, setGroupIds] = useState<string[] | null>(null)
 
   const filtered = useMemo(
     () =>
@@ -182,6 +186,7 @@ export function Dashboard({ onNavigate }: Props) {
               label="Spending"
               value={formatCurrency(stats.totalSpending)}
               accent="text-rose-600"
+              sub={`${formatCurrency(stats.avgDailySpend)} / day average`}
             />
             <StatCard
               label="Net"
@@ -192,7 +197,7 @@ export function Dashboard({ onNavigate }: Props) {
           </div>
 
           {/* Headline stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatCard
               label="Biggest category"
               value={stats.biggestCategory ? categoryLabel(stats.biggestCategory.category) : '—'}
@@ -206,10 +211,6 @@ export function Dashboard({ onNavigate }: Props) {
               label="Largest expense"
               value={stats.largestExpense ? formatCurrency(stats.largestExpense.amount) : '—'}
               sub={stats.largestExpense?.description}
-            />
-            <StatCard
-              label="Avg / day"
-              value={formatCurrency(stats.avgDailySpend)}
             />
             <StatCard label="Transactions" value={String(stats.count)} />
           </div>
@@ -331,7 +332,9 @@ export function Dashboard({ onNavigate }: Props) {
               onSetBudget={setBudget}
             />
             <TopMerchantsCard transactions={filtered} />
-            <RecurringCard transactions={transactions} />
+            <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <SubscriptionsCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <RecurringTransfersCard transactions={transactions} onOpenGroup={setGroupIds} />
             <TrendsCard transactions={transactions} />
           </div>
 
@@ -387,6 +390,8 @@ export function Dashboard({ onNavigate }: Props) {
           onClose={() => setDrill(null)}
         />
       )}
+
+      {groupIds && <GroupDetailModal ids={groupIds} onClose={() => setGroupIds(null)} />}
     </ViewShell>
   )
 }

@@ -92,14 +92,42 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
   search, filter, and **change a category**. You can also select many at once.
-- **`ApplyToSimilar.tsx`** — The little popup that says *"Want to change the
-  other 5 'Starbucks' charges too?"* so you don't have to fix them one by one.
-- **`CategoryDetailModal.tsx`** — When you click a category, this window shows
-  every transaction in it.
+  Each row has a **★ star** to flag the charge as a **subscription** (remembered
+  for every charge from that store), plus a "Subscriptions" filter to show only
+  those.
+- **`ApplyToSimilar.tsx`** — The little popup after you change a category. It
+  offers to update the charges that share the **same amount and a similar name**
+  (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
+  option to update **all** charges from that merchant (handy for a power bill
+  that varies every month).
+- **`RenameDescription.tsx`** — Inline rename for a transaction (a pencil next to
+  the name in the modals). Renaming works like a category change: it's saved as a
+  merchant alias and then offers to **rename the other similarly-named charges
+  too**, which merges fragmented descriptors into one group.
+- **`CategoryDetailModal.tsx`** — Click a category to see its transactions; each
+  row can be **recategorized**, **renamed**, or **★-flagged as a subscription**
+  (per charge — so a single Amazon = Prime).
+- **`GroupDetailModal.tsx`** — Click any recurring payment, subscription, or
+  recurring transfer to open this: it lists the underlying charges (each
+  renamable / recategorizable / ★-flaggable), lets you **rename** the whole group,
+  toggle **Show in recurring payments** (remove a false positive like "Amazon"),
+  set the **charge day** for any recurring bill, and — for subscriptions — choose
+  **monthly/annual**, the **renewal date**, and an **ended date**.
 - **`Dashboard.tsx`** — The charts-and-numbers screen.
-- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `TrendsCard.tsx`,
-  `TopMerchantsCard.tsx`** — The four info boxes on the Dashboard
-  (budgets, repeating bills, "spending went up/down", and favorite stores).
+- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `SubscriptionsCard.tsx`,
+  `RecurringTransfersCard.tsx`, `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The
+  info boxes on the Dashboard (budgets, repeating bills, your subscriptions,
+  recurring transfers, "spending went up/down", and favorite stores).
+  - **`RecurringCard.tsx`** lists everything that repeats — fixed monthly
+    payments (rent, student loan), subscriptions, and variable bills (power,
+    water) **averaged** to a per-month number. Same-amount charges are marked
+    "fixed". Tap a row to open its detail/rename; tap ★ to flag a subscription.
+  - **`SubscriptionsCard.tsx`** is just the things you flagged as subscriptions,
+    with each one's cadence / next-charge / ended date and a combined monthly
+    total (ended ones are struck through and left out of the total).
+  - **`RecurringTransfersCard.tsx`** surfaces same-amount, same-day Zelle/transfers
+    (e.g. a monthly phone Zelle). They **count toward spending/income by
+    default**; untick "Counts" for genuine account-to-account moves.
 - **`charts/CategoryDonut.tsx`, `charts/MonthlyTrend.tsx`** — The actual pie
   chart and bar chart (drawn with a tool called Recharts).
 - **`QuizView.tsx`** — The Quiz screen.
@@ -122,19 +150,38 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   category using keywords (e.g., the word "Starbucks" → Dining). It also gives
   **Zelle** and **Transfers** (money you move between your own accounts) their own
   groups so they don't look like real spending.
-- **`categories.ts`** — The **list of bins** (Groceries, Dining, etc.) — their
-  names, colors, and emojis. This is also what lets you **make your own
+- **`categories.ts`** — The **list of bins** and their names, colors, and emojis.
+  There's a rich built-in set — Groceries, Dining, Transport, Utilities,
+  Rent/Mortgage, **Home & HOA**, **Insurance**, **Loans & Debt**, Shopping,
+  **Personal Care**, Entertainment, Subscriptions, **Education**, Health,
+  **Pets**, **Charity & Gifts**, **Tithes & Offerings**, **Fees & Taxes** — plus
+  Zelle/Income/Transfers/Other. This is also what lets you **make your own
   categories** in Settings.
 - **`merchant.ts`** — Cleans up ugly store names so "STARBUCKS #123 SEATTLE" and
-  "STARBUCKS 8th AVE" are recognized as the **same store**. Used for
-  "apply to similar" and for finding repeating bills.
+  "STARBUCKS 8th AVE" are recognized as the **same store**. It strips bank noise
+  (card masks, "null", "SVC/SERVICE", single-letter junk) so variants like
+  "CHAMPION ENERGY SVC…" and "CHAMPION ENERGY SERVIC…" collapse together. Grouping
+  (`groupKey`) is by the **display name** (alias if set, else the cleaned label),
+  so renaming two different descriptors to the same name reliably merges them —
+  even renaming one to match a label another already shows. `txSignature` gives a
+  stable per-transaction id (date+desc+amount) used to remember per-charge flags.
 - **`importCsv.ts`** — Turns a spreadsheet into Transaction cards. It also
   **removes credit-card "payments"** so your spending isn't counted twice.
 - **`analysis.ts`** — The **calculator**: totals, spending by category, monthly
-  trends, repeating payments, budgets, and top stores. It purposely **ignores**
-  Transfers and Zelle so the picture isn't messed up by money you moved around.
+  trends, repeating payments, budgets, and top stores. It normally **ignores**
+  Transfers and Zelle, with one exception: `recurringTransfers` finds same-amount,
+  same-day repeats (a monthly phone Zelle) and `recurringTransferIds` marks them
+  to **count** toward totals (so `countsTowardTotals` returns true for them) —
+  unless you opted that group out. Its time ranges are **This month / Last month
+  / This year** (plus a custom window). `recurringPayments` groups charges by the
+  display-name identity, leans on the **same amount** repeating to decide fixed
+  vs. **averaged** variable bills, and skips groups you've **removed** from the
+  list; `subscriptions` returns only the **flagged** charges grouped together (so
+  one Amazon charge can be Prime while the rest of Amazon stays out).
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
-  ("How much did you spend on Dining?") and the end-of-quiz insights.
+  ("How much did you spend on Dining?"), including **faith-informed** ones on
+  tithes/offerings and debt payments (with short scripture takeaways), plus the
+  end-of-quiz insights.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
 - **`plaid.ts`** — Talks to the Plaid helper server (start a connection, sync,
   disconnect).
@@ -150,13 +197,26 @@ try the whole app without uploading anything.
 
 ## 7. The brain that remembers everything (`store.tsx` and `types.ts`)
 
-- **`types.ts`** — The **shapes** of the data. It says "a Transaction always has
-  a date, a description, an amount, and a category." It's like a form with blanks
-  that must be filled in.
-- **`store.tsx`** — The **central brain**. It holds *all* the data (transactions,
-  your category edits, budgets, quiz scores, theme) and provides the **actions**
-  the screens use: add an import, change a category, set a budget, connect a bank,
-  and so on. Whenever the data changes, it automatically saves to the notebook.
+- **`types.ts`** — The **shapes** of the data. A Transaction has a date,
+  description, amount, and category, plus optional flags: `subscription` (you
+  marked it), `counts` (a recurring transfer promoted into your totals).
+  `SubscriptionMeta` holds a subscription's cadence, billing day, renewal, and
+  ended dates.
+- **`store.tsx`** — The **central brain**. It holds the **raw** transactions plus
+  the remembered edits, and derives the live list — stamping two flags that are
+  never persisted on the rows: `subscription` (merchant flagged **or** this exact
+  charge flagged) and `counts` (recurring same-amount transfers, minus opted-out
+  groups). The remembered edits:
+  - **category edits** and **renames (aliases)** — per merchant, survive re-imports.
+  - **subscriptions** — a per-merchant flag (whole-merchant subs like Netflix)
+    **and** `subscriptionTxns`, a per-charge flag by signature (one Amazon = Prime).
+  - **`groupMeta`** — cadence / charge day / renewal / ended for any group.
+  - **`ignoredTransfers`** — recurring transfers you opted out of counting.
+  - **`dismissedRecurring`** — groups removed from the Recurring payments list.
+  It exposes the actions the screens use (import, recategorize, rename, flag a
+  subscription per-charge or per-group, set a charge/renewal date, include/exclude
+  a transfer or recurring group, budget, connect a bank, …) and auto-saves
+  everything to the notebook.
 
 Every screen "plugs into" the store to read data and to make changes, so
 everything stays in sync. Change a category in one place and the charts update
@@ -200,9 +260,19 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **localStorage** — the browser's private notebook that remembers your data.
 - **Transaction** — one purchase or deposit (date, store, amount, category).
 - **Category** — a bin like Groceries or Dining.
+- **Subscription** — a charge you've ★-flagged as a recurring sign-up (Netflix,
+  iCloud…), optionally monthly/annual with a billing day, renewal, or ended date.
+  Shown in its own list and folded into Recurring payments.
+- **Recurring payment** — anything that repeats monthly: subscriptions, fixed
+  bills (rent, student loan), and variable bills (power, water) averaged per
+  month.
+- **Alias / rename** — a clean display name you give a merchant; every messy
+  variant folds under it, in display and in grouping.
+- **Recurring transfer** — a same-amount, same-day Zelle/transfer that's really a
+  monthly bill; counted toward your totals (unless you opt it out).
 - **Source** — one thing you added (an uploaded file or a connected bank).
-- **Transfer / Zelle** — money moved between your own accounts; tracked but not
-  counted as spending.
+- **Transfer / Zelle** — money moved between your own accounts; not counted as
+  spending — unless it's a recurring same-amount bill (see above).
 - **Plaid** — the company that securely connects apps to real banks.
 - **Mock mode** — the "pretend" mode that uses fake data so you can try things
   for free.

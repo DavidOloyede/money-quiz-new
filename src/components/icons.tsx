@@ -143,6 +143,23 @@ export function RefreshIcon({ className }: IconProps) {
   )
 }
 
+export function StarIcon({ className, filled }: IconProps & { filled?: boolean }) {
+  return (
+    <svg {...base(className)} fill={filled ? 'currentColor' : 'none'}>
+      <path d="M12 3.5l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.9l-5.08 2.3.98-5.68L3.75 9.5l5.7-.83L12 3.5z" />
+    </svg>
+  )
+}
+
+export function PencilIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 20h4l10-10a2 2 0 00-2.83-2.83L5.17 17.17 4 20z" />
+      <path d="M13.5 6.5l4 4" />
+    </svg>
+  )
+}
+
 export function CoinLogo({ className }: IconProps) {
   return (
     <svg className={className ?? 'w-8 h-8'} viewBox="0 0 32 32" fill="none">
