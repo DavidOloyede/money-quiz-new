@@ -125,8 +125,18 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   otherwise the average so far). An editable **starting balance** (saved per
   year) feeds the **Projected End Balance** row, and the **NET** row is green or
   red per month.
-- **`ProgressWidget.tsx`** — Your **level, XP bar, and daily streak 🔥** (the
-  full card in the sidebar, a tiny chip on phones).
+- **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak 🔥, and badge
+  count 🏅** (the full card in the sidebar, a tiny chip on phones).
+- **`VerseOfDay.tsx`** — A daily **scripture banner** at the top of the
+  Dashboard (one verse about money/stewardship per day, rotating at midnight).
+- **`GivingCard.tsx`** — The **Giving & Generosity** box: tithes + charity for
+  the selected period, what % of income that is (with a 10% tithe benchmark
+  line), a **giving goal** you can set as a % of income, and a monthly trend.
+- **`DebtCard.tsx`** — The **Debt freedom** box: recurring loan payments and
+  their monthly trend, plus "possibly paid off?" detection when a loan goes
+  quiet — confirm it to celebrate 🎉 (and earn the Debt Slayer badge).
+- **`BadgesCard.tsx`** — The badge case on the Quiz screen: earned badges in
+  color with their dates, locked ones grayed out with how to earn them.
 - **`BudgetsCard.tsx`, `RecurringCard.tsx`, `RecurringTransfersCard.tsx`,
   `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
   (budgets, repeating bills + subscriptions, recurring transfers, "spending went
@@ -199,8 +209,17 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   data covers) and the running end-of-month balance.
 - **`gamification.ts`** — The **points & streak brain**: opening the app on a
   new day checks you in (+XP, streak grows), quizzes and imports earn more XP,
-  and XP adds up to **levels** with titles (Penny Counter → Money Master). Your
-  level survives "Clear all data" on purpose.
+  and XP adds up to **levels** with stewardship titles (Steward in Training →
+  Good & Faithful Steward, after Luke 16:10). Your level survives "Clear all
+  data" on purpose.
+- **`giving.ts`** — The **generosity calculator**: tithes + charity totals,
+  giving as a % of income, per-month giving, and progress toward a giving goal.
+- **`badges.ts`** — The **badge rules**: one-time achievements (First Steps,
+  Cheerful Giver, First Fruits, Debt Slayer, streaks, perfect quiz) earned from
+  real behavior. Giving earns badges, never XP — generosity isn't a points game.
+- **`debt.ts`** — The **debt-freedom helper**: loan payments by month and a
+  detector for recurring loans that go quiet (paid off?), measured against the
+  newest data so a stale import doesn't cry wolf.
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?"), including **faith-informed** ones on
   tithes/offerings and debt payments (with short scripture takeaways), plus the
@@ -213,8 +232,13 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
   report).
 
-And **`src/data/sampleData.ts`** is a pretend set of ~60 transactions so you can
-try the whole app without uploading anything.
+And in **`src/data/`**: **`sampleData.ts`** is a pretend set of ~65 transactions
+(including a monthly church tithe and small donations, so the giving features
+have something to show) and **`verses.ts`** holds ~49 scripture verses about
+money (World English Bible — public domain) with the verse-of-the-day picker.
+
+The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
+`npm test` via Vitest), so future changes can't silently break the numbers.
 
 ---
 

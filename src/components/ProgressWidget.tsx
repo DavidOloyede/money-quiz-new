@@ -1,5 +1,6 @@
 import { useStore } from '../store'
 import { levelProgress } from '../lib/gamification'
+import { BADGES } from '../lib/badges'
 
 /**
  * The level / XP / daily-streak readout. The sidebar shows the full widget;
@@ -41,6 +42,9 @@ export function ProgressWidget() {
         </span>
         <span className="tabular-nums">best {game.bestStreak}</span>
       </div>
+      <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
+        <span aria-hidden>🏅</span> {Object.keys(game.badges).length} / {BADGES.length} badges
+      </div>
     </div>
   )
 }
@@ -52,7 +56,7 @@ export function ProgressChip() {
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300 tabular-nums"
-      title={`Level ${lp.level} ${lp.title} · ${game.xp} XP · ${game.streak}-day streak`}
+      title={`Level ${lp.level} ${lp.title} · ${game.xp} XP · ${game.streak}-day streak · ${Object.keys(game.badges).length}/${BADGES.length} badges`}
     >
       Lv {lp.level}
       <span className="font-medium text-slate-500 dark:text-slate-400">🔥{game.streak}</span>

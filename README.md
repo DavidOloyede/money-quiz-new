@@ -116,6 +116,14 @@ any other transaction.
   or a **custom date range**; a spending-by-category donut with a sortable
   breakdown; top 5 expenses; a monthly trend chart; and headline stats. Click any
   category to drill into its transactions and recategorize them. Plus:
+  - **Verse of the day** — a daily scripture on money, stewardship, and
+    generosity (World English Bible, rotates at midnight, fully offline).
+  - **Giving & Generosity** — tithes + charity totals, giving as a % of income
+    against the traditional 10% benchmark, a monthly giving trend, and a
+    **giving goal** (% of income) tracked month by month.
+  - **Debt freedom** — recurring loan payments with a monthly trend; when a
+    loan goes quiet the card asks "possibly paid off?" so you can confirm and
+    celebrate 🎉.
   - **Budgets** — set a monthly budget per category and track progress with
     over/under alerts.
   - **Recurring & subscriptions** — repeating bills and subscriptions in one
@@ -138,10 +146,13 @@ any other transaction.
   costs, busiest spending day, budget vs actual, and more). Each answer reveals
   the real figure and a one-sentence takeaway, and your **scores, best result,
   and day streak** are tracked across attempts. Retake for a fresh set.
-- **Streaks & levels** — using the app each day keeps a 🔥 **daily streak**
-  alive, and check-ins, quizzes, and imports earn **XP** that levels you up
-  (Penny Counter → Money Master). Progress lives in the sidebar and survives
-  "Clear all data".
+- **Streaks, levels & badges** — using the app each day keeps a 🔥 **daily
+  streak** alive, and check-ins, quizzes, and imports earn **XP** that levels
+  you up through stewardship titles (Steward in Training → Good & Faithful
+  Steward). One-time **badges** mark milestones — Cheerful Giver (3 straight
+  months of giving), First Fruits (a month at 10%+ of income), Debt Slayer (a
+  loan paid off), and more. Giving earns badges, never points. Progress lives
+  in the sidebar and survives "Clear all data".
 - **Settings** — light/dark theme, fully customizable categories (rename,
   recolor, add your own), and one-click **export** of your data (CSV / JSON) or a
   printable summary report.

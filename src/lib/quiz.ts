@@ -605,8 +605,8 @@ function genTitheGiving(ctx: Ctx): QuizQuestion | null {
     `You gave ${formatCurrency(total)} in tithes & offerings ${label}.`,
     pick([
       '“Bring the whole tithe into the storehouse…” (Malachi 3:10) — giving first sets the tone for everything else.',
-      '“Honor the Lord with your wealth, with the firstfruits of all your crops.” (Proverbs 3:9)',
-      '“Each of you should give what you have decided… for God loves a cheerful giver.” (2 Corinthians 9:7)',
+      '“Honor the LORD with your substance, with the first fruits of all your increase.” (Proverbs 3:9)',
+      '“Let each man give according as he has determined in his heart… for God loves a cheerful giver.” (2 Corinthians 9:7)',
     ]),
   )
 }
@@ -640,8 +640,8 @@ function genDebtPayments(ctx: Ctx): QuizQuestion | null {
     choices,
     `You put ${formatCurrency(total)} toward loans & debt ${label}.`,
     pick([
-      '“The rich rule over the poor, and the borrower is slave to the lender.” (Proverbs 22:7) — every dollar of debt retired buys back freedom.',
-      '“Let no debt remain outstanding, except the continuing debt to love one another.” (Romans 13:8)',
+      '“The rich rule over the poor. The borrower is servant to the lender.” (Proverbs 22:7) — every dollar of debt retired buys back freedom.',
+      '“Owe no one anything, except to love one another.” (Romans 13:8)',
       'Knocking out debt frees future income to save and to give — momentum compounds.',
     ]),
   )

@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
 import { quizXp } from '../lib/gamification'
 import { QuizHistory } from './QuizHistory'
+import { BadgesCard } from './BadgesCard'
 import { EmptyState } from './EmptyState'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
 import type { View } from './Nav'
@@ -14,7 +15,8 @@ interface Props {
 }
 
 export function QuizView({ onNavigate }: Props) {
-  const { transactions, hasData, loadSample, budgets, quizHistory, recordQuizResult } = useStore()
+  const { transactions, hasData, loadSample, budgets, quizHistory, recordQuizResult, game } =
+    useStore()
   const [phase, setPhase] = useState<Phase>('intro')
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [index, setIndex] = useState(0)
@@ -66,7 +68,7 @@ export function QuizView({ onNavigate }: Props) {
   if (phase === 'intro') {
     return (
       <Shell>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-white p-8 text-center">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 p-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white">
             <QuizIcon className="h-8 w-8" />
           </div>
@@ -96,6 +98,9 @@ export function QuizView({ onNavigate }: Props) {
             <QuizHistory history={quizHistory} />
           </div>
         )}
+        <div className="mt-4">
+          <BadgesCard badges={game.badges} />
+        </div>
       </Shell>
     )
   }

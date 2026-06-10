@@ -11,6 +11,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   streak: 0,
   bestStreak: 0,
   lastActiveDay: '',
+  badges: {},
 }
 
 /** How many points each action is worth. */
@@ -56,6 +57,7 @@ export function checkIn(state: GameState, day: string = todayKey()): GameState {
   const streak = state.lastActiveDay === prevDayKey(day) ? state.streak + 1 : 1
   const bonus = Math.min(streak * XP.streakBonusPerDay, XP.streakBonusCap)
   return {
+    ...state, // keep badges (and future fields) intact
     xp: state.xp + XP.dailyCheckIn + bonus,
     streak,
     bestStreak: Math.max(streak, state.bestStreak),
@@ -80,16 +82,18 @@ export function levelForXp(xp: number): number {
   return level
 }
 
+// Stewardship arc, after Luke 16:10 ("faithful in very little… faithful in
+// much") and the parable of the talents (Matthew 25:21).
 const TITLES = [
-  'Penny Counter',
-  'Budget Apprentice',
-  'Savings Scout',
-  'Cash Captain',
-  'Money Manager',
-  'Finance Pro',
-  'Wealth Builder',
-  'Money Master',
-  'Finance Legend',
+  'Steward in Training',
+  'Coin Counter',
+  'Faithful With Little',
+  'Diligent Planner',
+  'Wise Builder',
+  'Generous Manager',
+  'Faithful With Much',
+  'Trusted Steward',
+  'Good & Faithful Steward',
 ]
 
 /** A fun rank name for a level (the last title repeats past the list). */

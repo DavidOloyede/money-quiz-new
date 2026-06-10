@@ -14,6 +14,7 @@ import type {
   ColumnMapping,
   GameState,
   ImportSource,
+  PaidOffDebts,
   QuizResult,
   StartingBalances,
   SubscriptionMeta,
@@ -21,6 +22,7 @@ import type {
   Transaction,
 } from './types'
 import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
+import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
 import { merchantKey, txSignature } from './lib/merchant'
 import { recurringTransferIds } from './lib/analysis'
@@ -53,6 +55,10 @@ interface StoreValue {
   game: GameState
   /** Year Sheet starting balance per year ("2026" -> dollars). */
   startingBalances: StartingBalances
+  /** Giving goal as a % of income (0 = not set). */
+  givingGoal: number
+  /** Recurring-loan groups confirmed paid off (groupKey -> ISO date). */
+  paidOffDebts: PaidOffDebts
   /** Clean display names keyed by merchant key (user renames). */
   aliases: Record<string, string>
   /** Per-merchant details (cadence, charge/billing day, renewal/ended dates) for any group. */
@@ -93,6 +99,10 @@ interface StoreValue {
   deleteCategory: (id: string) => void
   setBudget: (category: Category, amount: number) => void
   setStartingBalance: (year: string, amount: number) => void
+  /** Set the giving goal (% of income); 0 clears it. */
+  setGivingGoal: (pct: number) => void
+  /** Confirm (or undo) a recurring loan group as paid off. */
+  setDebtPaidOff: (groupKey: string, paidOff: boolean) => void
   /** Add points toward the next level (quizzes/imports award automatically). */
   awardXp: (amount: number) => void
   recordQuizResult: (correct: number, total: number) => void
@@ -194,9 +204,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [startingBalances, setStartingBalances] = useState<StartingBalances>(() =>
     loadJSON<StartingBalances>(STORAGE_KEYS.startingBalances, {}),
   )
-  const [game, setGame] = useState<GameState>(() =>
-    loadJSON<GameState>(STORAGE_KEYS.game, DEFAULT_GAME_STATE),
+  const [givingGoal, setGivingGoalState] = useState<number>(() =>
+    loadJSON<number>(STORAGE_KEYS.givingGoal, 0),
   )
+  const [paidOffDebts, setPaidOffDebts] = useState<PaidOffDebts>(() =>
+    loadJSON<PaidOffDebts>(STORAGE_KEYS.paidOffDebts, {}),
+  )
+  // Spread over the default so state saved before `badges` existed gets it.
+  const [game, setGame] = useState<GameState>(() => ({
+    ...DEFAULT_GAME_STATE,
+    ...loadJSON<GameState>(STORAGE_KEYS.game, DEFAULT_GAME_STATE),
+  }))
   const [theme, setThemeState] = useState<ThemeMode>(initialTheme)
 
   // Count today toward the daily streak (idempotent — only the first visit of
@@ -257,7 +275,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
   useEffect(() => saveJSON(STORAGE_KEYS.startingBalances, startingBalances), [startingBalances])
+  useEffect(() => saveJSON(STORAGE_KEYS.givingGoal, givingGoal), [givingGoal])
+  useEffect(() => saveJSON(STORAGE_KEYS.paidOffDebts, paidOffDebts), [paidOffDebts])
   useEffect(() => saveJSON(STORAGE_KEYS.game, game), [game])
+
+  // Stamp any newly earned badges whenever their inputs change. awardBadges
+  // returns the same object when nothing is new, so this can't loop; it reads
+  // the streak off the current state, so `game` itself isn't a dependency.
+  useEffect(() => {
+    setGame((g) =>
+      awardBadges(g, {
+        transactions,
+        quizHistory,
+        hasImported: sources.length > 0,
+        paidOffCount: Object.keys(paidOffDebts).length,
+      }),
+    )
+  }, [transactions, quizHistory, sources, paidOffDebts])
   useEffect(() => {
     saveJSON(STORAGE_KEYS.theme, theme)
     const root = document.documentElement
@@ -584,6 +618,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const setGivingGoal = useCallback((pct: number) => {
+    setGivingGoalState(pct > 0 && Number.isFinite(pct) ? pct : 0)
+  }, [])
+
+  const setDebtPaidOff = useCallback((groupKey: string, paidOff: boolean) => {
+    setPaidOffDebts((prev) => {
+      const next = { ...prev }
+      if (paidOff) next[groupKey] = new Date().toISOString()
+      else delete next[groupKey]
+      return next
+    })
+  }, [])
+
   const recordQuizResult = useCallback(
     (correct: number, total: number) => {
       setQuizHistory((h) => [...h, { at: new Date().toISOString(), correct, total }].slice(-50))
@@ -612,7 +659,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setBudgets({})
     setQuizHistory([])
     setStartingBalances({})
-    // XP / streak survive on purpose — clearing data shouldn't cost the level.
+    setGivingGoalState(0)
+    setPaidOffDebts({})
+    // XP / streak / badges survive on purpose — clearing data shouldn't cost
+    // the level you earned.
   }, [])
 
   const value = useMemo<StoreValue>(
@@ -628,6 +678,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       theme,
       game,
       startingBalances,
+      givingGoal,
+      paidOffDebts,
       aliases,
       subscriptionMeta: groupMeta,
       ignoredTransfers,
@@ -652,6 +704,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteCategory,
       setBudget,
       setStartingBalance,
+      setGivingGoal,
+      setDebtPaidOff,
       awardXp,
       recordQuizResult,
       setTheme,
@@ -669,6 +723,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       theme,
       game,
       startingBalances,
+      givingGoal,
+      paidOffDebts,
       aliases,
       groupMeta,
       ignoredTransfers,
@@ -693,6 +749,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteCategory,
       setBudget,
       setStartingBalance,
+      setGivingGoal,
+      setDebtPaidOff,
       awardXp,
       recordQuizResult,
       setTheme,

@@ -20,6 +20,9 @@ import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal } from './CategoryDetailModal'
 import { BudgetsCard } from './BudgetsCard'
+import { GivingCard } from './GivingCard'
+import { DebtCard } from './DebtCard'
+import { VerseOfDay } from './VerseOfDay'
 import { RecurringCard } from './RecurringCard'
 import { RecurringTransfersCard } from './RecurringTransfersCard'
 import { GroupDetailModal } from './GroupDetailModal'
@@ -46,7 +49,19 @@ interface Props {
 }
 
 export function Dashboard({ onNavigate }: Props) {
-  const { transactions, hasData, loadSample, budgets, setBudget } = useStore()
+  const {
+    transactions,
+    hasData,
+    loadSample,
+    budgets,
+    setBudget,
+    givingGoal,
+    setGivingGoal,
+    aliases,
+    dismissedRecurring,
+    paidOffDebts,
+    setDebtPaidOff,
+  } = useStore()
   const [range, setRange] = useState<RangeId>('thisYear')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -91,6 +106,9 @@ export function Dashboard({ onNavigate }: Props) {
   if (!hasData) {
     return (
       <ViewShell title="Dashboard">
+        <div className="mb-4">
+          <VerseOfDay />
+        </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <EmptyState
             icon={<ChartIcon className="w-7 h-7" />}
@@ -169,11 +187,16 @@ export function Dashboard({ onNavigate }: Props) {
       }
     >
       {isRangeEmpty ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center text-sm text-slate-500 dark:text-slate-400">
-          No transactions in this time range. Try a different range.
+        <div className="space-y-4">
+          <VerseOfDay />
+          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center text-sm text-slate-500 dark:text-slate-400">
+            No transactions in this time range. Try a different range.
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
+          <VerseOfDay />
+
           {/* Totals */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatCard
@@ -322,8 +345,16 @@ export function Dashboard({ onNavigate }: Props) {
             </div>
           </div>
 
-          {/* Budgets, recurring, trends, top merchants */}
+          {/* Giving, budgets, recurring, debt, trends, top merchants */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <GivingCard
+              filtered={filtered}
+              scopeLabel={scopeLabel}
+              transactions={transactions}
+              monthKey={budgetMonth}
+              givingGoal={givingGoal}
+              onSetGoal={setGivingGoal}
+            />
             <BudgetsCard
               transactions={transactions}
               monthKey={budgetMonth}
@@ -332,6 +363,14 @@ export function Dashboard({ onNavigate }: Props) {
             />
             <TopMerchantsCard transactions={filtered} />
             <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <DebtCard
+              transactions={transactions}
+              aliases={aliases}
+              dismissedRecurring={dismissedRecurring}
+              paidOffDebts={paidOffDebts}
+              onSetPaidOff={setDebtPaidOff}
+              onOpenGroup={setGroupIds}
+            />
             <RecurringTransfersCard transactions={transactions} onOpenGroup={setGroupIds} />
             <TrendsCard transactions={transactions} />
           </div>

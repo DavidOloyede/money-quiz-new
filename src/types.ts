@@ -143,9 +143,14 @@ export interface GameState {
   bestStreak: number
   /** YYYY-MM-DD (local) of the last counted check-in day. */
   lastActiveDay: string
+  /** Earned badge ids -> ISO date earned (see lib/badges). Never un-awarded. */
+  badges: Record<string, string>
 }
 
 /** Starting balance per year ("2026" -> dollars) for the Year Sheet view. */
 export type StartingBalances = Record<string, number>
+
+/** Recurring-loan group keys confirmed paid off -> ISO date confirmed. */
+export type PaidOffDebts = Record<string, string>
 
 export type ThemeMode = 'light' | 'dark'

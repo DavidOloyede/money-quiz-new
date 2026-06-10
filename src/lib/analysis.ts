@@ -252,7 +252,7 @@ export function filterByDateRange(
 }
 
 /** Shift a "YYYY-MM" key back by N months. */
-function shiftMonth(key: string, back: number): string {
+export function shiftMonth(key: string, back: number): string {
   const [y, m] = key.split('-').map(Number)
   const d = new Date(Date.UTC(y, m - 1 - back, 1))
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`
