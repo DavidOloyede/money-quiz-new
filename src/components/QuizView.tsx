@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
 import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
+import { quizXp } from '../lib/gamification'
 import { QuizHistory } from './QuizHistory'
 import { EmptyState } from './EmptyState'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
@@ -271,6 +272,10 @@ function Results({
           <span className="text-2xl text-slate-400 dark:text-slate-500"> / {total}</span>
         </div>
         <div className="mt-1 text-sm font-medium text-emerald-600">{pct}%</div>
+        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+          +{quizXp(correct, total)} XP earned
+          {correct === total && ' · perfect bonus!'}
+        </div>
         <p className="mx-auto mt-3 max-w-sm text-sm text-slate-500 dark:text-slate-400">{verdict}</p>
         <div className="mt-6 flex justify-center gap-3">
           <button

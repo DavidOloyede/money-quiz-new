@@ -1,4 +1,5 @@
 import type { ThemeMode } from '../types'
+import { ProgressChip, ProgressWidget } from './ProgressWidget'
 import {
   ChartIcon,
   CoinLogo,
@@ -6,11 +7,12 @@ import {
   QuizIcon,
   SettingsIcon,
   SunIcon,
+  TableIcon,
   TrashIcon,
   UploadIcon,
 } from './icons'
 
-export type View = 'import' | 'dashboard' | 'quiz' | 'settings'
+export type View = 'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings'
 
 interface NavItem {
   id: View
@@ -21,6 +23,7 @@ interface NavItem {
 const ITEMS: NavItem[] = [
   { id: 'import', label: 'Import', icon: UploadIcon },
   { id: 'dashboard', label: 'Dashboard', icon: ChartIcon },
+  { id: 'yearly', label: 'Year Sheet', icon: TableIcon },
   { id: 'quiz', label: 'Quiz', icon: QuizIcon },
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
@@ -84,6 +87,9 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
       </nav>
 
       <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
+        <div className="mb-2">
+          <ProgressWidget />
+        </div>
         <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
         <button
           onClick={onClear}
@@ -109,7 +115,8 @@ export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onTogg
           <CoinLogo className="w-7 h-7" />
           <span className="font-bold text-slate-800 dark:text-slate-100">Money Quiz</span>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-1">
+          <ProgressChip />
           <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} compact />
           <button
             onClick={onClear}

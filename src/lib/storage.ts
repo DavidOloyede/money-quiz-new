@@ -22,6 +22,10 @@ export const STORAGE_KEYS = {
   categories: 'moneyquiz.categories.v1',
   budgets: 'moneyquiz.budgets.v1',
   quizHistory: 'moneyquiz.quizHistory.v1',
+  startingBalances: 'moneyquiz.startingBalances.v1',
+  // XP / level / daily streak. Deliberately NOT in DATA_KEYS: clearing your
+  // data shouldn't take away the level you earned.
+  game: 'moneyquiz.game.v1',
   theme: 'moneyquiz.theme.v1',
 } as const
 
@@ -42,6 +46,7 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.dismissedRecurring,
   STORAGE_KEYS.budgets,
   STORAGE_KEYS.quizHistory,
+  STORAGE_KEYS.startingBalances,
 ]
 
 export function loadJSON<T>(key: string, fallback: T): T {

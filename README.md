@@ -127,11 +127,21 @@ any other transaction.
     average."*
   - **Top merchants** and a **Transfers & Zelle** panel for the money that's
     tracked but not counted.
+- **Year Sheet** — a spreadsheet-style view of the whole year (modeled on a
+  Google Sheets budget): a column per month, income and expense sections with
+  totals and averages, a green/red **NET** row, and a **Projected End Balance**
+  row that runs from an editable per-year starting balance. Months that haven't
+  happened yet are *projected* from your budgets (or your monthly average so
+  far), shown in italics.
 - **Quiz** — 8–10 multiple-choice questions computed from your real numbers
   (spending by category, largest expense, month-over-month changes, recurring
   costs, busiest spending day, budget vs actual, and more). Each answer reveals
   the real figure and a one-sentence takeaway, and your **scores, best result,
   and day streak** are tracked across attempts. Retake for a fresh set.
+- **Streaks & levels** — using the app each day keeps a 🔥 **daily streak**
+  alive, and check-ins, quizzes, and imports earn **XP** that levels you up
+  (Penny Counter → Money Master). Progress lives in the sidebar and survives
+  "Clear all data".
 - **Settings** — light/dark theme, fully customizable categories (rename,
   recolor, add your own), and one-click **export** of your data (CSV / JSON) or a
   printable summary report.

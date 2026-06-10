@@ -131,4 +131,21 @@ export interface QuizResult {
   total: number
 }
 
+/**
+ * Points & streak progress (see lib/gamification). Survives "Clear all data" —
+ * it's account progress, not imported data.
+ */
+export interface GameState {
+  /** Lifetime points; levels are derived from this. */
+  xp: number
+  /** Consecutive days the app has been used, counting today. */
+  streak: number
+  bestStreak: number
+  /** YYYY-MM-DD (local) of the last counted check-in day. */
+  lastActiveDay: string
+}
+
+/** Starting balance per year ("2026" -> dollars) for the Year Sheet view. */
+export type StartingBalances = Record<string, number>
+
 export type ThemeMode = 'light' | 'dark'

@@ -12,12 +12,15 @@ import type {
   Budgets,
   Category,
   ColumnMapping,
+  GameState,
   ImportSource,
   QuizResult,
+  StartingBalances,
   SubscriptionMeta,
   ThemeMode,
   Transaction,
 } from './types'
+import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { overrideKey } from './lib/categorize'
 import { merchantKey, txSignature } from './lib/merchant'
 import { recurringTransferIds } from './lib/analysis'
@@ -46,6 +49,10 @@ interface StoreValue {
   budgets: Budgets
   quizHistory: QuizResult[]
   theme: ThemeMode
+  /** XP / level / daily-streak progress (auto-checked-in on app open). */
+  game: GameState
+  /** Year Sheet starting balance per year ("2026" -> dollars). */
+  startingBalances: StartingBalances
   /** Clean display names keyed by merchant key (user renames). */
   aliases: Record<string, string>
   /** Per-merchant details (cadence, charge/billing day, renewal/ended dates) for any group. */
@@ -85,6 +92,9 @@ interface StoreValue {
   updateCategory: (id: string, patch: { label?: string; color?: string; emoji?: string }) => void
   deleteCategory: (id: string) => void
   setBudget: (category: Category, amount: number) => void
+  setStartingBalance: (year: string, amount: number) => void
+  /** Add points toward the next level (quizzes/imports award automatically). */
+  awardXp: (amount: number) => void
   recordQuizResult: (correct: number, total: number) => void
   setTheme: (mode: ThemeMode) => void
   saveMapping: (m: ColumnMapping) => void
@@ -181,7 +191,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>(() =>
     loadJSON<QuizResult[]>(STORAGE_KEYS.quizHistory, []),
   )
+  const [startingBalances, setStartingBalances] = useState<StartingBalances>(() =>
+    loadJSON<StartingBalances>(STORAGE_KEYS.startingBalances, {}),
+  )
+  const [game, setGame] = useState<GameState>(() =>
+    loadJSON<GameState>(STORAGE_KEYS.game, DEFAULT_GAME_STATE),
+  )
   const [theme, setThemeState] = useState<ThemeMode>(initialTheme)
+
+  // Count today toward the daily streak (idempotent — only the first visit of
+  // the day moves the streak and awards check-in XP).
+  useEffect(() => {
+    setGame((g) => checkIn(g))
+  }, [])
 
   // Refs so callbacks can read current state without nesting state updaters
   // (React StrictMode double-invokes updaters, which would duplicate appends).
@@ -234,6 +256,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.sources, sources), [sources])
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
+  useEffect(() => saveJSON(STORAGE_KEYS.startingBalances, startingBalances), [startingBalances])
+  useEffect(() => saveJSON(STORAGE_KEYS.game, game), [game])
   useEffect(() => {
     saveJSON(STORAGE_KEYS.theme, theme)
     const root = document.documentElement
@@ -256,13 +280,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const awardXp = useCallback((amount: number) => {
+    if (amount > 0) setGame((g) => ({ ...g, xp: g.xp + amount }))
+  }, [])
+
   const addImport = useCallback(
     (tx: Transaction[], source: ImportSource) => {
       const prepared = withOverrides(tx)
       setRawTransactions((prev) => [...prev, ...prepared])
       setSources((prev) => [...prev, source])
+      awardXp(XP.import)
     },
-    [withOverrides],
+    [withOverrides, awardXp],
   )
 
   const removeSource = useCallback((sourceId: string) => {
@@ -546,9 +575,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const recordQuizResult = useCallback((correct: number, total: number) => {
-    setQuizHistory((h) => [...h, { at: new Date().toISOString(), correct, total }].slice(-50))
+  const setStartingBalance = useCallback((year: string, amount: number) => {
+    setStartingBalances((prev) => {
+      const next = { ...prev }
+      if (amount !== 0 && Number.isFinite(amount)) next[year] = amount
+      else delete next[year]
+      return next
+    })
   }, [])
+
+  const recordQuizResult = useCallback(
+    (correct: number, total: number) => {
+      setQuizHistory((h) => [...h, { at: new Date().toISOString(), correct, total }].slice(-50))
+      awardXp(quizXp(correct, total))
+    },
+    [awardXp],
+  )
 
   const setTheme = useCallback((mode: ThemeMode) => setThemeState(mode), [])
 
@@ -569,6 +611,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setSources([])
     setBudgets({})
     setQuizHistory([])
+    setStartingBalances({})
+    // XP / streak survive on purpose — clearing data shouldn't cost the level.
   }, [])
 
   const value = useMemo<StoreValue>(
@@ -582,6 +626,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      game,
+      startingBalances,
       aliases,
       subscriptionMeta: groupMeta,
       ignoredTransfers,
@@ -605,6 +651,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateCategory,
       deleteCategory,
       setBudget,
+      setStartingBalance,
+      awardXp,
       recordQuizResult,
       setTheme,
       saveMapping,
@@ -619,6 +667,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      game,
+      startingBalances,
       aliases,
       groupMeta,
       ignoredTransfers,
@@ -642,6 +692,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateCategory,
       deleteCategory,
       setBudget,
+      setStartingBalance,
+      awardXp,
       recordQuizResult,
       setTheme,
       saveMapping,

@@ -151,6 +151,17 @@ export function StarIcon({ className, filled }: IconProps & { filled?: boolean }
   )
 }
 
+export function TableIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M9 10v9" />
+      <path d="M15 10v9" />
+    </svg>
+  )
+}
+
 export function PencilIcon({ className }: IconProps) {
   return (
     <svg {...base(className)}>

@@ -117,6 +117,16 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   **ended date**. The name, cadence, and charge date are staged and applied with a
   **Save** button.
 - **`Dashboard.tsx`** — The charts-and-numbers screen.
+- **`YearSheetView.tsx`** — The **Year Sheet** screen: a spreadsheet-style grid
+  (like a Google Sheets budget) with a column per month and sections for Income,
+  Daily Living, Home, Transportation, Subscriptions & Entertainment, Giving, and
+  Debt & Fees. Months that already happened show real numbers; future months show
+  *projected* numbers in italics (your budget for that category if you set one,
+  otherwise the average so far). An editable **starting balance** (saved per
+  year) feeds the **Projected End Balance** row, and the **NET** row is green or
+  red per month.
+- **`ProgressWidget.tsx`** — Your **level, XP bar, and daily streak 🔥** (the
+  full card in the sidebar, a tiny chip on phones).
 - **`BudgetsCard.tsx`, `RecurringCard.tsx`, `RecurringTransfersCard.tsx`,
   `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
   (budgets, repeating bills + subscriptions, recurring transfers, "spending went
@@ -183,6 +193,14 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   list. A charge qualifies as **recurring** when it's ★-flagged, sits in the
   **Subscriptions category**, or simply repeats; the **subscriptions** subset is
   just the recurring charges whose category is Subscriptions.
+- **`yearly.ts`** — Builds the **Year Sheet** numbers: per-category monthly
+  actuals for a year, grouped into sections, plus **projections** for the months
+  that haven't happened yet (budget if set, else the average of the months your
+  data covers) and the running end-of-month balance.
+- **`gamification.ts`** — The **points & streak brain**: opening the app on a
+  new day checks you in (+XP, streak grows), quizzes and imports earn more XP,
+  and XP adds up to **levels** with titles (Penny Counter → Money Master). Your
+  level survives "Clear all data" on purpose.
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?"), including **faith-informed** ones on
   tithes/offerings and debt payments (with short scripture takeaways), plus the

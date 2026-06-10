@@ -10,6 +10,9 @@ import { TrashIcon } from './components/icons'
 const Dashboard = lazy(() =>
   import('./components/Dashboard').then((m) => ({ default: m.Dashboard })),
 )
+const YearSheetView = lazy(() =>
+  import('./components/YearSheetView').then((m) => ({ default: m.YearSheetView })),
+)
 
 function ViewFallback() {
   return (
@@ -92,6 +95,7 @@ function Shell() {
           <Suspense fallback={<ViewFallback />}>
             {view === 'import' && <ImportView onNavigate={setView} />}
             {view === 'dashboard' && <Dashboard onNavigate={setView} />}
+            {view === 'yearly' && <YearSheetView onNavigate={setView} />}
             {view === 'quiz' && <QuizView onNavigate={setView} />}
             {view === 'settings' && <SettingsView onClear={() => setConfirmClear(true)} />}
           </Suspense>
