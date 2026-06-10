@@ -2,13 +2,17 @@ import { useMemo } from 'react'
 import type { Category, Transaction } from '../types'
 import { useStore } from '../store'
 import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '../lib/categories'
+import { countsTowardTotals } from '../lib/analysis'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { StarIcon, XIcon } from './icons'
 
+/** What the modal drills into: one category, or everything counted as income/spending. */
+export type DetailTarget = Category | { flow: 'income' | 'spending' }
+
 interface Props {
-  category: Category
+  category: DetailTarget
   /** transactions already scoped to the dashboard's selected range */
   transactions: Transaction[]
   scopeLabel: string
@@ -20,16 +24,36 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const { change, node } = useApplyToSimilar()
   const { rename, node: renameNode } = useRenameSimilar()
 
+  const flow = typeof category === 'object' ? category.flow : null
   const items = useMemo(
     () =>
       transactions
-        .filter((t) => t.category === category)
+        .filter((t) =>
+          flow
+            ? countsTowardTotals(t) && (flow === 'income' ? t.amount > 0 : t.amount < 0)
+            : t.category === category,
+        )
         .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)),
-    [transactions, category],
+    [transactions, category, flow],
   )
 
-  const meta = categoryMeta(category)
-  const out = items.reduce((s, t) => (t.amount < 0 ? s - t.amount : s), 0)
+  const total = items.reduce((s, t) => s + Math.abs(t.amount), 0)
+  const header = flow
+    ? {
+        emoji: flow === 'income' ? '💰' : '🧾',
+        color: flow === 'income' ? '#10b981' : '#f43f5e',
+        title: flow === 'income' ? 'Income' : 'Spending',
+        note: ` · ${formatCurrency(total)} ${flow === 'income' ? 'in' : 'out'} · transfers & Zelle not included`,
+      }
+    : {
+        emoji: categoryMeta(category as Category).emoji,
+        color: categoryMeta(category as Category).color,
+        title: categoryLabel(category as Category),
+        note:
+          (total > 0 && items.some((t) => t.amount < 0)
+            ? ` · ${formatCurrency(items.reduce((s, t) => (t.amount < 0 ? s - t.amount : s), 0))} out`
+            : '') + (isExcludedCategory(category as Category) ? ' · not counted as spending' : ''),
+      }
 
   return (
     <>
@@ -45,17 +69,16 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
           <div className="flex items-center gap-3">
             <span
               className="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
-              style={{ background: `${meta.color}1a` }}
+              style={{ background: `${header.color}1a` }}
               aria-hidden
             >
-              {meta.emoji}
+              {header.emoji}
             </span>
             <div>
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100">{categoryLabel(category)}</h3>
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100">{header.title}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {items.length} transaction{items.length === 1 ? '' : 's'} {scopeLabel}
-                {out > 0 && ` · ${formatCurrency(out)} out`}
-                {isExcludedCategory(category) && ' · not counted as spending'}
+                {header.note}
               </p>
             </div>
           </div>

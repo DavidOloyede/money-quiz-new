@@ -61,6 +61,24 @@ describe('buildYearSheet', () => {
     expect(groceries.cells[7].value).toBe(350)
   })
 
+  it('folds positive amounts in spending categories into one Refunds row', () => {
+    const txs = [
+      ...fixture,
+      tx('2026-04-20', 60, 'shopping'), // credit-card refund
+      tx('2026-05-02', 25, 'subscriptions'), // cashback / sub refund
+    ]
+    const sheet = buildYearSheet(txs, 2026, {}, NOW)
+    const ids = sheet.income.rows.map((r) => r.id)
+    expect(ids).toContain('refunds')
+    expect(ids).not.toContain('shopping')
+    expect(ids).not.toContain('subscriptions')
+    const refunds = sheet.income.rows.find((r) => r.id === 'refunds')!
+    expect(refunds.cells[3].value).toBe(60)
+    expect(refunds.cells[4].value).toBe(25)
+    // Real income stays its own row.
+    expect(ids).toContain('income')
+  })
+
   it('groups tithes into the Giving section', () => {
     const sheet = buildYearSheet(fixture, 2026, {}, NOW)
     const giving = sheet.expenseSections.find((s) => s.id === 'giving')!

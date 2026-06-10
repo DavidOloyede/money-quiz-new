@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
 import { buildYearSheet, endBalances, yearsPresent, type SheetCell, type SheetSection } from '../lib/yearly'
 import { EmptyState } from './EmptyState'
@@ -15,6 +15,13 @@ function cellText(n: number, blankZero = true): string {
   return num.format(n)
 }
 
+/**
+ * The frozen block at the top of the sheet (header + 4 summary rows) uses
+ * fixed row heights so each row can be position:sticky at a known offset:
+ * header h-9 (36px), then four h-8 (32px) rows stacked beneath it.
+ */
+const FROZEN_TOPS = ['top-[36px]', 'top-[68px]', 'top-[100px]', 'top-[132px]']
+
 interface Props {
   onNavigate: (v: View) => void
 }
@@ -24,7 +31,9 @@ interface Props {
  * Google-Sheets budget: month columns, income/expense sections with totals,
  * a NET row, and a projected end-of-month balance line that starts from an
  * editable starting balance. Future months show projected numbers (budgets or
- * monthly averages), styled in italic amber.
+ * monthly averages), styled in italic amber. The header and summary rows stay
+ * frozen while scrolling, and a second horizontal scrollbar sits on top so
+ * you never have to scroll to the bottom to pan sideways.
  */
 export function YearSheetView({ onNavigate }: Props) {
   const { transactions, hasData, loadSample, budgets, startingBalances, setStartingBalance } =
@@ -42,6 +51,25 @@ export function YearSheetView({ onNavigate }: Props) {
   const startBal = startingBalances[String(year)] ?? 0
   const [balDraft, setBalDraft] = useState<string | null>(null)
   const balances = useMemo(() => endBalances(startBal, sheet.net), [startBal, sheet])
+
+  // Twin horizontal scrollbars: a slim one above the sheet mirrors the main
+  // container's scroll position (assigning an equal scrollLeft is a no-op, so
+  // the two onScroll handlers can't ping-pong).
+  const mainRef = useRef<HTMLDivElement>(null)
+  const topBarRef = useRef<HTMLDivElement>(null)
+  const [scrollWidth, setScrollWidth] = useState(0)
+  useEffect(() => {
+    const measure = () => setScrollWidth(mainRef.current?.scrollWidth ?? 0)
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [sheet, hasData])
+  const syncFromMain = () => {
+    if (topBarRef.current && mainRef.current) topBarRef.current.scrollLeft = mainRef.current.scrollLeft
+  }
+  const syncFromTop = () => {
+    if (topBarRef.current && mainRef.current) mainRef.current.scrollLeft = topBarRef.current.scrollLeft
+  }
 
   if (!hasData) {
     return (
@@ -123,37 +151,53 @@ export function YearSheetView({ onNavigate }: Props) {
         </p>
       )}
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-        <table className="w-full min-w-[1080px] border-collapse text-xs">
+      {/* Top horizontal scrollbar (mirrors the sheet's own) */}
+      <div
+        ref={topBarRef}
+        onScroll={syncFromTop}
+        className="overflow-x-auto overflow-y-hidden"
+        aria-hidden
+      >
+        <div style={{ width: scrollWidth }} className="h-px" />
+      </div>
+
+      <div
+        ref={mainRef}
+        onScroll={syncFromMain}
+        className="max-h-[75vh] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+      >
+        <table className="w-full min-w-[1080px] border-separate border-spacing-0 text-xs">
           <thead>
-            <tr className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-              <th className="sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 px-3 py-2 text-left font-semibold w-44">
+            <tr>
+              <th className="sticky left-0 top-0 z-30 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3 text-left font-semibold text-slate-500 dark:text-slate-400 w-44">
                 {year}
               </th>
               {MONTHS.map((m, i) => (
                 <th
                   key={m}
-                  className={`px-2 py-2 text-right font-semibold ${
+                  className={`sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-semibold ${
                     i === sheet.lastActualMonth && year === currentYear
                       ? 'text-emerald-600 dark:text-emerald-400'
-                      : ''
+                      : 'text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {m}
                 </th>
               ))}
-              <th className="px-2 py-2 text-right font-bold text-slate-600 dark:text-slate-300">
+              <th className="sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-bold text-slate-600 dark:text-slate-300">
                 TOTAL
               </th>
-              <th className="px-2 py-2 text-right font-semibold">AVG</th>
+              <th className="sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-semibold text-slate-500 dark:text-slate-400">
+                AVG
+              </th>
             </tr>
           </thead>
           <tbody>
-            {/* Summary block, like the top of the sheet */}
-            <SummaryRow label="Total Income" cells={sheet.income.totals} bold positive />
-            <SummaryRow label="Total Expenses" cells={sheet.expenseTotals} bold />
-            <NetRow label="NET (Income − Expenses)" cells={sheet.net} />
-            <BalanceRow label="Projected End Balance" balances={balances} />
+            {/* Frozen summary block, like the top of the sheet */}
+            <SummaryRow label="Total Income" cells={sheet.income.totals} positive stickyTop={FROZEN_TOPS[0]} />
+            <SummaryRow label="Total Expenses" cells={sheet.expenseTotals} stickyTop={FROZEN_TOPS[1]} />
+            <NetRow label="NET (Income − Expenses)" cells={sheet.net} stickyTop={FROZEN_TOPS[2]} />
+            <BalanceRow label="Projected End Balance" balances={balances} stickyTop={FROZEN_TOPS[3]} />
 
             {/* Income section */}
             <SectionHeader title="INCOME" tone="income" />
@@ -205,10 +249,10 @@ function SectionHeader({ title, tone }: { title: string; tone: 'income' | 'expen
   )
 }
 
-function Cell({ cell, accent }: { cell: SheetCell; accent?: string }) {
+function Cell({ cell, accent, extra = '' }: { cell: SheetCell; accent?: string; extra?: string }) {
   return (
     <td
-      className={`px-2 py-1.5 text-right tabular-nums ${
+      className={`px-2 py-1.5 text-right tabular-nums ${extra} ${
         cell.projected
           ? 'italic text-amber-600/90 dark:text-amber-400/80'
           : accent ?? 'text-slate-700 dark:text-slate-200'
@@ -218,6 +262,8 @@ function Cell({ cell, accent }: { cell: SheetCell; accent?: string }) {
     </td>
   )
 }
+
+const ROW_BORDER = 'border-t border-slate-100 dark:border-slate-800'
 
 function DataRow({
   label,
@@ -231,17 +277,17 @@ function DataRow({
   avg: number
 }) {
   return (
-    <tr className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-      <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+      <td className={`sticky left-0 z-10 bg-white dark:bg-slate-900 px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap ${ROW_BORDER}`}>
         {label}
       </td>
       {cells.map((c, i) => (
-        <Cell key={i} cell={c} />
+        <Cell key={i} cell={c} extra={ROW_BORDER} />
       ))}
-      <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100">
+      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100 ${ROW_BORDER}`}>
         {cellText(total)}
       </td>
-      <td className="px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500">
+      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${ROW_BORDER}`}>
         {cellText(avg)}
       </td>
     </tr>
@@ -258,53 +304,56 @@ function TotalRow({
   tone: 'income' | 'expense'
 }) {
   const bg = tone === 'income' ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-slate-50 dark:bg-slate-800/60'
+  const border = 'border-t border-slate-200 dark:border-slate-700'
   return (
-    <tr className={`border-t border-slate-200 dark:border-slate-700 ${bg}`}>
-      <td className={`sticky left-0 z-10 px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap ${bg}`}>
+    <tr className={bg}>
+      <td className={`sticky left-0 z-10 px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap ${tone === 'income' ? 'bg-emerald-50 dark:bg-emerald-950' : 'bg-slate-50 dark:bg-slate-800'} ${border}`}>
         {label}
       </td>
       {section.totals.map((c, i) => (
-        <Cell key={i} cell={c} accent="font-medium text-slate-700 dark:text-slate-200" />
+        <Cell key={i} cell={c} accent="font-medium text-slate-700 dark:text-slate-200" extra={border} />
       ))}
-      <td className="px-2 py-1.5 text-right font-bold tabular-nums text-slate-800 dark:text-slate-100">
+      <td className={`px-2 py-1.5 text-right font-bold tabular-nums text-slate-800 dark:text-slate-100 ${border}`}>
         {cellText(section.total)}
       </td>
-      <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-slate-500 dark:text-slate-400 ${border}`}>
         {cellText(section.avg)}
       </td>
     </tr>
   )
 }
 
+/** A cell in the frozen summary block: sticky at a fixed offset, opaque bg. */
+function frozenCls(stickyTop: string, bg: string, firstCol = false): string {
+  return `sticky ${stickyTop} ${firstCol ? 'left-0 z-30' : 'z-20'} h-8 ${bg} border-b border-slate-100 dark:border-slate-800`
+}
+
 function SummaryRow({
   label,
   cells,
-  bold,
   positive,
+  stickyTop,
 }: {
   label: string
   cells: SheetCell[]
-  bold?: boolean
   positive?: boolean
+  stickyTop: string
 }) {
   const total = cells.reduce((a, c) => a + c.value, 0)
   const accent = positive ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'
+  const bg = 'bg-white dark:bg-slate-900'
   return (
-    <tr className="border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <td
-        className={`sticky left-0 z-10 bg-white dark:bg-slate-900 px-3 py-1.5 whitespace-nowrap ${
-          bold ? 'font-semibold' : 'font-medium'
-        } text-slate-700 dark:text-slate-200`}
-      >
+    <tr>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200 ${frozenCls(stickyTop, bg, true)}`}>
         {label}
       </td>
       {cells.map((c, i) => (
-        <Cell key={i} cell={c} accent={accent} />
+        <Cell key={i} cell={c} accent={accent} extra={frozenCls(stickyTop, bg)} />
       ))}
-      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${accent}`}>
+      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${accent} ${frozenCls(stickyTop, bg)}`}>
         {cellText(total)}
       </td>
-      <td className="px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500">
+      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${frozenCls(stickyTop, bg)}`}>
         {cellText(total / 12)}
       </td>
     </tr>
@@ -312,31 +361,32 @@ function SummaryRow({
 }
 
 /** The NET row: green when the month came out ahead, red when it didn't. */
-function NetRow({ label, cells }: { label: string; cells: SheetCell[] }) {
+function NetRow({ label, cells, stickyTop }: { label: string; cells: SheetCell[]; stickyTop: string }) {
   const total = cells.reduce((a, c) => a + c.value, 0)
+  // Frozen rows overlay scrolling content, so the tints must be opaque.
   const color = (n: number) =>
     n >= 0
-      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-      : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400'
+      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+      : 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-400'
   return (
-    <tr className="border-t border-slate-100 dark:border-slate-800">
-      <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+    <tr>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200 ${frozenCls(stickyTop, 'bg-white dark:bg-slate-900', true)}`}>
         {label}
       </td>
       {cells.map((c, i) => (
         <td
           key={i}
-          className={`px-2 py-1.5 text-right tabular-nums font-medium ${color(c.value)} ${
+          className={`px-2 py-1.5 text-right tabular-nums font-medium ${frozenCls(stickyTop, color(c.value))} ${
             c.projected ? 'italic' : ''
           }`}
         >
           {cellText(c.value, false)}
         </td>
       ))}
-      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${color(total)}`}>
+      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${frozenCls(stickyTop, color(total))}`}>
         {cellText(total, false)}
       </td>
-      <td className="px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500">
+      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${frozenCls(stickyTop, 'bg-white dark:bg-slate-900')}`}>
         {cellText(total / 12, false)}
       </td>
     </tr>
@@ -344,23 +394,33 @@ function NetRow({ label, cells }: { label: string; cells: SheetCell[] }) {
 }
 
 /** Running end-of-month balance, red once it dips below zero. */
-function BalanceRow({ label, balances }: { label: string; balances: number[] }) {
+function BalanceRow({
+  label,
+  balances,
+  stickyTop,
+}: {
+  label: string
+  balances: number[]
+  stickyTop: string
+}) {
   const color = (n: number) =>
     n >= 0 ? 'text-slate-700 dark:text-slate-200' : 'text-rose-600 dark:text-rose-400 font-semibold'
+  const bg = 'bg-amber-50 dark:bg-slate-900'
+  const bottom = 'border-b-2 border-slate-200 dark:border-slate-700'
   return (
-    <tr className="border-t border-b-2 border-slate-200 dark:border-slate-700 bg-amber-50/60 dark:bg-amber-500/5">
-      <td className="sticky left-0 z-10 bg-amber-50 dark:bg-slate-900 px-3 py-1.5 font-semibold text-amber-800 dark:text-amber-300 whitespace-nowrap">
+    <tr>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-amber-800 dark:text-amber-300 ${frozenCls(stickyTop, bg, true)} ${bottom}`}>
         {label}
       </td>
       {balances.map((b, i) => (
-        <td key={i} className={`px-2 py-1.5 text-right tabular-nums ${color(b)}`}>
+        <td key={i} className={`px-2 py-1.5 text-right tabular-nums ${color(b)} ${frozenCls(stickyTop, bg)} ${bottom}`}>
           {cellText(b, false)}
         </td>
       ))}
-      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${color(balances[11] ?? 0)}`}>
+      <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${color(balances[11] ?? 0)} ${frozenCls(stickyTop, bg)} ${bottom}`}>
         {cellText(balances[11] ?? 0, false)}
       </td>
-      <td className="px-2 py-1.5" />
+      <td className={`${frozenCls(stickyTop, bg)} ${bottom}`} />
     </tr>
   )
 }

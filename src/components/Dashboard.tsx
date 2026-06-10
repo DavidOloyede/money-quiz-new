@@ -13,12 +13,11 @@ import {
   topExpenses,
   type TimeRange,
 } from '../lib/analysis'
-import type { Category } from '../types'
 import { categoryLabel, categoryMeta } from '../lib/categories'
 import { formatCurrency, formatDate, formatPercent } from '../lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
-import { CategoryDetailModal } from './CategoryDetailModal'
+import { CategoryDetailModal, type DetailTarget } from './CategoryDetailModal'
 import { BudgetsCard } from './BudgetsCard'
 import { GivingCard } from './GivingCard'
 import { DebtCard } from './DebtCard'
@@ -67,7 +66,7 @@ export function Dashboard({ onNavigate }: Props) {
   const [customTo, setCustomTo] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('total')
   const [sortAsc, setSortAsc] = useState(false)
-  const [drill, setDrill] = useState<Category | null>(null)
+  const [drill, setDrill] = useState<DetailTarget | null>(null)
   const [groupIds, setGroupIds] = useState<string[] | null>(null)
 
   const filtered = useMemo(
@@ -203,12 +202,14 @@ export function Dashboard({ onNavigate }: Props) {
               label="Income"
               value={formatCurrency(stats.totalIncome)}
               accent="text-emerald-600"
+              onClick={() => setDrill({ flow: 'income' })}
             />
             <StatCard
               label="Spending"
               value={formatCurrency(stats.totalSpending)}
               accent="text-rose-600"
               sub={`${formatCurrency(stats.avgDailySpend)} / day average`}
+              onClick={() => setDrill({ flow: 'spending' })}
             />
             <StatCard
               label="Net"

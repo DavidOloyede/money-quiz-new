@@ -130,12 +130,33 @@ export function buildYearSheet(
   }
   firstActualMonth = Math.max(0, firstActualMonth)
 
-  // Income rows: any category that brought money in (salary, refunds, …).
-  const incomeRows = [...incomeByCat.entries()]
-    .map(([cat, actual]) => buildRow(cat, actual, firstActualMonth, lastActualMonth, undefined))
-    .filter((r) => r.total > 0)
-    .sort((a, b) => b.total - a.total)
-  const income = sectionFromRows('income', 'Income', incomeRows)
+  // Income rows: income-kind categories stand alone (salary, …); positive
+  // amounts in spending categories are credit-card refunds/cashback, so they
+  // fold into a single "Refunds & Cashback" row instead of masquerading as
+  // "Shopping income".
+  const incomeRows: SheetRow[] = []
+  const refundTotals = zeros()
+  let hasRefunds = false
+  for (const [cat, actual] of incomeByCat) {
+    if (categoryDef(cat).kind === 'spending') {
+      hasRefunds = true
+      for (let m = 0; m < 12; m++) refundTotals[m] += actual[m]
+    } else {
+      incomeRows.push(buildRow(cat, actual, firstActualMonth, lastActualMonth, undefined))
+    }
+  }
+  if (hasRefunds) {
+    incomeRows.push({
+      ...buildRow('refunds', refundTotals, firstActualMonth, lastActualMonth, undefined),
+      label: 'Refunds & Cashback',
+      emoji: '↩️',
+    })
+  }
+  const income = sectionFromRows(
+    'income',
+    'Income',
+    incomeRows.filter((r) => r.total > 0).sort((a, b) => b.total - a.total),
+  )
 
   // Expense rows, foldered into the fixed sections; anything unmatched
   // (the Other category, user-made categories) lands in a trailing section.

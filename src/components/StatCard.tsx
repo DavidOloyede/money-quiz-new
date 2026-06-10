@@ -6,11 +6,13 @@ interface StatCardProps {
   sub?: string
   accent?: string
   icon?: ReactNode
+  /** When set, the card becomes a button (e.g. to drill into its transactions). */
+  onClick?: () => void
 }
 
-export function StatCard({ label, value, sub, accent = 'text-slate-800 dark:text-slate-100', icon }: StatCardProps) {
-  return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+export function StatCard({ label, value, sub, accent = 'text-slate-800 dark:text-slate-100', icon, onClick }: StatCardProps) {
+  const body = (
+    <>
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
           {label}
@@ -19,6 +21,20 @@ export function StatCard({ label, value, sub, accent = 'text-slate-800 dark:text
       </div>
       <div className={`mt-1 text-2xl font-bold tabular-nums ${accent}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{sub}</div>}
-    </div>
+    </>
   )
+  const frame = 'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4'
+
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={`${frame} w-full text-left transition-colors hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/60`}
+        title="See the transactions behind this number"
+      >
+        {body}
+      </button>
+    )
+  }
+  return <div className={frame}>{body}</div>
 }

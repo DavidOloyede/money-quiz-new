@@ -116,7 +116,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   and — for subscriptions — choose **monthly/annual**, the **renewal date**, and an
   **ended date**. The name, cadence, and charge date are staged and applied with a
   **Save** button.
-- **`Dashboard.tsx`** — The charts-and-numbers screen.
+- **`Dashboard.tsx`** — The charts-and-numbers screen. The **Income** and
+  **Spending** stat cards are clickable and open the full list of transactions
+  behind each number (transfers & Zelle excluded, same as the totals).
 - **`YearSheetView.tsx`** — The **Year Sheet** screen: a spreadsheet-style grid
   (like a Google Sheets budget) with a column per month and sections for Income,
   Daily Living, Home, Transportation, Subscriptions & Entertainment, Giving, and
@@ -124,7 +126,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   *projected* numbers in italics (your budget for that category if you set one,
   otherwise the average so far). An editable **starting balance** (saved per
   year) feeds the **Projected End Balance** row, and the **NET** row is green or
-  red per month.
+  red per month. The month header and the four summary rows **stay frozen**
+  while you scroll, a second horizontal scrollbar sits above the sheet, and
+  credit-card credits in spending categories are folded into one
+  **Refunds & Cashback** income row.
 - **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak 🔥, and badge
   count 🏅** (the full card in the sidebar, a tiny chip on phones).
 - **`VerseOfDay.tsx`** — A daily **scripture banner** at the top of the
@@ -154,7 +159,11 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     default**; untick "Counts" for genuine account-to-account moves.
 - **`charts/CategoryDonut.tsx`, `charts/MonthlyTrend.tsx`** — The actual pie
   chart and bar chart (drawn with a tool called Recharts).
-- **`QuizView.tsx`** — The Quiz screen.
+- **`QuizView.tsx`** — The Quiz screen. After you answer, most questions show
+  **"the numbers behind this answer"** — the actual transactions (or recurring
+  payments) the figure came from; trend questions show the two months side by
+  side. Leaving mid-quiz pops a **"Leave the quiz?"** warning so progress isn't
+  lost by accident.
 - **`QuizHistory.tsx`** — Your past scores and your "day streak".
 - **`SettingsView.tsx`** — Theme, custom categories, and the export/clear buttons.
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a

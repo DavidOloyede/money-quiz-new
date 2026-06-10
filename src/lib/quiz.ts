@@ -1,6 +1,7 @@
 import type { Transaction } from '../types'
 import { allCategories, categoryLabel } from './categories'
-import { formatAbs, formatCurrency, formatMonth, formatPercent } from './format'
+import { formatAbs, formatCurrency, formatDate, formatMonth, formatPercent } from './format'
+import { groupLabel } from './merchant'
 import {
   avgDailySpend,
   countsTowardTotals,
@@ -19,6 +20,21 @@ import {
 } from './analysis'
 import { newId } from './storage'
 
+/** One line of supporting evidence (usually a transaction). */
+export interface EvidenceItem {
+  label: string
+  /** e.g. a formatted date or "8 charges across 8 months" */
+  detail?: string
+  /** signed dollars; omitted for non-money rows */
+  amount?: number
+}
+
+/** A titled list shown under an answered question to justify the figure. */
+export interface EvidenceCard {
+  title: string
+  items: EvidenceItem[]
+}
+
 export interface QuizQuestion {
   id: string
   /** type[:range] — used to keep a quiz varied and free of duplicates */
@@ -30,6 +46,12 @@ export interface QuizQuestion {
   answerDetail: string
   /** one-sentence takeaway about the user's habits */
   takeaway: string
+  /**
+   * The receipts: transaction lists behind the answer, shown after answering.
+   * Omitted for questions where a list adds nothing (net, averages,
+   * single-transaction answers).
+   */
+  evidence?: EvidenceCard[]
 }
 
 // ----------------------------- random helpers -----------------------------
@@ -257,6 +279,7 @@ function mk(
   choices: Choices,
   answerDetail: string,
   takeaway: string,
+  evidence?: EvidenceCard[],
 ): QuizQuestion {
   return {
     id: newId(),
@@ -266,7 +289,28 @@ function mk(
     correctIndex: choices.correctIndex,
     answerDetail,
     takeaway,
+    evidence,
   }
+}
+
+/** Cap evidence lists so a year of groceries doesn't become a scroll marathon. */
+const EVIDENCE_CAP = 25
+
+/** Build an evidence card from raw transactions, largest first. */
+function txCard(title: string, txs: Transaction[]): EvidenceCard {
+  const rows = txs.slice().sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
+  const items: EvidenceItem[] = rows.slice(0, EVIDENCE_CAP).map((t) => ({
+    label: t.description,
+    detail: formatDate(t.date),
+    amount: t.amount,
+  }))
+  if (rows.length > EVIDENCE_CAP) items.push({ label: `…and ${rows.length - EVIDENCE_CAP} more` })
+  return { title, items }
+}
+
+/** Counted expenses in a category — the rows behind a category total. */
+function categoryExpenses(txs: Transaction[], id: string): Transaction[] {
+  return txs.filter((t) => t.category === id && t.amount < 0 && countsTowardTotals(t))
 }
 
 // ----------------------------- generators -----------------------------
@@ -284,6 +328,7 @@ function genCategorySpend(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(choiceCat.total)} on ${label} ${rangeLabel(range)} across ${choiceCat.count} transaction${choiceCat.count === 1 ? '' : 's'}.`,
     `${label} is one of your active spending buckets — worth a glance when you trim.`,
+    [txCard(`${label} ${rangeLabel(range)}`, categoryExpenses(ctx.tx(range), choiceCat.category))],
   )
 }
 
@@ -369,12 +414,16 @@ function genMerchantCount(ctx: Ctx, range: TimeRange): QuizQuestion | null {
   const m = pick(merchants.slice(0, Math.min(4, merchants.length)))
   const choices = countChoices(m.count, 'time')
   if (!choices) return null
+  const visits = ctx
+    .tx(range)
+    .filter((t) => t.amount < 0 && countsTowardTotals(t) && groupLabel(t.description) === m.merchant)
   return mk(
     `merchantCount:${range}`,
     `How many times did you transact at ${m.merchant} ${rangeLabel(range)}?`,
     choices,
     `You transacted at ${m.merchant} ${m.count} times ${rangeLabel(range)}, totaling ${formatCurrency(m.total)}.`,
     `Frequent small purchases add up fast — ${m.merchant} is one of your repeat stops.`,
+    [txCard(`${m.merchant} visits ${rangeLabel(range)}`, visits)],
   )
 }
 
@@ -425,6 +474,7 @@ function genTotalSpending(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(spend)} ${rangeLabel(range)}.`,
     `Knowing your headline spend is the anchor for every budgeting decision.`,
+    [txCard(`Spending ${rangeLabel(range)}`, txs.filter((t) => t.amount < 0 && countsTowardTotals(t)))],
   )
 }
 
@@ -440,6 +490,7 @@ function genTotalIncome(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You took in ${formatCurrency(income)} ${rangeLabel(range)}.`,
     `Tracking income alongside spending is what makes a net number meaningful.`,
+    [txCard(`Income ${rangeLabel(range)}`, txs.filter((t) => t.amount > 0 && countsTowardTotals(t)))],
   )
 }
 
@@ -454,6 +505,7 @@ function genTxnCount(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You recorded ${n} transactions ${rangeLabel(range)}.`,
     `More transactions mean more small decisions — each is a chance to spend mindfully.`,
+    [txCard(`All transactions ${rangeLabel(range)}`, ctx.tx(range))],
   )
 }
 
@@ -492,6 +544,10 @@ function genCategoryTrend(ctx: Ctx): QuizQuestion | null {
     choices,
     `${label} went ${dir} ${formatCurrency(Math.abs(delta))}: ${formatCurrency(pv)} in ${formatMonth(prevKey)} versus ${formatCurrency(cv)} in ${formatMonth(curKey)}.`,
     `Month-over-month shifts in a single category are the early warning signs of lifestyle creep.`,
+    [
+      txCard(`${label} — ${formatMonth(prevKey)} (${formatCurrency(pv)})`, categoryExpenses(prev, category)),
+      txCard(`${label} — ${formatMonth(curKey)} (${formatCurrency(cv)})`, categoryExpenses(cur, category)),
+    ],
   )
 }
 
@@ -525,6 +581,17 @@ function genBusiestDay(ctx: Ctx): QuizQuestion | null {
   )
 }
 
+/** The recurring-payments list as evidence: one row per merchant. */
+function recurringCard(rec: ReturnType<typeof recurringPayments>): EvidenceCard {
+  const items: EvidenceItem[] = rec.slice(0, EVIDENCE_CAP).map((r) => ({
+    label: r.merchant,
+    detail: `${r.count} charge${r.count === 1 ? '' : 's'} across ${r.months} month${r.months === 1 ? '' : 's'}`,
+    amount: -r.monthlyEstimate,
+  }))
+  if (rec.length > EVIDENCE_CAP) items.push({ label: `…and ${rec.length - EVIDENCE_CAP} more` })
+  return { title: 'Your recurring payments (per-month estimate)', items }
+}
+
 function genRecurringCount(ctx: Ctx): QuizQuestion | null {
   const rec = recurringPayments(ctx.all)
   if (rec.length < 3) return null
@@ -536,6 +603,7 @@ function genRecurringCount(ctx: Ctx): QuizQuestion | null {
     choices,
     `We spotted ${rec.length} recurring payments, like ${rec[0].merchant} and ${rec[1].merchant}.`,
     'Recurring charges are easy to forget — counting them is the first step to pruning.',
+    [recurringCard(rec)],
   )
 }
 
@@ -551,6 +619,7 @@ function genRecurringTotal(ctx: Ctx): QuizQuestion | null {
     choices,
     `Your recurring payments run about ${formatCurrency(monthly)} per month across ${rec.length} merchants.`,
     'Recurring costs quietly set your baseline — trimming one compounds every month.',
+    [recurringCard(rec)],
   )
 }
 
@@ -575,6 +644,7 @@ function genBudget(ctx: Ctx): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(choice.spend)} on ${label} last month — ${verdict} your ${formatCurrency(choice.budget)} budget.`,
     'Comparing real spend to your budget is where intentions meet reality.',
+    [txCard(`${label} last month`, categoryExpenses(lastTx, choice.cat))],
   )
 }
 
@@ -608,6 +678,7 @@ function genTitheGiving(ctx: Ctx): QuizQuestion | null {
       '“Honor the LORD with your substance, with the first fruits of all your increase.” (Proverbs 3:9)',
       '“Let each man give according as he has determined in his heart… for God loves a cheerful giver.” (2 Corinthians 9:7)',
     ]),
+    [txCard(`Tithes & offerings ${label}`, categoryExpenses(txs, 'tithes'))],
   )
 }
 
@@ -644,6 +715,7 @@ function genDebtPayments(ctx: Ctx): QuizQuestion | null {
       '“Owe no one anything, except to love one another.” (Romans 13:8)',
       'Knocking out debt frees future income to save and to give — momentum compounds.',
     ]),
+    [txCard(`Loan & debt payments ${label}`, categoryExpenses(txs, 'loans'))],
   )
 }
 

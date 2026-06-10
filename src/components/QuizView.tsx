@@ -1,7 +1,8 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../store'
-import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '../lib/quiz'
+import { askedKinds, generateQuiz, quizInsights, type EvidenceCard, type QuizQuestion } from '../lib/quiz'
 import { quizXp } from '../lib/gamification'
+import { formatCurrency } from '../lib/format'
 import { QuizHistory } from './QuizHistory'
 import { BadgesCard } from './BadgesCard'
 import { EmptyState } from './EmptyState'
@@ -12,9 +13,11 @@ type Phase = 'intro' | 'playing' | 'done'
 
 interface Props {
   onNavigate: (v: View) => void
+  /** Tells the shell a quiz is mid-flight so navigating away can warn first. */
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-export function QuizView({ onNavigate }: Props) {
+export function QuizView({ onNavigate, onDirtyChange }: Props) {
   const { transactions, hasData, loadSample, budgets, quizHistory, recordQuizResult, game } =
     useStore()
   const [phase, setPhase] = useState<Phase>('intro')
@@ -23,6 +26,13 @@ export function QuizView({ onNavigate }: Props) {
   const [answers, setAnswers] = useState<(number | null)[]>([])
   const [tooSparse, setTooSparse] = useState(false)
   const recordedRef = useRef(false)
+
+  // The quiz is "dirty" while being played and not yet recorded (reviewing a
+  // finished quiz loses nothing). Cleared on unmount so leaving resets it.
+  useEffect(() => {
+    onDirtyChange?.(phase === 'playing' && !recordedRef.current)
+  }, [phase, onDirtyChange])
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange])
 
   const start = () => {
     const qs = generateQuiz(transactions, { budgets })
@@ -227,8 +237,53 @@ export function QuizView({ onNavigate }: Props) {
             </div>
           )}
         </div>
+
+        {/* The receipts: transactions behind the answer, shown once answered */}
+        {answered && q.evidence && q.evidence.length > 0 && (
+          <div className="mt-4">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              The numbers behind this answer
+            </div>
+            <div className={`grid gap-3 ${q.evidence.length > 1 ? 'sm:grid-cols-2' : ''}`}>
+              {q.evidence.map((card, i) => (
+                <EvidenceList key={i} card={card} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Shell>
+  )
+}
+
+function EvidenceList({ card }: { card: EvidenceCard }) {
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+      <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+        {card.title}
+      </div>
+      <ul className="max-h-56 divide-y divide-slate-100 dark:divide-slate-800 overflow-y-auto px-4">
+        {card.items.map((it, i) => (
+          <li key={i} className="flex items-baseline justify-between gap-3 py-1.5 text-xs">
+            <span className="min-w-0 truncate text-slate-700 dark:text-slate-200">
+              {it.label}
+              {it.detail && (
+                <span className="ml-1.5 text-slate-400 dark:text-slate-500">{it.detail}</span>
+              )}
+            </span>
+            {it.amount !== undefined && (
+              <span
+                className={`shrink-0 tabular-nums font-medium ${
+                  it.amount > 0 ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300'
+                }`}
+              >
+                {formatCurrency(it.amount)}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
