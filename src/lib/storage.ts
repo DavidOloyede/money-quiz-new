@@ -9,6 +9,10 @@ export const STORAGE_KEYS = {
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
+  // Manual ★ "recurring payment" flags (per-merchant and per-charge). The legacy
+  // subscriptions/subscriptionTxns keys are read once and migrated into these.
+  recurring: 'moneyquiz.recurring.v1',
+  recurringTxns: 'moneyquiz.recurringTxns.v1',
   subscriptions: 'moneyquiz.subscriptions.v1',
   subscriptionTxns: 'moneyquiz.subscriptionTxns.v1',
   groupMeta: 'moneyquiz.groupMeta.v1',
@@ -28,6 +32,8 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,
+  STORAGE_KEYS.recurring,
+  STORAGE_KEYS.recurringTxns,
   STORAGE_KEYS.subscriptions,
   STORAGE_KEYS.subscriptionTxns,
   STORAGE_KEYS.groupMeta,

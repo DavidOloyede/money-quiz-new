@@ -92,9 +92,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
   search, filter, and **change a category**. You can also select many at once.
-  Each row has a **★ star** to flag the charge as a **subscription** (remembered
-  for every charge from that store), plus a "Subscriptions" filter to show only
-  those.
+  Each row has a **★ star** to flag the charge as a **recurring payment**
+  (remembered for every charge from that store), plus a "Recurring" filter to
+  show only those.
 - **`ApplyToSimilar.tsx`** — The little popup after you change a category. It
   offers to update the charges that share the **same amount and a similar name**
   (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
@@ -105,26 +105,30 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   merchant alias and then offers to **rename the other similarly-named charges
   too**, which merges fragmented descriptors into one group.
 - **`CategoryDetailModal.tsx`** — Click a category to see its transactions; each
-  row can be **recategorized**, **renamed**, or **★-flagged as a subscription**
-  (per charge — so a single Amazon = Prime).
+  row can be **recategorized**, **renamed**, or **★-flagged as recurring**
+  (per charge — so a single Amazon charge can repeat).
 - **`GroupDetailModal.tsx`** — Click any recurring payment, subscription, or
   recurring transfer to open this: it lists the underlying charges (each
-  renamable / recategorizable / ★-flaggable), lets you **rename** the whole group,
-  toggle **Show in recurring payments** (remove a false positive like "Amazon"),
-  set the **charge day** for any recurring bill, and — for subscriptions — choose
-  **monthly/annual**, the **renewal date**, and an **ended date**.
+  renamable / recategorizable / ★-flaggable as recurring), lets you **rename** the
+  whole group, ★-**mark it recurring**, toggle **Show in recurring payments**
+  (remove a false positive like "Amazon"), **make it a subscription** (move it
+  into the Subscriptions category), set the **charge day** for any recurring bill,
+  and — for subscriptions — choose **monthly/annual**, the **renewal date**, and an
+  **ended date**. The name, cadence, and charge date are staged and applied with a
+  **Save** button.
 - **`Dashboard.tsx`** — The charts-and-numbers screen.
-- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `SubscriptionsCard.tsx`,
-  `RecurringTransfersCard.tsx`, `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The
-  info boxes on the Dashboard (budgets, repeating bills, your subscriptions,
-  recurring transfers, "spending went up/down", and favorite stores).
-  - **`RecurringCard.tsx`** lists everything that repeats — fixed monthly
-    payments (rent, student loan), subscriptions, and variable bills (power,
-    water) **averaged** to a per-month number. Same-amount charges are marked
-    "fixed". Tap a row to open its detail/rename; tap ★ to flag a subscription.
-  - **`SubscriptionsCard.tsx`** is just the things you flagged as subscriptions,
-    with each one's cadence / next-charge / ended date and a combined monthly
-    total (ended ones are struck through and left out of the total).
+- **`BudgetsCard.tsx`, `RecurringCard.tsx`, `RecurringTransfersCard.tsx`,
+  `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
+  (budgets, repeating bills + subscriptions, recurring transfers, "spending went
+  up/down", and favorite stores).
+  - **`RecurringCard.tsx`** is one **"Recurring & subscriptions"** box listing
+    everything that repeats — fixed monthly payments (rent, student loan),
+    subscriptions, and variable bills (power, water) **averaged** to a per-month
+    number. Same-amount charges are marked "fixed". Charges in the **Subscriptions
+    category** get a **"sub"** badge and their billing cadence; a **Show: All |
+    Subscriptions** toggle narrows to just those (with a subscriptions-only monthly
+    subtotal, ended ones struck through and excluded). Tap a row to open its
+    detail/rename; tap ★ to flag a charge **recurring**.
   - **`RecurringTransfersCard.tsx`** surfaces same-amount, same-day Zelle/transfers
     (e.g. a monthly phone Zelle). They **count toward spending/income by
     default**; untick "Counts" for genuine account-to-account moves.
@@ -176,8 +180,9 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   / This year** (plus a custom window). `recurringPayments` groups charges by the
   display-name identity, leans on the **same amount** repeating to decide fixed
   vs. **averaged** variable bills, and skips groups you've **removed** from the
-  list; `subscriptions` returns only the **flagged** charges grouped together (so
-  one Amazon charge can be Prime while the rest of Amazon stays out).
+  list. A charge qualifies as **recurring** when it's ★-flagged, sits in the
+  **Subscriptions category**, or simply repeats; the **subscriptions** subset is
+  just the recurring charges whose category is Subscriptions.
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?"), including **faith-informed** ones on
   tithes/offerings and debt payments (with short scripture takeaways), plus the
@@ -198,25 +203,27 @@ try the whole app without uploading anything.
 ## 7. The brain that remembers everything (`store.tsx` and `types.ts`)
 
 - **`types.ts`** — The **shapes** of the data. A Transaction has a date,
-  description, amount, and category, plus optional flags: `subscription` (you
-  marked it), `counts` (a recurring transfer promoted into your totals).
+  description, amount, and category, plus optional flags: `recurring` (you
+  ★-marked it), `counts` (a recurring transfer promoted into your totals).
   `SubscriptionMeta` holds a subscription's cadence, billing day, renewal, and
   ended dates.
 - **`store.tsx`** — The **central brain**. It holds the **raw** transactions plus
   the remembered edits, and derives the live list — stamping two flags that are
-  never persisted on the rows: `subscription` (merchant flagged **or** this exact
+  never persisted on the rows: `recurring` (merchant ★-flagged **or** this exact
   charge flagged) and `counts` (recurring same-amount transfers, minus opted-out
   groups). The remembered edits:
   - **category edits** and **renames (aliases)** — per merchant, survive re-imports.
-  - **subscriptions** — a per-merchant flag (whole-merchant subs like Netflix)
-    **and** `subscriptionTxns`, a per-charge flag by signature (one Amazon = Prime).
+  - **recurring flags** — a per-merchant flag (whole-merchant repeats like Rent)
+    **and** `recurringTxns`, a per-charge flag by signature (one Amazon charge that
+    repeats). *(Subscriptions are instead identified by the Subscriptions
+    category.)*
   - **`groupMeta`** — cadence / charge day / renewal / ended for any group.
   - **`ignoredTransfers`** — recurring transfers you opted out of counting.
   - **`dismissedRecurring`** — groups removed from the Recurring payments list.
   It exposes the actions the screens use (import, recategorize, rename, flag a
-  subscription per-charge or per-group, set a charge/renewal date, include/exclude
-  a transfer or recurring group, budget, connect a bank, …) and auto-saves
-  everything to the notebook.
+  charge recurring per-charge or per-group, set a charge/renewal date,
+  include/exclude a transfer or recurring group, budget, connect a bank, …) and
+  auto-saves everything to the notebook.
 
 Every screen "plugs into" the store to read data and to make changes, so
 everything stays in sync. Change a category in one place and the charts update
@@ -260,12 +267,12 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **localStorage** — the browser's private notebook that remembers your data.
 - **Transaction** — one purchase or deposit (date, store, amount, category).
 - **Category** — a bin like Groceries or Dining.
-- **Subscription** — a charge you've ★-flagged as a recurring sign-up (Netflix,
-  iCloud…), optionally monthly/annual with a billing day, renewal, or ended date.
-  Shown in its own list and folded into Recurring payments.
-- **Recurring payment** — anything that repeats monthly: subscriptions, fixed
-  bills (rent, student loan), and variable bills (power, water) averaged per
-  month.
+- **Subscription** — a charge in the **Subscriptions category** (Apple, iCloud,
+  GitHub…), optionally monthly/annual with a billing day, renewal, or ended date.
+  Badged and folded into the Recurring & subscriptions list.
+- **Recurring payment** — anything that repeats monthly: ★-flagged charges,
+  subscriptions, fixed bills (rent, student loan), and variable bills (power,
+  water) averaged per month. The **★ star** marks a charge as recurring.
 - **Alias / rename** — a clean display name you give a merchant; every messy
   variant folds under it, in display and in grouping.
 - **Recurring transfer** — a same-amount, same-day Zelle/transfer that's really a

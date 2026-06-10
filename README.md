@@ -118,8 +118,11 @@ any other transaction.
   category to drill into its transactions and recategorize them. Plus:
   - **Budgets** — set a monthly budget per category and track progress with
     over/under alerts.
-  - **Recurring payments** — automatically detected subscriptions and bills with
-    an estimated monthly cost.
+  - **Recurring & subscriptions** — repeating bills and subscriptions in one
+    list with an estimated monthly cost. Tap the **★** to flag any charge as
+    recurring; anything in the **Subscriptions category** is badged and gets its
+    own cadence, charge date, and monthly subtotal (set them with **Save** in the
+    detail view).
   - **Trends & anomalies** — callouts like *"Dining is up 40% vs your 3-month
     average."*
   - **Top merchants** and a **Transfers & Zelle** panel for the money that's

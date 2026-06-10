@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function CategoryDetailModal({ category, transactions, scopeLabel, onClose }: Props) {
-  const { aliases, toggleSubscription } = useStore()
+  const { aliases, toggleRecurring } = useStore()
   const { change, node } = useApplyToSimilar()
   const { rename, node: renameNode } = useRenameSimilar()
 
@@ -87,16 +87,16 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                   <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">
                     <span className="flex items-center gap-1.5">
                       <button
-                        onClick={() => toggleSubscription(t.id)}
-                        title={t.subscription ? 'Unflag subscription' : 'Mark as subscription'}
-                        aria-pressed={!!t.subscription}
+                        onClick={() => toggleRecurring(t.id)}
+                        title={t.recurring ? 'Unflag recurring' : 'Mark as recurring'}
+                        aria-pressed={!!t.recurring}
                         className={`shrink-0 rounded p-0.5 transition-colors ${
-                          t.subscription
+                          t.recurring
                             ? 'text-amber-500 hover:text-amber-600'
                             : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
                         }`}
                       >
-                        <StarIcon className="h-4 w-4" filled={!!t.subscription} />
+                        <StarIcon className="h-4 w-4" filled={!!t.recurring} />
                       </button>
                       <EditableDescription t={t} aliases={aliases} onRename={rename} />
                     </span>

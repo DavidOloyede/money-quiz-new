@@ -21,7 +21,6 @@ import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal } from './CategoryDetailModal'
 import { BudgetsCard } from './BudgetsCard'
 import { RecurringCard } from './RecurringCard'
-import { SubscriptionsCard } from './SubscriptionsCard'
 import { RecurringTransfersCard } from './RecurringTransfersCard'
 import { GroupDetailModal } from './GroupDetailModal'
 import { TrendsCard } from './TrendsCard'
@@ -333,7 +332,6 @@ export function Dashboard({ onNavigate }: Props) {
             />
             <TopMerchantsCard transactions={filtered} />
             <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
-            <SubscriptionsCard transactions={transactions} onOpenGroup={setGroupIds} />
             <RecurringTransfersCard transactions={transactions} onOpenGroup={setGroupIds} />
             <TrendsCard transactions={transactions} />
           </div>

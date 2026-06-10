@@ -1,5 +1,5 @@
 import type { Category, Transaction } from '../types'
-import { isExcludedCategory } from './categories'
+import { isExcludedCategory, SUBSCRIPTIONS_CATEGORY } from './categories'
 import { groupKey, groupLabel, merchantKey } from './merchant'
 
 /** Alias map (merchant key -> clean name); threaded into grouping analyses. */
@@ -277,7 +277,9 @@ export interface RecurringPayment {
   monthlyEstimate: number
   /** True when the charge is essentially the same amount every time. */
   fixed: boolean
-  /** True when the user flagged this merchant as a subscription. */
+  /** True when the user manually ★-flagged this group as recurring. */
+  isRecurringFlagged: boolean
+  /** True when this group lives in the Subscriptions category. */
   isSubscription: boolean
   lastDate: string
 }
@@ -292,10 +294,10 @@ interface RecurringGroup {
   months: Set<string>
   total: number
   last: string
-  sub: boolean
+  recurring: boolean
 }
 
-/** Bucket transactions by group identity (alias-aware), tracking amounts, months, ids, and the subscription flag. */
+/** Bucket transactions by group identity (alias-aware), tracking amounts, months, ids, and the ★ recurring flag. */
 function groupByIdentity(
   transactions: Transaction[],
   aliases: Aliases,
@@ -317,7 +319,7 @@ function groupByIdentity(
         months: new Set<string>(),
         total: 0,
         last: '',
-        sub: false,
+        recurring: false,
       }
     e.amounts.push(-t.amount)
     e.months.add(monthKey(t.date))
@@ -325,7 +327,7 @@ function groupByIdentity(
     e.ids.push(t.id)
     e.total += -t.amount
     e.cat = t.category
-    if (t.subscription) e.sub = true
+    if (t.recurring) e.recurring = true
     if (t.date > e.last) e.last = t.date
     map.set(key, e)
   }
@@ -367,7 +369,8 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
     recurringAmount: mode.value,
     monthlyEstimate: e.total / Math.max(1, e.months.size),
     fixed,
-    isSubscription: e.sub,
+    isRecurringFlagged: e.recurring,
+    isSubscription: e.cat === SUBSCRIPTIONS_CATEGORY,
     lastDate: e.last,
   }
 }
@@ -375,7 +378,8 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
 /**
  * Recurring charges — subscriptions, fixed bills (rent, student loans), and
  * averaged variable bills (water, power). A merchant qualifies when:
- *  - the user flagged it as a subscription, OR
+ *  - the user ★-flagged it as recurring, OR
+ *  - it sits in the Subscriptions category (subscriptions always repeat), OR
  *  - it repeats across 3+ months, OR
  *  - the *same amount* recurs 3+ times — so a fixed monthly payment is caught
  *    even with a short history (the "same amount" emphasis).
@@ -395,23 +399,13 @@ export function recurringPayments(
     const mode = modeAmount(e.amounts)
     const r = toRecurring(e, mode)
     const qualifies =
-      r.isSubscription || (r.count >= 3 && r.months >= 3) || (r.fixed && mode.freq >= 3)
+      r.isRecurringFlagged ||
+      r.isSubscription ||
+      (r.count >= 3 && r.months >= 3) ||
+      (r.fixed && mode.freq >= 3)
     if (qualifies) out.push(r)
   }
   return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
-}
-
-/**
- * Everything the user flagged as a subscription — grouped by merchant, but only
- * the *flagged* charges (so a single Amazon "Prime" charge shows as a
- * subscription while the rest of Amazon stays out). Includes one-time/annual
- * subscriptions, since a single flagged charge still counts.
- */
-export function subscriptions(transactions: Transaction[], aliases: Aliases = {}): RecurringPayment[] {
-  const flagged = (t: Transaction) => t.amount < 0 && !!t.subscription
-  return groupByIdentity(transactions, aliases, flagged)
-    .map((e) => toRecurring(e, modeAmount(e.amounts)))
-    .sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
 }
 
 function dayOfMonth(iso: string): number {

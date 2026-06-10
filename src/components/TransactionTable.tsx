@@ -14,12 +14,12 @@ interface Props {
 type SortKey = 'date' | 'amount'
 
 export function TransactionTable({ transactions }: Props) {
-  const { setCategoryBulk, toggleSubscription, aliases } = useStore()
+  const { setCategoryBulk, toggleRecurring, aliases } = useStore()
   const { change, node } = useApplyToSimilar()
   const [query, setQuery] = useState('')
   const [catFilter, setCatFilter] = useState<Category | 'all'>('all')
   const [minAmount, setMinAmount] = useState('')
-  const [subsOnly, setSubsOnly] = useState(false)
+  const [recurringOnly, setRecurringOnly] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortAsc, setSortAsc] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -29,7 +29,7 @@ export function TransactionTable({ transactions }: Props) {
     const q = query.trim().toLowerCase()
     const min = parseFloat(minAmount)
     const rows = transactions.filter((t) => {
-      if (subsOnly && !t.subscription) return false
+      if (recurringOnly && !t.recurring) return false
       if (catFilter !== 'all' && t.category !== catFilter) return false
       if (q && !t.description.toLowerCase().includes(q)) return false
       if (Number.isFinite(min) && Math.abs(t.amount) < min) return false
@@ -40,7 +40,7 @@ export function TransactionTable({ transactions }: Props) {
       return sortAsc ? cmp : -cmp
     })
     return rows
-  }, [transactions, query, catFilter, minAmount, subsOnly, sortKey, sortAsc])
+  }, [transactions, query, catFilter, minAmount, recurringOnly, sortKey, sortAsc])
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc((v) => !v)
@@ -110,16 +110,16 @@ export function TransactionTable({ transactions }: Props) {
             ))}
           </select>
           <button
-            onClick={() => setSubsOnly((v) => !v)}
-            aria-pressed={subsOnly}
-            title="Show only subscriptions"
+            onClick={() => setRecurringOnly((v) => !v)}
+            aria-pressed={recurringOnly}
+            title="Show only recurring payments"
             className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-colors ${
-              subsOnly
+              recurringOnly
                 ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300'
                 : 'border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
-            <StarIcon className="h-4 w-4" filled={subsOnly} /> Subscriptions
+            <StarIcon className="h-4 w-4" filled={recurringOnly} /> Recurring
           </button>
         </div>
       </div>
@@ -198,21 +198,21 @@ export function TransactionTable({ transactions }: Props) {
                 <td className="px-4 py-2.5 text-slate-700 dark:text-slate-200">
                   <span className="flex items-center gap-2">
                     <button
-                      onClick={() => toggleSubscription(t.id)}
-                      title={t.subscription ? 'Unflag subscription' : 'Flag as subscription'}
-                      aria-pressed={!!t.subscription}
+                      onClick={() => toggleRecurring(t.id)}
+                      title={t.recurring ? 'Unflag recurring' : 'Flag as recurring'}
+                      aria-pressed={!!t.recurring}
                       className={`shrink-0 rounded p-0.5 transition-colors ${
-                        t.subscription
+                        t.recurring
                           ? 'text-amber-500 hover:text-amber-600'
                           : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
                       }`}
                     >
-                      <StarIcon className="h-4 w-4" filled={!!t.subscription} />
+                      <StarIcon className="h-4 w-4" filled={!!t.recurring} />
                     </button>
                     {displayDescription(t.description, aliases)}
-                    {t.subscription && (
+                    {t.recurring && (
                       <span className="rounded bg-amber-100 dark:bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
-                        subscription
+                        recurring
                       </span>
                     )}
                     {t.overridden && (

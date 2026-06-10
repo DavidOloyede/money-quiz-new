@@ -40,11 +40,12 @@ export interface Transaction {
   /** True when the user has manually changed the category */
   overridden?: boolean
   /**
-   * True when the user has flagged this charge as a subscription. Flagging is
-   * remembered per-merchant (see store), so every charge from the same merchant
-   * is treated as a subscription and the flag survives re-imports.
+   * True when the user has flagged this charge as a recurring payment. Flagging
+   * is remembered per-merchant or per-charge (see store), so it survives
+   * re-imports. This is the ★ flag; subscriptions are instead identified by the
+   * Subscriptions category.
    */
-  subscription?: boolean
+  recurring?: boolean
   /**
    * Forces this transaction to count toward spending/income even though its
    * category is normally excluded (transfers/Zelle). Set automatically on

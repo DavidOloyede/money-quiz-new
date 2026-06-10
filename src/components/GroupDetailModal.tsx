@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react'
-import type { Category, SubscriptionCadence } from '../types'
+import type { Category, SubscriptionCadence, SubscriptionMeta } from '../types'
 import { useStore } from '../store'
-import { allCategories, categoryMeta } from '../lib/categories'
+import {
+  allCategories,
+  categoryMeta,
+  isSubscriptionCategory,
+  SUBSCRIPTIONS_CATEGORY,
+} from '../lib/categories'
 import { merchantKey, groupKey, groupLabel } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
@@ -14,11 +19,21 @@ interface Props {
   onClose: () => void
 }
 
+/** Staged edits, committed together on Save. */
+interface Draft {
+  name: string
+  cadence?: SubscriptionCadence
+  billingDay?: number
+  renewalDate?: string
+  endedDate?: string
+}
+
 /**
  * Drill-in for a recurring payment / subscription / transfer group: lists the
  * underlying transactions, lets you rename the whole group (alias), edit
- * categories inline, and — for subscriptions — record cadence, billing day,
- * renewal, and ended dates.
+ * categories inline, ★-flag it as recurring, and — for subscriptions — record
+ * cadence, billing day, renewal, and ended dates. Name, cadence, and charge date
+ * are staged and applied together with the Save button.
  */
 export function GroupDetailModal({ ids, onClose }: Props) {
   const {
@@ -27,10 +42,11 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     subscriptionMeta,
     dismissedRecurring,
     setAlias,
-    setGroupSubscription,
+    setGroupRecurring,
     setSubscriptionMeta,
     setRecurringDismissed,
-    toggleSubscription,
+    setCategoryForMerchant,
+    toggleRecurring,
   } = useStore()
   const { change, node } = useApplyToSimilar()
   const { rename, node: renameNode } = useRenameSimilar()
@@ -43,21 +59,53 @@ export function GroupDetailModal({ ids, onClose }: Props) {
   const keys = useMemo(() => [...new Set(items.map((t) => merchantKey(t.description)))], [items])
   const first = items[0]
   const defaultName = first ? groupLabel(first.description, aliases) : ''
-  const [name, setName] = useState(defaultName)
+  const meta = useMemo<SubscriptionMeta>(
+    () => keys.map((k) => subscriptionMeta[k]).find(Boolean) ?? {},
+    [keys, subscriptionMeta],
+  )
+  const [draft, setDraft] = useState<Draft>(() => ({
+    name: defaultName,
+    cadence: meta.cadence,
+    billingDay: meta.billingDay,
+    renewalDate: meta.renewalDate,
+    endedDate: meta.endedDate,
+  }))
 
   if (!first) return null
 
   const gKey = groupKey(first.description, aliases)
-  const isSub = items.some((t) => t.subscription)
+  const isRecurringFlagged = items.some((t) => t.recurring)
+  const isSubscription = items.some((t) => isSubscriptionCategory(t.category))
   const inRecurring = !dismissedRecurring[gKey]
-  const meta = keys.map((k) => subscriptionMeta[k]).find(Boolean) ?? {}
   const out = items.reduce((s, t) => (t.amount < 0 ? s - t.amount : s), 0)
   const inn = items.reduce((s, t) => (t.amount > 0 ? s + t.amount : s), 0)
 
-  const saveName = () => {
-    if (name.trim() !== defaultName) setAlias(ids, name)
+  const norm = (v?: string | number) => (v === '' || v === undefined ? undefined : v)
+  const clean = draft.name.trim()
+  const nameDirty = clean !== '' && clean !== defaultName
+  const metaDirty =
+    norm(draft.cadence) !== norm(meta.cadence) ||
+    norm(draft.billingDay) !== norm(meta.billingDay) ||
+    norm(draft.renewalDate) !== norm(meta.renewalDate) ||
+    norm(draft.endedDate) !== norm(meta.endedDate)
+  const dirty = nameDirty || metaDirty
+
+  const save = () => {
+    if (nameDirty) setAlias(ids, clean)
+    if (metaDirty) {
+      setSubscriptionMeta(keys, {
+        cadence: draft.cadence,
+        billingDay: draft.billingDay,
+        renewalDate: draft.renewalDate,
+        endedDate: draft.endedDate,
+      })
+    }
+    onClose()
   }
-  const patchMeta = (patch: Partial<typeof meta>) => setSubscriptionMeta(keys, patch)
+
+  const makeSubscription = () => {
+    for (const k of keys) setCategoryForMerchant(k, SUBSCRIPTIONS_CATEGORY)
+  }
 
   return (
     <>
@@ -75,28 +123,21 @@ export function GroupDetailModal({ ids, onClose }: Props) {
               <label className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 Name
               </label>
-              <div className="mt-1 flex items-center gap-2">
+              <div className="mt-1">
                 <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  onBlur={saveName}
-                  onKeyDown={(e) => e.key === 'Enter' && saveName()}
+                  value={draft.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                  onKeyDown={(e) => e.key === 'Enter' && dirty && save()}
                   className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                   placeholder="Merchant name"
                   aria-label="Group name"
                 />
-                <button
-                  onClick={saveName}
-                  className="shrink-0 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
-                >
-                  Rename
-                </button>
               </div>
               <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
                 {items.length} transaction{items.length === 1 ? '' : 's'}
                 {out > 0 && ` · ${formatCurrency(out)} out`}
                 {inn > 0 && ` · ${formatCurrency(inn)} in`}
-                {' '}· renaming applies to all of these and future imports
+                {' '}· name, cadence &amp; charge date apply on Save (to all of these and future imports)
               </p>
             </div>
             <button
@@ -112,15 +153,15 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           <div className="border-b border-slate-100 dark:border-slate-800 p-4">
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => setGroupSubscription(ids, !isSub)}
+                onClick={() => setGroupRecurring(ids, !isRecurringFlagged)}
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-colors ${
-                  isSub
+                  isRecurringFlagged
                     ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300'
                     : 'border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
                 }`}
               >
-                <StarIcon className="h-4 w-4" filled={isSub} />
-                {isSub ? 'Subscription' : 'Mark as subscription'}
+                <StarIcon className="h-4 w-4" filled={isRecurringFlagged} />
+                {isRecurringFlagged ? 'Recurring' : 'Mark as recurring'}
               </button>
 
               <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
@@ -133,14 +174,14 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                 Show in recurring payments
               </label>
 
-              {isSub && (
+              {isSubscription ? (
                 <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
                   {(['monthly', 'annual'] as SubscriptionCadence[]).map((c) => (
                     <button
                       key={c}
-                      onClick={() => patchMeta({ cadence: c })}
+                      onClick={() => setDraft((d) => ({ ...d, cadence: c }))}
                       className={`rounded-md px-2.5 py-1 text-sm capitalize transition-colors ${
-                        meta.cadence === c
+                        draft.cadence === c
                           ? 'bg-emerald-600 text-white'
                           : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
@@ -149,17 +190,27 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     </button>
                   ))}
                 </div>
+              ) : (
+                <button
+                  onClick={makeSubscription}
+                  title="Move this group into the Subscriptions category"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-violet-50 px-2.5 py-1.5 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-100 dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300 dark:hover:bg-violet-500/20"
+                >
+                  <span aria-hidden>💳</span> Make subscription
+                </button>
               )}
             </div>
 
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {/* Charge date applies to any recurring payment, not just subscriptions. */}
-              {meta.cadence === 'annual' ? (
+              {draft.cadence === 'annual' ? (
                 <Field label="Next renewal">
                   <input
                     type="date"
-                    value={meta.renewalDate ?? ''}
-                    onChange={(e) => patchMeta({ renewalDate: e.target.value || undefined })}
+                    value={draft.renewalDate ?? ''}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, renewalDate: e.target.value || undefined }))
+                    }
                     className={inputCls}
                   />
                 </Field>
@@ -169,21 +220,26 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     type="number"
                     min={1}
                     max={31}
-                    value={meta.billingDay ?? ''}
+                    value={draft.billingDay ?? ''}
                     onChange={(e) =>
-                      patchMeta({ billingDay: e.target.value ? Number(e.target.value) : undefined })
+                      setDraft((d) => ({
+                        ...d,
+                        billingDay: e.target.value ? Number(e.target.value) : undefined,
+                      }))
                     }
                     placeholder="e.g. 6"
                     className={inputCls}
                   />
                 </Field>
               )}
-              {isSub && (
+              {isSubscription && (
                 <Field label="Ended (if cancelled)">
                   <input
                     type="date"
-                    value={meta.endedDate ?? ''}
-                    onChange={(e) => patchMeta({ endedDate: e.target.value || undefined })}
+                    value={draft.endedDate ?? ''}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, endedDate: e.target.value || undefined }))
+                    }
                     className={inputCls}
                   />
                 </Field>
@@ -211,15 +267,15 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">
                       <span className="flex items-center gap-1.5">
                         <button
-                          onClick={() => toggleSubscription(t.id)}
-                          title={t.subscription ? 'Unflag subscription' : 'Mark as subscription'}
+                          onClick={() => toggleRecurring(t.id)}
+                          title={t.recurring ? 'Unflag recurring' : 'Mark as recurring'}
                           className={`shrink-0 rounded p-0.5 transition-colors ${
-                            t.subscription
+                            t.recurring
                               ? 'text-amber-500 hover:text-amber-600'
                               : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
                           }`}
                         >
-                          <StarIcon className="h-4 w-4" filled={!!t.subscription} />
+                          <StarIcon className="h-4 w-4" filled={!!t.recurring} />
                         </button>
                         <span aria-hidden>{categoryMeta(t.category).emoji}</span>
                         <EditableDescription t={t} aliases={aliases} onRename={rename} />
@@ -250,6 +306,23 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Save / cancel */}
+          <div className="flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 p-4">
+            <button
+              onClick={onClose}
+              className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={save}
+              disabled={!dirty}
+              className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Save
+            </button>
           </div>
         </div>
       </div>

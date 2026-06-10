@@ -32,6 +32,18 @@ export interface CategoryConfig {
 
 export const DEFAULT_CATEGORY_CONFIG: CategoryConfig = { overrides: {}, custom: [] }
 
+/**
+ * The built-in category that defines a "subscription". A charge is a
+ * subscription when it lives in this category (its label/color can be
+ * customized, but the id is stable). Single source of truth for the analysis
+ * and the Subscriptions view.
+ */
+export const SUBSCRIPTIONS_CATEGORY: Category = 'subscriptions'
+
+export function isSubscriptionCategory(id: Category): boolean {
+  return id === SUBSCRIPTIONS_CATEGORY
+}
+
 export const BUILTIN_CATEGORIES: CategoryDef[] = [
   { id: 'groceries', label: 'Groceries', color: '#10b981', emoji: '🛒', kind: 'spending', builtin: true },
   { id: 'dining', label: 'Dining', color: '#f59e0b', emoji: '🍽️', kind: 'spending', builtin: true },
