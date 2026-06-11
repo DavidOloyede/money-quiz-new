@@ -64,6 +64,53 @@ describe('generateQuiz', () => {
   })
 })
 
+/** Generate quizzes until a question of the given kind appears (generation shuffles). */
+function findQuestion(txs: Transaction[], kind: string, tries = 50) {
+  for (let i = 0; i < tries; i++) {
+    const q = generateQuiz(txs, { now: NOW }).find((x) => x.kind === kind)
+    if (q) return q
+  }
+  return undefined
+}
+
+describe('income, refunds & transaction count in questions', () => {
+  it('counts expenses only in the transaction-count question', () => {
+    // richFixture: 31 expenses + 5 paychecks this year — the question counts 31.
+    const q = findQuestion(richFixture(), 'txnCount:thisYear')
+    expect(q).toBeDefined()
+    expect(q!.answerDetail).toContain('You spent money 31 times')
+  })
+
+  it('excludes refunds from the income question', () => {
+    const txs = [
+      tx('2026-04-01', 3000, 'income', 'Paycheck'),
+      tx('2026-05-01', 3000, 'income', 'Paycheck'),
+      tx('2026-05-10', -200, 'shopping', 'Best Buy'),
+      tx('2026-05-20', 60, 'shopping', 'Best Buy Refund'),
+      tx('2026-05-12', -45, 'dining', 'Chipotle'),
+    ]
+    const q = findQuestion(txs, 'totalIncome:thisYear')
+    expect(q).toBeDefined()
+    expect(q!.answerDetail).toContain('$6,000.00') // not $6,060
+  })
+
+  it('asks about recurring bills only — habits like Amazon are left out', () => {
+    const txs: Transaction[] = []
+    for (const m of ['2026-01', '2026-02', '2026-03']) {
+      txs.push(tx(`${m}-01`, -1200, 'rent', 'Rent Payment'))
+      txs.push(tx(`${m}-08`, -90 - Math.random(), 'utilities', 'Champion Energy'))
+      txs.push(tx(`${m}-15`, -15.49, 'subscriptions', 'Netflix'))
+    }
+    // A varying discretionary repeat — a habit, not a bill.
+    txs.push(tx('2026-01-12', -35.2, 'shopping', 'Amazon Marketplace'))
+    txs.push(tx('2026-02-12', -78.5, 'shopping', 'Amazon Marketplace'))
+    txs.push(tx('2026-03-12', -12.99, 'shopping', 'Amazon Marketplace'))
+    const q = findQuestion(txs, 'recurringCount')
+    expect(q).toBeDefined()
+    expect(q!.answerDetail).toContain('3 recurring bills')
+  })
+})
+
 describe('quizInsights', () => {
   it('reports tithes with the exact percent of income', () => {
     const txs = [

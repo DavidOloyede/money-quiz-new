@@ -5,6 +5,7 @@ import { quizXp } from '../lib/gamification'
 import { formatCurrency } from '../lib/format'
 import { QuizHistory } from './QuizHistory'
 import { BadgesCard } from './BadgesCard'
+import { DailyQuestionCard } from './DailyQuestionCard'
 import { EmptyState } from './EmptyState'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
 import type { View } from './Nav'
@@ -18,8 +19,18 @@ interface Props {
 }
 
 export function QuizView({ onNavigate, onDirtyChange }: Props) {
-  const { transactions, hasData, loadSample, budgets, quizHistory, recordQuizResult, game } =
-    useStore()
+  const {
+    transactions,
+    hasData,
+    loadSample,
+    budgets,
+    quizHistory,
+    recordQuizResult,
+    game,
+    aliases,
+    dismissedRecurring,
+    recurringKinds,
+  } = useStore()
   const [phase, setPhase] = useState<Phase>('intro')
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [index, setIndex] = useState(0)
@@ -35,7 +46,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange])
 
   const start = () => {
-    const qs = generateQuiz(transactions, { budgets })
+    const qs = generateQuiz(transactions, { budgets, aliases, dismissedRecurring, recurringKinds })
     if (qs.length < 3) {
       setTooSparse(true)
       return
@@ -51,6 +62,9 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
   if (!hasData) {
     return (
       <Shell>
+        <div className="mb-4">
+          <DailyQuestionCard />
+        </div>
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           <EmptyState
             icon={<QuizIcon className="h-7 w-7" />}
@@ -78,6 +92,9 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
   if (phase === 'intro') {
     return (
       <Shell>
+        <div className="mb-4">
+          <DailyQuestionCard />
+        </div>
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 p-8 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white">
             <QuizIcon className="h-8 w-8" />
@@ -305,13 +322,18 @@ function Results({
   onRetake: () => void
   onReview: () => void
 }) {
-  const { transactions, quizHistory } = useStore()
+  const { transactions, quizHistory, aliases, dismissedRecurring, recurringKinds } = useStore()
   const correct = score(questions, answers)
   const total = questions.length
   const pct = Math.round((correct / total) * 100)
   const insights = useMemo(
-    () => quizInsights(transactions, askedKinds(questions)),
-    [transactions, questions],
+    () =>
+      quizInsights(transactions, askedKinds(questions), {
+        aliases,
+        dismissedRecurring,
+        recurringKinds,
+      }),
+    [transactions, questions, aliases, dismissedRecurring, recurringKinds],
   )
 
   const verdict =

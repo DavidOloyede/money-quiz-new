@@ -134,6 +134,10 @@ export function isIncomeCategory(id: Category): boolean {
   return categoryDef(id).kind === 'income'
 }
 
+export function isSpendingCategory(id: Category): boolean {
+  return categoryDef(id).kind === 'spending'
+}
+
 /** A stable id for a new custom category derived from its label. */
 export function makeCategoryId(label: string): string {
   const base = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'category'

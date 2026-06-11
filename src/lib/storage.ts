@@ -19,6 +19,10 @@ export const STORAGE_KEYS = {
   aliases: 'moneyquiz.aliases.v1',
   ignoredTransfers: 'moneyquiz.ignoredTransfers.v1',
   dismissedRecurring: 'moneyquiz.dismissedRecurring.v1',
+  // Bill vs habit reclassifications for recurring groups (by group key).
+  recurringKinds: 'moneyquiz.recurringKinds.v1',
+  // Today's daily question + whether it was answered (regenerated each day).
+  daily: 'moneyquiz.daily.v1',
   categories: 'moneyquiz.categories.v1',
   budgets: 'moneyquiz.budgets.v1',
   quizHistory: 'moneyquiz.quizHistory.v1',
@@ -46,6 +50,8 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.aliases,
   STORAGE_KEYS.ignoredTransfers,
   STORAGE_KEYS.dismissedRecurring,
+  STORAGE_KEYS.recurringKinds,
+  STORAGE_KEYS.daily, // may embed personal figures, so it's wiped with the data
   STORAGE_KEYS.budgets,
   STORAGE_KEYS.quizHistory,
   STORAGE_KEYS.startingBalances,

@@ -23,6 +23,7 @@ import { GivingCard } from './GivingCard'
 import { DebtCard } from './DebtCard'
 import { VerseOfDay } from './VerseOfDay'
 import { RecurringCard } from './RecurringCard'
+import { SpendingHabitsCard } from './SpendingHabitsCard'
 import { RecurringTransfersCard } from './RecurringTransfersCard'
 import { GroupDetailModal } from './GroupDetailModal'
 import { TrendsCard } from './TrendsCard'
@@ -202,6 +203,11 @@ export function Dashboard({ onNavigate }: Props) {
               label="Income"
               value={formatCurrency(stats.totalIncome)}
               accent="text-emerald-600"
+              sub={
+                stats.totalRefunds > 0
+                  ? `+ ${formatCurrency(stats.totalRefunds)} refunds, counted against spending`
+                  : undefined
+              }
               onClick={() => setDrill({ flow: 'income' })}
             />
             <StatCard
@@ -364,6 +370,7 @@ export function Dashboard({ onNavigate }: Props) {
             />
             <TopMerchantsCard transactions={filtered} />
             <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <SpendingHabitsCard transactions={transactions} onOpenGroup={setGroupIds} />
             <DebtCard
               transactions={transactions}
               aliases={aliases}

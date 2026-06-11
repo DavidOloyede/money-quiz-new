@@ -27,6 +27,10 @@ export const XP = {
   quizCompletion: 15,
   /** Acing every question. */
   quizPerfectBonus: 25,
+  /** Answering the daily question (right or wrong — showing up counts). */
+  dailyQuestion: 10,
+  /** Getting the daily question right. */
+  dailyQuestionCorrectBonus: 5,
   /** Importing a CSV or syncing a bank. */
   import: 25,
 } as const

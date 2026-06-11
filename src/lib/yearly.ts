@@ -11,7 +11,7 @@
  */
 import type { Budgets, Category, Transaction } from '../types'
 import { countsTowardTotals } from './analysis'
-import { allCategories, categoryDef } from './categories'
+import { allCategories, categoryDef, isSpendingCategory } from './categories'
 
 export interface SheetCell {
   value: number
@@ -138,7 +138,7 @@ export function buildYearSheet(
   const refundTotals = zeros()
   let hasRefunds = false
   for (const [cat, actual] of incomeByCat) {
-    if (categoryDef(cat).kind === 'spending') {
+    if (isSpendingCategory(cat)) {
       hasRefunds = true
       for (let m = 0; m < 12; m++) refundTotals[m] += actual[m]
     } else {

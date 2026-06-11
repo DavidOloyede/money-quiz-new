@@ -1,5 +1,5 @@
 import type { Category, Transaction } from '../types'
-import { isExcludedCategory, SUBSCRIPTIONS_CATEGORY } from './categories'
+import { isExcludedCategory, isSpendingCategory, SUBSCRIPTIONS_CATEGORY } from './categories'
 import { groupKey, groupLabel, merchantKey } from './merchant'
 
 /** Alias map (merchant key -> clean name); threaded into grouping analyses. */
@@ -44,6 +44,27 @@ export function isIncome(t: Transaction): boolean {
   return t.amount > 0
 }
 
+/**
+ * A positive amount in a spending category is a refund or cashback — money
+ * coming back from an earlier purchase, not new income. It nets against
+ * spending in its own category (the purchase effectively cost less) instead of
+ * inflating income. A refund that lands months after the purchase nets in the
+ * month it arrives — the original expense stays where it was.
+ */
+export function isRefund(t: Transaction): boolean {
+  return t.amount > 0 && isSpendingCategory(t.category)
+}
+
+/** Real income only: money in, counted, and not a refund of past spending. */
+export function isRealIncome(t: Transaction): boolean {
+  return t.amount > 0 && countsTowardTotals(t) && !isRefund(t)
+}
+
+/** A counted expense row (the rows behind every spending figure). */
+export function isCountedExpense(t: Transaction): boolean {
+  return t.amount < 0 && countsTowardTotals(t)
+}
+
 /** Filter transactions to a time range relative to `now`. */
 export function filterByRange(
   transactions: Transaction[],
@@ -69,18 +90,23 @@ export function rangeLabel(range: TimeRange): string {
   }
 }
 
+/** Spending net of refunds: expenses minus any money refunded back. */
 export function totalSpending(transactions: Transaction[]): number {
-  return transactions.reduce(
-    (sum, t) => (t.amount < 0 && countsTowardTotals(t) ? sum - t.amount : sum),
-    0,
-  )
+  return transactions.reduce((sum, t) => {
+    if (isCountedExpense(t)) return sum - t.amount
+    if (isRefund(t)) return sum - t.amount // positive amount, reduces spending
+    return sum
+  }, 0)
 }
 
+/** Real income only — refunds/cashback net against spending instead. */
 export function totalIncome(transactions: Transaction[]): number {
-  return transactions.reduce(
-    (sum, t) => (t.amount > 0 && countsTowardTotals(t) ? sum + t.amount : sum),
-    0,
-  )
+  return transactions.reduce((sum, t) => (isRealIncome(t) ? sum + t.amount : sum), 0)
+}
+
+/** Total refunded/cashback dollars (positive amounts in spending categories). */
+export function totalRefunds(transactions: Transaction[]): number {
+  return transactions.reduce((sum, t) => (isRefund(t) ? sum + t.amount : sum), 0)
 }
 
 export function netTotal(transactions: Transaction[]): number {
@@ -93,18 +119,24 @@ export interface CategoryTotal {
   count: number
 }
 
-/** Spending (expenses only) grouped by category, sorted high to low. */
+/**
+ * Spending grouped by category, sorted high to low. Refunds net against their
+ * own category's total (count stays expense-only); a category a refund pushes
+ * to zero or below drops off the list.
+ */
 export function spendingByCategory(transactions: Transaction[]): CategoryTotal[] {
   const map = new Map<Category, { total: number; count: number }>()
   for (const t of transactions) {
-    if (t.amount >= 0 || !countsTowardTotals(t)) continue
+    const refund = isRefund(t)
+    if (!refund && !isCountedExpense(t)) continue
     const entry = map.get(t.category) ?? { total: 0, count: 0 }
-    entry.total += -t.amount
-    entry.count += 1
+    entry.total += -t.amount // expense adds, refund (positive) subtracts
+    if (!refund) entry.count += 1
     map.set(t.category, entry)
   }
   return [...map.entries()]
     .map(([category, v]) => ({ category, total: v.total, count: v.count }))
+    .filter((c) => c.total > 0)
     .sort((a, b) => b.total - a.total)
 }
 
@@ -138,7 +170,8 @@ export interface MonthlyPoint {
   net: number
 }
 
-/** Per-month spending/income/net, oldest month first. */
+/** Per-month spending/income/net, oldest month first. Refunds reduce the
+ * spending of the month they land in; only real income counts as income. */
 export function monthlyTrend(transactions: Transaction[]): MonthlyPoint[] {
   const map = new Map<string, { spending: number; income: number }>()
   for (const t of transactions) {
@@ -146,6 +179,7 @@ export function monthlyTrend(transactions: Transaction[]): MonthlyPoint[] {
     const k = monthKey(t.date)
     const entry = map.get(k) ?? { spending: 0, income: 0 }
     if (t.amount < 0) entry.spending += -t.amount
+    else if (isRefund(t)) entry.spending -= t.amount
     else entry.income += t.amount
     map.set(k, entry)
   }
@@ -215,6 +249,8 @@ export function topMerchants(transactions: Transaction[], n = 8, aliases: Aliase
 export interface HeadlineStats {
   totalIncome: number
   totalSpending: number
+  /** Refunds/cashback already netted out of totalSpending (shown as a note). */
+  totalRefunds: number
   net: number
   count: number
   avgDailySpend: number
@@ -228,6 +264,7 @@ export function headlineStats(transactions: Transaction[]): HeadlineStats {
   return {
     totalIncome: totalIncome(transactions),
     totalSpending: totalSpending(transactions),
+    totalRefunds: totalRefunds(transactions),
     net: netTotal(transactions),
     count: transactions.length,
     avgDailySpend: avgDailySpend(transactions),
@@ -258,6 +295,21 @@ export function shiftMonth(key: string, back: number): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}`
 }
 
+/**
+ * Whether a repeating charge is an expected **bill** (rent, the energy bill,
+ * a subscription — owed every month even when the amount varies) or just a
+ * spending **habit** (Amazon, pharmacy runs, a burger spot — a repeat pattern,
+ * not an obligation). Bills live in the Recurring & subscriptions card; habits
+ * get their own view so they don't masquerade as bills.
+ */
+export type RecurringKind = 'bill' | 'habit'
+
+/** User reclassifications, keyed by group key (overrides the heuristic). */
+export type RecurringKindOverrides = Record<string, RecurringKind>
+
+/** Categories whose repeats are expected bills even when the amount varies. */
+const BILL_CATEGORIES = new Set<Category>(['utilities', 'rent', 'home', 'insurance', 'loans', 'fees'])
+
 export interface RecurringPayment {
   merchant: string
   /** Group identity (alias-aware), so callers can address this group. */
@@ -281,6 +333,8 @@ export interface RecurringPayment {
   isRecurringFlagged: boolean
   /** True when this group lives in the Subscriptions category. */
   isSubscription: boolean
+  /** Expected bill vs spending habit (heuristic, or the user's override). */
+  kind: RecurringKind
   lastDate: string
 }
 
@@ -357,7 +411,7 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
   // A single charge can't show variance, so assume it's fixed; otherwise the
   // same amount must dominate (repeat and cover at least half the charges).
   const fixed = count <= 1 ? true : mode.freq >= 2 && mode.freq / count >= 0.5
-  return {
+  const r = {
     merchant: e.label,
     groupKey: e.key,
     keys: [...e.keys],
@@ -373,6 +427,21 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
     isSubscription: e.cat === SUBSCRIPTIONS_CATEGORY,
     lastDate: e.last,
   }
+  return { ...r, kind: classifyRecurring(r) }
+}
+
+/**
+ * Bill or habit? A group is an expected bill when the user ★-flagged it, it's a
+ * subscription, its category is bill-like (rent, utilities, insurance, loans —
+ * varying amounts there are still owed every month), or the same amount repeats
+ * (a fixed payment). What's left — varying amounts at a discretionary merchant
+ * that merely repeats (Amazon, CVS, a burger spot) — is a spending habit.
+ */
+function classifyRecurring(r: Omit<RecurringPayment, 'kind'>): RecurringKind {
+  if (r.isRecurringFlagged || r.isSubscription) return 'bill'
+  if (BILL_CATEGORIES.has(r.category)) return 'bill'
+  if (r.fixed) return 'bill'
+  return 'habit'
 }
 
 /**
@@ -384,6 +453,8 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
  *  - the *same amount* recurs 3+ times — so a fixed monthly payment is caught
  *    even with a short history (the "same amount" emphasis).
  *
+ * Each group carries a `kind`: expected **bill** or spending **habit** (see
+ * RecurringKind) — `kindOverrides` lets the user re-file a group by groupKey.
  * `monthlyEstimate` normalizes everything to a per-month cost, so variable
  * bills are effectively averaged. Sorted by monthly cost, biggest first.
  */
@@ -391,10 +462,10 @@ export function recurringPayments(
   transactions: Transaction[],
   aliases: Aliases = {},
   dismissed: Record<string, true> = {},
+  kindOverrides: RecurringKindOverrides = {},
 ): RecurringPayment[] {
-  const expense = (t: Transaction) => t.amount < 0 && countsTowardTotals(t)
   const out: RecurringPayment[] = []
-  for (const e of groupByIdentity(transactions, aliases, expense)) {
+  for (const e of groupByIdentity(transactions, aliases, isCountedExpense)) {
     if (dismissed[e.key]) continue // user removed this group from recurring
     const mode = modeAmount(e.amounts)
     const r = toRecurring(e, mode)
@@ -403,9 +474,33 @@ export function recurringPayments(
       r.isSubscription ||
       (r.count >= 3 && r.months >= 3) ||
       (r.fixed && mode.freq >= 3)
-    if (qualifies) out.push(r)
+    if (qualifies) out.push(kindOverrides[r.groupKey] ? { ...r, kind: kindOverrides[r.groupKey] } : r)
   }
   return out.sort((a, b) => b.monthlyEstimate - a.monthlyEstimate)
+}
+
+/** Just the expected bills (the Recurring & subscriptions card's list). */
+export function recurringBills(
+  transactions: Transaction[],
+  aliases: Aliases = {},
+  dismissed: Record<string, true> = {},
+  kindOverrides: RecurringKindOverrides = {},
+): RecurringPayment[] {
+  return recurringPayments(transactions, aliases, dismissed, kindOverrides).filter(
+    (r) => r.kind === 'bill',
+  )
+}
+
+/** Just the spending habits (repeat merchants that aren't bills). */
+export function spendingHabits(
+  transactions: Transaction[],
+  aliases: Aliases = {},
+  dismissed: Record<string, true> = {},
+  kindOverrides: RecurringKindOverrides = {},
+): RecurringPayment[] {
+  return recurringPayments(transactions, aliases, dismissed, kindOverrides).filter(
+    (r) => r.kind === 'habit',
+  )
 }
 
 function dayOfMonth(iso: string): number {

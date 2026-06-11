@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import type { Category, Transaction } from '../types'
 import { useStore } from '../store'
 import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '../lib/categories'
-import { countsTowardTotals } from '../lib/analysis'
+import { isCountedExpense, isRealIncome, isRefund } from '../lib/analysis'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
@@ -25,25 +25,34 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const { rename, node: renameNode } = useRenameSimilar()
 
   const flow = typeof category === 'object' ? category.flow : null
+  // The income drill shows real income only; refunds/cashback appear in the
+  // spending drill as credits, since they net against spending.
   const items = useMemo(
     () =>
       transactions
         .filter((t) =>
           flow
-            ? countsTowardTotals(t) && (flow === 'income' ? t.amount > 0 : t.amount < 0)
+            ? flow === 'income'
+              ? isRealIncome(t)
+              : isCountedExpense(t) || isRefund(t)
             : t.category === category,
         )
         .sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount)),
     [transactions, category, flow],
   )
 
-  const total = items.reduce((s, t) => s + Math.abs(t.amount), 0)
+  const total = items.reduce(
+    (s, t) => s + (flow === 'spending' ? -t.amount : Math.abs(t.amount)),
+    0,
+  )
   const header = flow
     ? {
         emoji: flow === 'income' ? '💰' : '🧾',
         color: flow === 'income' ? '#10b981' : '#f43f5e',
         title: flow === 'income' ? 'Income' : 'Spending',
-        note: ` · ${formatCurrency(total)} ${flow === 'income' ? 'in' : 'out'} · transfers & Zelle not included`,
+        note: ` · ${formatCurrency(total)} ${flow === 'income' ? 'in' : 'out'} · ${
+          flow === 'income' ? 'refunds & ' : 'refunds credited; '
+        }transfers & Zelle not included`,
       }
     : {
         emoji: categoryMeta(category as Category).emoji,

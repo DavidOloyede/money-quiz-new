@@ -111,14 +111,18 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   recurring transfer to open this: it lists the underlying charges (each
   renamable / recategorizable / ★-flaggable as recurring), lets you **rename** the
   whole group, ★-**mark it recurring**, toggle **Show in recurring payments**
-  (remove a false positive like "Amazon"), **make it a subscription** (move it
-  into the Subscriptions category), set the **charge day** for any recurring bill,
-  and — for subscriptions — choose **monthly/annual**, the **renewal date**, and an
-  **ended date**. The name, cadence, and charge date are staged and applied with a
-  **Save** button.
+  (remove a false positive like "Amazon"), re-file it with **Treat as: Expected
+  bill | Habit** (moves it between the Recurring and Spending-habits cards),
+  **make it a subscription** (move it into the Subscriptions category), set the
+  **charge day** for any recurring bill, and — for subscriptions — choose
+  **monthly/annual**, the **renewal date**, and an **ended date**. The name,
+  cadence, and charge date are staged and applied with a **Save** button.
 - **`Dashboard.tsx`** — The charts-and-numbers screen. The **Income** and
   **Spending** stat cards are clickable and open the full list of transactions
   behind each number (transfers & Zelle excluded, same as the totals).
+  **Refunds & cashback** (money back from a store) are *not* income — they're
+  subtracted from spending in their own category instead, and the Income card
+  shows a small "+ $X refunds, counted against spending" note when there are any.
 - **`YearSheetView.tsx`** — The **Year Sheet** screen: a spreadsheet-style grid
   (like a Google Sheets budget) with a column per month and sections for Income,
   Daily Living, Home, Transportation, Subscriptions & Entertainment, Giving, and
@@ -147,13 +151,19 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   (budgets, repeating bills + subscriptions, recurring transfers, "spending went
   up/down", and favorite stores).
   - **`RecurringCard.tsx`** is one **"Recurring & subscriptions"** box listing
-    everything that repeats — fixed monthly payments (rent, student loan),
-    subscriptions, and variable bills (power, water) **averaged** to a per-month
-    number. Same-amount charges are marked "fixed". Charges in the **Subscriptions
-    category** get a **"sub"** badge and their billing cadence; a **Show: All |
-    Subscriptions** toggle narrows to just those (with a subscriptions-only monthly
-    subtotal, ended ones struck through and excluded). Tap a row to open its
-    detail/rename; tap ★ to flag a charge **recurring**.
+    the **expected bills** that repeat — fixed monthly payments (rent, student
+    loan), subscriptions, and variable bills (power, water) **averaged** to a
+    per-month number. Same-amount charges are marked "fixed". Charges in the
+    **Subscriptions category** get a **"sub"** badge and their billing cadence; a
+    **Show: All | Subscriptions** toggle narrows to just those (with a
+    subscriptions-only monthly subtotal, ended ones struck through and excluded).
+    Tap a row to open its detail/rename; tap ★ to flag a charge **recurring**.
+    Repeat *shopping habits* are kept out of this card on purpose (see below).
+  - **`SpendingHabitsCard.tsx`** — the **"Spending habits"** box: merchants you
+    keep going back to with *varying* amounts (Amazon, the pharmacy, a burger
+    spot). They repeat, but they're **patterns, not bills**, so they live here
+    instead of the recurring card. Tap a row to open its detail, where a
+    **"Treat as: Expected bill | Habit"** toggle re-files it (remembered).
   - **`RecurringTransfersCard.tsx`** surfaces same-amount, same-day Zelle/transfers
     (e.g. a monthly phone Zelle). They **count toward spending/income by
     default**; untick "Counts" for genuine account-to-account moves.
@@ -161,9 +171,15 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   chart and bar chart (drawn with a tool called Recharts).
 - **`QuizView.tsx`** — The Quiz screen. After you answer, most questions show
   **"the numbers behind this answer"** — the actual transactions (or recurring
-  payments) the figure came from; trend questions show the two months side by
+  bills) the figure came from; trend questions show the two months side by
   side. Leaving mid-quiz pops a **"Leave the quiz?"** warning so progress isn't
   lost by accident.
+- **`DailyQuestionCard.tsx`** — The **Question of the day** at the top of the
+  Quiz screen: one question per day, same question all day, a new one at local
+  midnight. With data it's personalized from *your* transactions; **with no data
+  it asks a general money-literacy question** (so a brand-new user can start a
+  streak before connecting anything). Answering earns XP — a little more when
+  you're right — and the card shows your 🔥 streak.
 - **`QuizHistory.tsx`** — Your past scores and your "day streak".
 - **`SettingsView.tsx`** — Theme, custom categories, and the export/clear buttons.
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a
@@ -205,22 +221,36 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   Transfers and Zelle, with one exception: `recurringTransfers` finds same-amount,
   same-day repeats (a monthly phone Zelle) and `recurringTransferIds` marks them
   to **count** toward totals (so `countsTowardTotals` returns true for them) —
-  unless you opted that group out. Its time ranges are **This month / Last month
-  / This year** (plus a custom window). `recurringPayments` groups charges by the
-  display-name identity, leans on the **same amount** repeating to decide fixed
-  vs. **averaged** variable bills, and skips groups you've **removed** from the
-  list. A charge qualifies as **recurring** when it's ★-flagged, sits in the
-  **Subscriptions category**, or simply repeats; the **subscriptions** subset is
-  just the recurring charges whose category is Subscriptions.
+  unless you opted that group out. **Refunds** (a positive amount in a spending
+  category — `isRefund`) are *not* income: they subtract from spending in their
+  own category and month, so `totalIncome` is real income only (`isRealIncome`),
+  `totalSpending` is net of refunds, and the net is unchanged. Its time ranges
+  are **This month / Last month / This year** (plus a custom window).
+  `recurringPayments` groups charges by the display-name identity, leans on the
+  **same amount** repeating to decide fixed vs. **averaged** variable bills, and
+  skips groups you've **removed** from the list. A charge qualifies as
+  **recurring** when it's ★-flagged, sits in the **Subscriptions category**, or
+  simply repeats; the **subscriptions** subset is just the recurring charges
+  whose category is Subscriptions. Every recurring group is also filed as an
+  expected **bill** or a spending **habit** (`kind`): ★-flagged, subscription,
+  bill-like category (rent, utilities, insurance, loans, fees), or same-amount
+  repeats are bills; a varying amount at a discretionary merchant is a habit.
+  `recurringBills` / `spendingHabits` return each half, and the user's re-filings
+  (`recurringKinds` in the store) override the guess.
 - **`yearly.ts`** — Builds the **Year Sheet** numbers: per-category monthly
   actuals for a year, grouped into sections, plus **projections** for the months
   that haven't happened yet (budget if set, else the average of the months your
   data covers) and the running end-of-month balance.
 - **`gamification.ts`** — The **points & streak brain**: opening the app on a
-  new day checks you in (+XP, streak grows), quizzes and imports earn more XP,
-  and XP adds up to **levels** with stewardship titles (Steward in Training →
-  Good & Faithful Steward, after Luke 16:10). Your level survives "Clear all
-  data" on purpose.
+  new day checks you in (+XP, streak grows), quizzes, the daily question, and
+  imports earn more XP, and XP adds up to **levels** with stewardship titles
+  (Steward in Training → Good & Faithful Steward, after Luke 16:10). Your level
+  survives "Clear all data" on purpose.
+- **`dailyQuestion.ts`** — The **question-of-the-day maker**: builds one
+  question per day (personalized from your data via the quiz maker, or a
+  general literacy question from `data/generalQuestions.ts` when there's no
+  data), saves it so reloads show the same question, and pays XP for answering
+  (+bonus when correct). Rolls over at local midnight, like the verse.
 - **`giving.ts`** — The **generosity calculator**: tithes + charity totals,
   giving as a % of income, per-month giving, and progress toward a giving goal.
 - **`badges.ts`** — The **badge rules**: one-time achievements (First Steps,
@@ -232,7 +262,10 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`quiz.ts`** — The **quiz maker**. It builds questions from your real numbers
   ("How much did you spend on Dining?"), including **faith-informed** ones on
   tithes/offerings and debt payments (with short scripture takeaways), plus the
-  end-of-quiz insights.
+  end-of-quiz insights. The income question counts **real income only** (refunds
+  net against spending), the transaction-count question counts **expenses only**
+  (how often money went *out*), and the recurring questions ask about
+  **bills only** — repeat habits like Amazon runs are left out.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
 - **`plaid.ts`** — Talks to the Plaid helper server (start a connection, sync,
   disconnect).
@@ -243,8 +276,11 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 
 And in **`src/data/`**: **`sampleData.ts`** is a pretend set of ~65 transactions
 (including a monthly church tithe and small donations, so the giving features
-have something to show) and **`verses.ts`** holds ~49 scripture verses about
-money (World English Bible — public domain) with the verse-of-the-day picker.
+have something to show), **`verses.ts`** holds ~49 scripture verses about
+money (World English Bible — public domain) with the verse-of-the-day picker,
+and **`generalQuestions.ts`** is the bank of 15 general money-literacy
+questions (budgeting rules, emergency funds, debt, a couple on stewardship)
+behind the daily question when no data is connected.
 
 The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
 `npm test` via Vitest), so future changes can't silently break the numbers.
@@ -271,6 +307,8 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
   - **`groupMeta`** — cadence / charge day / renewal / ended for any group.
   - **`ignoredTransfers`** — recurring transfers you opted out of counting.
   - **`dismissedRecurring`** — groups removed from the Recurring payments list.
+  - **`recurringKinds`** — your bill ⇄ habit re-filings ("Treat as" in the
+    group detail), overriding the automatic guess.
   It exposes the actions the screens use (import, recategorize, rename, flag a
   charge recurring per-charge or per-group, set a charge/renewal date,
   include/exclude a transfer or recurring group, budget, connect a bank, …) and
@@ -324,6 +362,13 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **Recurring payment** — anything that repeats monthly: ★-flagged charges,
   subscriptions, fixed bills (rent, student loan), and variable bills (power,
   water) averaged per month. The **★ star** marks a charge as recurring.
+- **Bill vs. habit** — every recurring group is filed one of two ways. A
+  **bill** is expected (rent, the power bill, a subscription — owed even when
+  the amount varies). A **habit** is a repeat *pattern* with varying amounts at
+  a discretionary store (Amazon, the pharmacy). Bills show in the Recurring
+  card; habits in the Spending habits card; "Treat as" re-files either way.
+- **Refund / cashback** — money back in a spending category. Not income: it
+  subtracts from that category's spending in the month it lands.
 - **Alias / rename** — a clean display name you give a merchant; every messy
   variant folds under it, in display and in grouping.
 - **Recurring transfer** — a same-amount, same-day Zelle/transfer that's really a

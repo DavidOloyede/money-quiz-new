@@ -4,11 +4,16 @@ import {
   budgetStatus,
   filterByRange,
   monthKey,
+  monthlyTrend,
   netTotal,
   prevMonthKey,
+  recurringBills,
   recurringPayments,
   shiftMonth,
+  spendingByCategory,
+  spendingHabits,
   totalIncome,
+  totalRefunds,
   totalSpending,
 } from './analysis'
 
@@ -29,6 +34,44 @@ describe('totals', () => {
     expect(totalSpending(txs)).toBe(175)
     expect(totalIncome(txs)).toBe(3000)
     expect(netTotal(txs)).toBe(3000 - 175)
+  })
+})
+
+describe('refunds', () => {
+  const txs = [
+    tx('2026-04-01', 3000, 'income'),
+    tx('2026-04-02', -200, 'shopping'),
+    tx('2026-04-20', 60, 'shopping'), // refund: positive in a spending category
+    tx('2026-04-05', -100, 'groceries'),
+  ]
+
+  it('does not count refunds as income', () => {
+    expect(totalIncome(txs)).toBe(3000)
+    expect(totalRefunds(txs)).toBe(60)
+  })
+
+  it('nets refunds against spending, keeping the net invariant', () => {
+    expect(totalSpending(txs)).toBe(240) // 300 spent − 60 refunded
+    expect(netTotal(txs)).toBe(totalIncome(txs) - totalSpending(txs))
+  })
+
+  it('nets a refund inside its own category only', () => {
+    const cats = spendingByCategory(txs)
+    expect(cats.find((c) => c.category === 'shopping')?.total).toBe(140)
+    expect(cats.find((c) => c.category === 'groceries')?.total).toBe(100)
+  })
+
+  it('drops a category a refund fully cancels out', () => {
+    const fully = [tx('2026-04-02', -50, 'pets'), tx('2026-05-01', 50, 'pets')]
+    expect(spendingByCategory(fully)).toHaveLength(0)
+  })
+
+  it('credits a months-later refund to the month it lands in', () => {
+    const late = [tx('2026-03-10', -200, 'shopping'), tx('2026-05-02', 60, 'shopping')]
+    const trend = monthlyTrend(late)
+    expect(trend.find((p) => p.monthKey === '2026-03')?.spending).toBe(200)
+    expect(trend.find((p) => p.monthKey === '2026-05')?.spending).toBe(-60)
+    expect(trend.find((p) => p.monthKey === '2026-05')?.income).toBe(0)
   })
 })
 
@@ -81,6 +124,59 @@ describe('recurringPayments', () => {
     const [r] = recurringPayments(txs)
     expect(r.isSubscription).toBe(true)
     expect(recurringPayments(txs, {}, { [r.groupKey]: true })).toHaveLength(0)
+  })
+})
+
+describe('bill vs habit classification', () => {
+  /** Same merchant, three months, varying amounts (no repeated amount). */
+  const varying = (desc: string, category: string, amounts: [number, number, number]) => [
+    tx('2026-01-12', -amounts[0], category, { description: desc }),
+    tx('2026-02-12', -amounts[1], category, { description: desc }),
+    tx('2026-03-12', -amounts[2], category, { description: desc }),
+  ]
+
+  it('files a varying discretionary repeat (Amazon) as a habit', () => {
+    const [r] = recurringPayments(varying('Amazon Marketplace', 'shopping', [35.2, 78.5, 12.99]))
+    expect(r.kind).toBe('habit')
+  })
+
+  it('files a varying utility (energy bill) as a bill', () => {
+    const [r] = recurringPayments(varying('Champion Energy', 'utilities', [80, 95, 110]))
+    expect(r.kind).toBe('bill')
+  })
+
+  it('files a fixed-amount repeat as a bill even in a discretionary category', () => {
+    const txs = [
+      tx('2026-01-05', -50, 'other', { description: 'Storage Unit' }),
+      tx('2026-02-05', -50, 'other', { description: 'Storage Unit' }),
+      tx('2026-03-05', -50, 'other', { description: 'Storage Unit' }),
+    ]
+    expect(recurringPayments(txs)[0].kind).toBe('bill')
+  })
+
+  it('files subscriptions and ★-flagged groups as bills', () => {
+    const sub = recurringPayments([
+      tx('2026-06-01', -15.49, 'subscriptions', { description: 'Netflix' }),
+    ])
+    expect(sub[0].kind).toBe('bill')
+    const flagged = recurringPayments(
+      varying('Whataburger', 'dining', [9.5, 14.25, 22.8]).map((t) => ({ ...t, recurring: true })),
+    )
+    expect(flagged[0].kind).toBe('bill')
+  })
+
+  it('honors user re-filings and splits bills from habits', () => {
+    const txs = [
+      ...varying('Amazon Marketplace', 'shopping', [35.2, 78.5, 12.99]),
+      ...varying('Champion Energy', 'utilities', [80, 95, 110]),
+    ]
+    expect(recurringBills(txs).map((r) => r.merchant)).toEqual(['Champion Energy'])
+    expect(spendingHabits(txs).map((r) => r.merchant)).toEqual(['Amazon Marketplace'])
+
+    const amazonKey = spendingHabits(txs)[0].groupKey
+    const refiled = { [amazonKey]: 'bill' as const }
+    expect(spendingHabits(txs, {}, {}, refiled)).toHaveLength(0)
+    expect(recurringBills(txs, {}, {}, refiled)).toHaveLength(2)
   })
 })
 

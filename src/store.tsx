@@ -25,7 +25,7 @@ import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
 import { merchantKey, txSignature } from './lib/merchant'
-import { recurringTransferIds } from './lib/analysis'
+import { recurringTransferIds, type RecurringKind, type RecurringKindOverrides } from './lib/analysis'
 import { plaidApi, type PlaidItemSummary } from './lib/plaid'
 import { mapPlaidTransactions } from './lib/plaidMap'
 import {
@@ -67,6 +67,8 @@ interface StoreValue {
   ignoredTransfers: Record<string, true>
   /** Recurring group keys the user removed from the Recurring payments list. */
   dismissedRecurring: Record<string, true>
+  /** Bill ⇄ habit reclassifications for recurring groups (by group key). */
+  recurringKinds: RecurringKindOverrides
   addImport: (tx: Transaction[], source: ImportSource) => void
   removeSource: (sourceId: string) => void
   /** Register a Plaid-connected account as a source. */
@@ -92,6 +94,8 @@ interface StoreValue {
   setTransferCounted: (key: string, value: boolean) => void
   /** Show/hide a recurring group in the Recurring payments list (e.g. remove "Amazon"). */
   setRecurringDismissed: (groupKey: string, dismissed: boolean) => void
+  /** Re-file a recurring group as an expected bill or a spending habit (null = back to auto). */
+  setRecurringKind: (groupKey: string, kind: RecurringKind | null) => void
   /** How many other transactions share this one's merchant (for "apply to similar"). */
   similarCount: (id: string) => number
   addCustomCategory: (label: string, color: string, emoji: string) => void
@@ -189,6 +193,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [dismissedRecurring, setDismissedRecurring] = useState<Record<string, true>>(() =>
     loadJSON<Record<string, true>>(STORAGE_KEYS.dismissedRecurring, {}),
   )
+  // Bill ⇄ habit reclassifications for recurring groups (by group key).
+  const [recurringKinds, setRecurringKinds] = useState<RecurringKindOverrides>(() =>
+    loadJSON<RecurringKindOverrides>(STORAGE_KEYS.recurringKinds, {}),
+  )
   const [sources, setSources] = useState<ImportSource[]>(() =>
     loadJSON<ImportSource[]>(STORAGE_KEYS.sources, []),
   )
@@ -271,6 +279,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.aliases, aliases), [aliases])
   useEffect(() => saveJSON(STORAGE_KEYS.ignoredTransfers, ignoredTransfers), [ignoredTransfers])
   useEffect(() => saveJSON(STORAGE_KEYS.dismissedRecurring, dismissedRecurring), [dismissedRecurring])
+  useEffect(() => saveJSON(STORAGE_KEYS.recurringKinds, recurringKinds), [recurringKinds])
   useEffect(() => saveJSON(STORAGE_KEYS.sources, sources), [sources])
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
@@ -509,6 +518,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const setRecurringKind = useCallback((groupKey: string, kind: RecurringKind | null) => {
+    setRecurringKinds((prev) => {
+      const next = { ...prev }
+      if (kind) next[groupKey] = kind
+      else delete next[groupKey]
+      return next
+    })
+  }, [])
+
   const setAlias = useCallback(
     (ids: string[], name: string) => {
       const clean = name.trim()
@@ -655,6 +673,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setAliases({})
     setIgnoredTransfers({})
     setDismissedRecurring({})
+    setRecurringKinds({})
     setSources([])
     setBudgets({})
     setQuizHistory([])
@@ -684,6 +703,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       subscriptionMeta: groupMeta,
       ignoredTransfers,
       dismissedRecurring,
+      recurringKinds,
       addImport,
       removeSource,
       addPlaidSource,
@@ -698,6 +718,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAlias,
       setTransferCounted,
       setRecurringDismissed,
+      setRecurringKind,
       similarCount,
       addCustomCategory,
       updateCategory,
@@ -729,6 +750,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       groupMeta,
       ignoredTransfers,
       dismissedRecurring,
+      recurringKinds,
       addImport,
       removeSource,
       addPlaidSource,
@@ -743,6 +765,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAlias,
       setTransferCounted,
       setRecurringDismissed,
+      setRecurringKind,
       similarCount,
       addCustomCategory,
       updateCategory,

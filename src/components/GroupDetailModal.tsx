@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Category, SubscriptionCadence, SubscriptionMeta } from '../types'
+import { recurringPayments, type RecurringKind } from '../lib/analysis'
 import { useStore } from '../store'
 import {
   allCategories,
@@ -41,10 +42,12 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     aliases,
     subscriptionMeta,
     dismissedRecurring,
+    recurringKinds,
     setAlias,
     setGroupRecurring,
     setSubscriptionMeta,
     setRecurringDismissed,
+    setRecurringKind,
     setCategoryForMerchant,
     toggleRecurring,
   } = useStore()
@@ -70,6 +73,16 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     renewalDate: meta.renewalDate,
     endedDate: meta.endedDate,
   }))
+
+  // Whether this group qualifies as recurring, and its bill/habit filing
+  // (heuristic or user override) — drives the "Treat as" control below.
+  const recurringGroup = useMemo(() => {
+    if (!first) return undefined
+    const k = groupKey(first.description, aliases)
+    return recurringPayments(transactions, aliases, {}, recurringKinds).find(
+      (r) => r.groupKey === k,
+    )
+  }, [transactions, aliases, recurringKinds, first])
 
   if (!first) return null
 
@@ -173,6 +186,33 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                 />
                 Show in recurring payments
               </label>
+
+              {recurringGroup && (
+                <div className="inline-flex items-center gap-1.5">
+                  <span
+                    className="text-sm text-slate-600 dark:text-slate-300"
+                    title="Bills are expected payments (rent, power); habits are repeat merchants whose amounts vary (Amazon, pharmacy runs)"
+                  >
+                    Treat as
+                  </span>
+                  <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+                    {(['bill', 'habit'] as RecurringKind[]).map((k) => (
+                      <button
+                        key={k}
+                        onClick={() => setRecurringKind(gKey, k)}
+                        aria-pressed={recurringGroup.kind === k}
+                        className={`rounded-md px-2.5 py-1 text-sm capitalize transition-colors ${
+                          recurringGroup.kind === k
+                            ? 'bg-emerald-600 text-white'
+                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                      >
+                        {k === 'bill' ? 'Expected bill' : 'Habit'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {isSubscription ? (
                 <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">

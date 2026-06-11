@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { SubscriptionMeta, Transaction } from '../types'
-import { recurringPayments, type RecurringPayment } from '../lib/analysis'
+import { recurringBills, type RecurringPayment } from '../lib/analysis'
 import { categoryMeta } from '../lib/categories'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useStore } from '../store'
@@ -25,16 +25,18 @@ function cadenceLine(r: RecurringPayment, meta: SubscriptionMeta | undefined): s
 }
 
 /**
- * One card for everything that repeats: subscriptions (the Subscriptions
- * category, shown with a badge + billing cadence) and other recurring payments —
- * fixed bills and averaged variable ones. The ★ flags a row as recurring; a
- * Show: All | Subscriptions toggle narrows to the subscription subset.
+ * One card for the *expected* repeats: subscriptions (the Subscriptions
+ * category, shown with a badge + billing cadence) and recurring bills — fixed
+ * payments and averaged variable ones (power, water). Repeat *habits* (Amazon,
+ * pharmacy runs) live in the Spending habits card instead. The ★ flags a row as
+ * recurring; a Show: All | Subscriptions toggle narrows to the subscriptions.
  */
 export function RecurringCard({ transactions, onOpenGroup }: Props) {
-  const { aliases, subscriptionMeta, dismissedRecurring, setGroupRecurring } = useStore()
+  const { aliases, subscriptionMeta, dismissedRecurring, recurringKinds, setGroupRecurring } =
+    useStore()
   const [view, setView] = useState<View>('all')
 
-  const items = recurringPayments(transactions, aliases, dismissedRecurring)
+  const items = recurringBills(transactions, aliases, dismissedRecurring, recurringKinds)
   if (items.length === 0) return null
   const subs = items.filter((r) => r.isSubscription)
   const shown = view === 'subs' ? subs : items
@@ -55,8 +57,9 @@ export function RecurringCard({ transactions, onOpenGroup }: Props) {
         </span>
       </div>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Everything that repeats — bills, subscriptions, and variable charges (power, water) averaged.
-        Tap a row to see the charges, rename, or set billing details; tap ★ to flag one as recurring.
+        Your expected bills — subscriptions, fixed payments, and variable bills (power, water)
+        averaged. Repeat shopping habits are tracked separately. Tap a row to see the charges,
+        rename, or set billing details; tap ★ to flag one as recurring.
       </p>
 
       {subs.length > 0 && (

@@ -6,16 +6,21 @@ import {
   avgDailySpend,
   countsTowardTotals,
   filterByRange,
+  isCountedExpense,
+  isRealIncome,
+  isRefund,
   merchantStats,
   monthKey,
   netTotal,
   rangeLabel,
-  recurringPayments,
+  recurringBills,
   spanDays,
   spendingByCategory,
   topExpenses,
   totalIncome,
   totalSpending,
+  type Aliases,
+  type RecurringKindOverrides,
   type TimeRange,
 } from './analysis'
 import { newId } from './storage'
@@ -253,15 +258,16 @@ interface Ctx {
   now: Date
   all: Transaction[]
   budgets: Record<string, number>
+  /** Threaded through so recurring questions honor renames & re-filings. */
+  aliases: Aliases
+  dismissed: Record<string, true>
+  recurringKinds: RecurringKindOverrides
   rangesWithData: TimeRange[]
   tx: (r: TimeRange) => Transaction[]
 }
 
-function buildCtx(
-  transactions: Transaction[],
-  now: Date,
-  budgets: Record<string, number>,
-): Ctx {
+function buildCtx(transactions: Transaction[], opts: QuizOptions): Ctx {
+  const now = opts.now ?? new Date()
   const cache = new Map<TimeRange, Transaction[]>()
   const tx = (r: TimeRange) => {
     if (!cache.has(r)) cache.set(r, filterByRange(transactions, r, now))
@@ -270,7 +276,16 @@ function buildCtx(
   const rangesWithData = (['thisMonth', 'lastMonth', 'thisYear'] as TimeRange[]).filter(
     (r) => tx(r).length > 0,
   )
-  return { now, all: transactions, budgets, rangesWithData, tx }
+  return {
+    now,
+    all: transactions,
+    budgets: opts.budgets ?? {},
+    aliases: opts.aliases ?? {},
+    dismissed: opts.dismissedRecurring ?? {},
+    recurringKinds: opts.recurringKinds ?? {},
+    rangesWithData,
+    tx,
+  }
 }
 
 function mk(
@@ -472,9 +487,9 @@ function genTotalSpending(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     `totalSpending:${range}`,
     `What was your total spending ${rangeLabel(range)}?`,
     choices,
-    `You spent ${formatCurrency(spend)} ${rangeLabel(range)}.`,
+    `You spent ${formatCurrency(spend)} ${rangeLabel(range)} (refunds already credited back).`,
     `Knowing your headline spend is the anchor for every budgeting decision.`,
-    [txCard(`Spending ${rangeLabel(range)}`, txs.filter((t) => t.amount < 0 && countsTowardTotals(t)))],
+    [txCard(`Spending ${rangeLabel(range)}`, txs.filter((t) => isCountedExpense(t) || isRefund(t)))],
   )
 }
 
@@ -486,26 +501,28 @@ function genTotalIncome(ctx: Ctx, range: TimeRange): QuizQuestion | null {
   if (!choices) return null
   return mk(
     `totalIncome:${range}`,
-    `What was your total income ${rangeLabel(range)}?`,
+    `What was your total income ${rangeLabel(range)}? (Refunds don't count — only real income.)`,
     choices,
-    `You took in ${formatCurrency(income)} ${rangeLabel(range)}.`,
+    `You took in ${formatCurrency(income)} ${rangeLabel(range)} — real income only; refunds and cashback count against spending instead.`,
     `Tracking income alongside spending is what makes a net number meaningful.`,
-    [txCard(`Income ${rangeLabel(range)}`, txs.filter((t) => t.amount > 0 && countsTowardTotals(t)))],
+    [txCard(`Income ${rangeLabel(range)}`, txs.filter(isRealIncome))],
   )
 }
 
 function genTxnCount(ctx: Ctx, range: TimeRange): QuizQuestion | null {
-  const n = ctx.tx(range).length
+  // Expenses only — the question is about how often money went OUT.
+  const spent = ctx.tx(range).filter(isCountedExpense)
+  const n = spent.length
   if (n < 4) return null
-  const choices = countChoices(n, 'transaction')
+  const choices = countChoices(n, 'purchase')
   if (!choices) return null
   return mk(
     `txnCount:${range}`,
-    `How many transactions did you record ${rangeLabel(range)}?`,
+    `How many spending transactions did you make ${rangeLabel(range)}?`,
     choices,
-    `You recorded ${n} transactions ${rangeLabel(range)}.`,
+    `You spent money ${n} times ${rangeLabel(range)} (income and deposits not counted).`,
     `More transactions mean more small decisions — each is a chance to spend mindfully.`,
-    [txCard(`All transactions ${rangeLabel(range)}`, ctx.tx(range))],
+    [txCard(`Spending transactions ${rangeLabel(range)}`, spent)],
   )
 }
 
@@ -581,43 +598,48 @@ function genBusiestDay(ctx: Ctx): QuizQuestion | null {
   )
 }
 
-/** The recurring-payments list as evidence: one row per merchant. */
-function recurringCard(rec: ReturnType<typeof recurringPayments>): EvidenceCard {
+/** The recurring-bills list as evidence: one row per merchant. */
+function recurringCard(rec: ReturnType<typeof recurringBills>): EvidenceCard {
   const items: EvidenceItem[] = rec.slice(0, EVIDENCE_CAP).map((r) => ({
     label: r.merchant,
     detail: `${r.count} charge${r.count === 1 ? '' : 's'} across ${r.months} month${r.months === 1 ? '' : 's'}`,
     amount: -r.monthlyEstimate,
   }))
   if (rec.length > EVIDENCE_CAP) items.push({ label: `…and ${rec.length - EVIDENCE_CAP} more` })
-  return { title: 'Your recurring payments (per-month estimate)', items }
+  return { title: 'Your recurring bills (per-month estimate)', items }
+}
+
+/** Expected bills only — repeat habits (Amazon runs) aren't bills. */
+function ctxBills(ctx: Ctx): ReturnType<typeof recurringBills> {
+  return recurringBills(ctx.all, ctx.aliases, ctx.dismissed, ctx.recurringKinds)
 }
 
 function genRecurringCount(ctx: Ctx): QuizQuestion | null {
-  const rec = recurringPayments(ctx.all)
+  const rec = ctxBills(ctx)
   if (rec.length < 3) return null
-  const choices = countChoices(rec.length, 'recurring payment')
+  const choices = countChoices(rec.length, 'recurring bill')
   if (!choices) return null
   return mk(
     'recurringCount',
-    'How many recurring payments do you have (charges that repeat across 3+ months)?',
+    'How many recurring bills do you have (subscriptions and payments owed every month)?',
     choices,
-    `We spotted ${rec.length} recurring payments, like ${rec[0].merchant} and ${rec[1].merchant}.`,
+    `We spotted ${rec.length} recurring bills, like ${rec[0].merchant} and ${rec[1].merchant}.`,
     'Recurring charges are easy to forget — counting them is the first step to pruning.',
     [recurringCard(rec)],
   )
 }
 
 function genRecurringTotal(ctx: Ctx): QuizQuestion | null {
-  const rec = recurringPayments(ctx.all)
+  const rec = ctxBills(ctx)
   if (rec.length < 2) return null
   const monthly = rec.reduce((s, r) => s + r.monthlyEstimate, 0)
   const choices = moneyChoices(monthly)
   if (!choices) return null
   return mk(
     'recurringTotal',
-    'About how much do your recurring payments cost you per month?',
+    'About how much do your recurring bills cost you per month?',
     choices,
-    `Your recurring payments run about ${formatCurrency(monthly)} per month across ${rec.length} merchants.`,
+    `Your recurring bills run about ${formatCurrency(monthly)} per month across ${rec.length} merchants.`,
     'Recurring costs quietly set your baseline — trimming one compounds every month.',
     [recurringCard(rec)],
   )
@@ -768,6 +790,12 @@ export interface QuizOptions {
   now?: Date
   count?: number
   budgets?: Record<string, number>
+  /** Merchant renames, so question text matches what the user sees elsewhere. */
+  aliases?: Aliases
+  /** Groups removed from the recurring list — excluded from bill questions. */
+  dismissedRecurring?: Record<string, true>
+  /** Bill ⇄ habit re-filings, honored by the recurring-bill questions. */
+  recurringKinds?: RecurringKindOverrides
 }
 
 /**
@@ -779,9 +807,8 @@ export function generateQuiz(
   transactions: Transaction[],
   opts: QuizOptions = {},
 ): QuizQuestion[] {
-  const now = opts.now ?? new Date()
   const desired = Math.min(10, Math.max(5, opts.count ?? 10))
-  const ctx = buildCtx(transactions, now, opts.budgets ?? {})
+  const ctx = buildCtx(transactions, opts)
   if (ctx.all.length === 0) return []
 
   const candidates: QuizQuestion[] = []
@@ -817,7 +844,11 @@ export function generateQuiz(
  * was never quizzed on. Pass the set of base question kinds that were asked;
  * omit it to show everything.
  */
-export function quizInsights(transactions: Transaction[], askedKinds?: Set<string>): string[] {
+export function quizInsights(
+  transactions: Transaction[],
+  askedKinds?: Set<string>,
+  opts: Pick<QuizOptions, 'aliases' | 'dismissedRecurring' | 'recurringKinds'> = {},
+): string[] {
   if (transactions.length === 0) return []
   const wants = (...kinds: string[]) => !askedKinds || kinds.some((k) => askedKinds.has(k))
   const out: string[] = []
@@ -853,11 +884,16 @@ export function quizInsights(transactions: Transaction[], askedKinds?: Set<strin
     }
   }
   if (wants('recurringCount', 'recurringTotal')) {
-    const rec = recurringPayments(transactions)
+    const rec = recurringBills(
+      transactions,
+      opts.aliases ?? {},
+      opts.dismissedRecurring ?? {},
+      opts.recurringKinds ?? {},
+    )
     if (rec.length >= 2) {
       const monthly = rec.reduce((s, r) => s + r.monthlyEstimate, 0)
       out.push(
-        `You have ${rec.length} recurring payments costing about ${formatCurrency(monthly)}/month.`,
+        `You have ${rec.length} recurring bills costing about ${formatCurrency(monthly)}/month.`,
       )
     }
   }
