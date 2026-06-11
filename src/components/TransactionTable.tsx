@@ -5,6 +5,7 @@ import { allCategories, categoryMeta } from '../lib/categories'
 import { displayDescription } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
+import { useRecurringSimilar } from './RecurringSimilar'
 import { StarIcon } from './icons'
 
 interface Props {
@@ -14,8 +15,9 @@ interface Props {
 type SortKey = 'date' | 'amount'
 
 export function TransactionTable({ transactions }: Props) {
-  const { setCategoryBulk, toggleRecurring, aliases } = useStore()
+  const { setCategoryBulk, aliases } = useStore()
   const { change, node } = useApplyToSimilar()
+  const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
   const [query, setQuery] = useState('')
   const [catFilter, setCatFilter] = useState<Category | 'all'>('all')
   const [minAmount, setMinAmount] = useState('')
@@ -259,6 +261,7 @@ export function TransactionTable({ transactions }: Props) {
         </table>
       </div>
       {node}
+      {recurringNode}
     </div>
   )
 }

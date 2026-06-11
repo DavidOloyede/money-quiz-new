@@ -8,10 +8,11 @@ import {
   isSubscriptionCategory,
   SUBSCRIPTIONS_CATEGORY,
 } from '../lib/categories'
-import { merchantKey, groupKey, groupLabel } from '../lib/merchant'
+import { merchantKey, groupKey, groupLabel, displayDescription } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
+import { useRecurringSimilar } from './RecurringSimilar'
 import { XIcon, StarIcon } from './icons'
 
 interface Props {
@@ -28,6 +29,8 @@ interface Draft {
   renewalDate?: string
   endedDate?: string
 }
+
+type SortKey = 'date' | 'category' | 'amount' | 'description'
 
 /**
  * Drill-in for a recurring payment / subscription / transfer group: lists the
@@ -49,15 +52,61 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     setRecurringDismissed,
     setRecurringKind,
     setCategoryForMerchant,
-    toggleRecurring,
   } = useStore()
   const { change, node } = useApplyToSimilar()
   const { rename, node: renameNode } = useRenameSimilar()
+  const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
+  const [sortKey, setSortKey] = useState<SortKey>('date')
+  const [sortAsc, setSortAsc] = useState(false)
 
   const idset = useMemo(() => new Set(ids), [ids])
-  const items = useMemo(
-    () => transactions.filter((t) => idset.has(t.id)).sort((a, b) => b.date.localeCompare(a.date)),
-    [transactions, idset],
+  const items = useMemo(() => {
+    const arr = transactions.filter((t) => idset.has(t.id))
+    arr.sort((a, b) => {
+      let cmp: number
+      switch (sortKey) {
+        case 'date':
+          cmp = a.date.localeCompare(b.date)
+          break
+        case 'amount':
+          cmp = Math.abs(a.amount) - Math.abs(b.amount)
+          break
+        case 'description':
+          cmp = displayDescription(a.description, aliases).localeCompare(
+            displayDescription(b.description, aliases),
+          )
+          break
+        case 'category':
+          cmp = categoryMeta(a.category).label.localeCompare(categoryMeta(b.category).label)
+          break
+      }
+      return sortAsc ? cmp : -cmp
+    })
+    return arr
+  }, [transactions, idset, sortKey, sortAsc, aliases])
+  // Category only sorts when the group actually mixes categories.
+  const mixedCategories = useMemo(
+    () => new Set(items.map((t) => t.category)).size > 1,
+    [items],
+  )
+
+  // First click: date latest→earliest, text A→Z, amount biggest first.
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortAsc((v) => !v)
+    else {
+      setSortKey(key)
+      setSortAsc(key === 'description' || key === 'category')
+    }
+  }
+
+  const sortButton = (key: SortKey, label: string) => (
+    <button
+      onClick={() => toggleSort(key)}
+      className="font-medium hover:text-slate-600 dark:hover:text-slate-300"
+    >
+      {label}
+      {sortKey === key ? (sortAsc ? ' ↑' : ' ↓') : ''}
+    </button>
   )
   const keys = useMemo(() => [...new Set(items.map((t) => merchantKey(t.description)))], [items])
   const first = items[0]
@@ -292,10 +341,16 @@ export function GroupDetailModal({ ids, onClose }: Props) {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 <tr>
-                  <th className="px-5 py-2.5 font-medium">Date</th>
-                  <th className="px-3 py-2.5 font-medium">Description</th>
-                  <th className="px-3 py-2.5 font-medium">Category</th>
-                  <th className="px-5 py-2.5 text-right font-medium">Amount</th>
+                  <th className="px-5 py-2.5 font-medium">{sortButton('date', 'Date')}</th>
+                  <th className="px-3 py-2.5 font-medium">
+                    {mixedCategories ? sortButton('category', 'Category') : 'Category'}
+                  </th>
+                  <th className="px-3 py-2.5 text-right font-medium">
+                    {sortButton('amount', 'Amount')}
+                  </th>
+                  <th className="px-5 py-2.5 font-medium">
+                    {sortButton('description', 'Description')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -303,23 +358,6 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                   <tr key={t.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
                     <td className="whitespace-nowrap px-5 py-2.5 text-slate-500 dark:text-slate-400">
                       {formatDate(t.date)}
-                    </td>
-                    <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200">
-                      <span className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => toggleRecurring(t.id)}
-                          title={t.recurring ? 'Unflag recurring' : 'Mark as recurring'}
-                          className={`shrink-0 rounded p-0.5 transition-colors ${
-                            t.recurring
-                              ? 'text-amber-500 hover:text-amber-600'
-                              : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
-                          }`}
-                        >
-                          <StarIcon className="h-4 w-4" filled={!!t.recurring} />
-                        </button>
-                        <span aria-hidden>{categoryMeta(t.category).emoji}</span>
-                        <EditableDescription t={t} aliases={aliases} onRename={rename} />
-                      </span>
                     </td>
                     <td className="px-3 py-2.5">
                       <select
@@ -336,11 +374,28 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                       </select>
                     </td>
                     <td
-                      className={`whitespace-nowrap px-5 py-2.5 text-right font-medium tabular-nums ${
+                      className={`whitespace-nowrap px-3 py-2.5 text-right font-medium tabular-nums ${
                         t.amount < 0 ? 'text-slate-700 dark:text-slate-200' : 'text-emerald-600'
                       }`}
                     >
                       {formatCurrency(t.amount)}
+                    </td>
+                    <td className="px-5 py-2.5 text-slate-700 dark:text-slate-200">
+                      <span className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => toggleRecurring(t.id)}
+                          title={t.recurring ? 'Unflag recurring' : 'Mark as recurring'}
+                          className={`shrink-0 rounded p-0.5 transition-colors ${
+                            t.recurring
+                              ? 'text-amber-500 hover:text-amber-600'
+                              : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                          }`}
+                        >
+                          <StarIcon className="h-4 w-4" filled={!!t.recurring} />
+                        </button>
+                        <span aria-hidden>{categoryMeta(t.category).emoji}</span>
+                        <EditableDescription t={t} aliases={aliases} onRename={rename} />
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -368,6 +423,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
       </div>
       {node}
       {renameNode}
+      {recurringNode}
     </>
   )
 }

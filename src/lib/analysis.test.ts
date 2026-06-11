@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Transaction } from '../types'
 import {
+  autoRecurringBill,
   budgetStatus,
   filterByRange,
   monthKey,
@@ -124,6 +125,29 @@ describe('recurringPayments', () => {
     const [r] = recurringPayments(txs)
     expect(r.isSubscription).toBe(true)
     expect(recurringPayments(txs, {}, { [r.groupKey]: true })).toHaveLength(0)
+  })
+})
+
+describe('autoRecurringBill', () => {
+  it('detects a bill on its own, ignoring ★ flags', () => {
+    const auto = ['2026-01', '2026-02', '2026-03'].map((m) =>
+      tx(`${m}-15`, -220, 'loans', { description: 'Student Loan Payment', recurring: true }),
+    )
+    expect(autoRecurringBill(auto, 'student loan')).toBe(true)
+  })
+
+  it('is false for a group that only qualifies via its ★ flag', () => {
+    const flaggedOnly = [tx('2026-06-01', -42, 'shopping', { description: 'Pottery Class', recurring: true })]
+    expect(autoRecurringBill(flaggedOnly, 'pottery class')).toBe(false)
+  })
+
+  it('is false for a habit (varying repeat at a discretionary merchant)', () => {
+    const habit = [
+      tx('2026-01-12', -35.2, 'shopping', { description: 'Amazon Marketplace' }),
+      tx('2026-02-12', -78.5, 'shopping', { description: 'Amazon Marketplace' }),
+      tx('2026-03-12', -12.99, 'shopping', { description: 'Amazon Marketplace' }),
+    ]
+    expect(autoRecurringBill(habit, 'amazon marketplace')).toBe(false)
   })
 })
 

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Category } from '../types'
 import { useStore } from '../store'
 import { buildYearSheet, endBalances, yearsPresent, type SheetCell, type SheetSection } from '../lib/yearly'
+import { formatMonth } from '../lib/format'
+import { CategoryDetailModal, type CellTarget } from './CategoryDetailModal'
 import { EmptyState } from './EmptyState'
 import { TableIcon } from './icons'
 import type { View } from './Nav'
@@ -51,6 +54,11 @@ export function YearSheetView({ onNavigate }: Props) {
   const startBal = startingBalances[String(year)] ?? 0
   const [balDraft, setBalDraft] = useState<string | null>(null)
   const balances = useMemo(() => endBalances(startBal, sheet.net), [startBal, sheet])
+  // Drill-in for one populated, actual cell (category × month). Total rows,
+  // the frozen summary block, blanks, and projections aren't drillable.
+  const [drill, setDrill] = useState<CellTarget | null>(null)
+  const drillCell = (category: Category, direction: 'in' | 'out') => (monthIndex: number) =>
+    setDrill({ category, direction, month: `${year}-${String(monthIndex + 1).padStart(2, '0')}` })
 
   // Twin horizontal scrollbars: a slim one above the sheet mirrors the main
   // container's scroll position (assigning an equal scrollLeft is a no-op, so
@@ -202,13 +210,20 @@ export function YearSheetView({ onNavigate }: Props) {
             {/* Income section */}
             <SectionHeader title="INCOME" tone="income" />
             {sheet.income.rows.map((r) => (
-              <DataRow key={r.id} label={`${r.emoji} ${r.label}`} cells={r.cells} total={r.total} avg={r.avg} />
+              <DataRow
+                key={r.id}
+                label={`${r.emoji} ${r.label}`}
+                cells={r.cells}
+                total={r.total}
+                avg={r.avg}
+                onDrill={drillCell(r.id, 'in')}
+              />
             ))}
             <TotalRow section={sheet.income} label="Total Income" tone="income" />
 
             {/* Expense sections */}
             {sheet.expenseSections.map((s) => (
-              <SectionRows key={s.id} section={s} />
+              <SectionRows key={s.id} section={s} onDrill={(cat) => drillCell(cat, 'out')} />
             ))}
           </tbody>
         </table>
@@ -216,18 +231,40 @@ export function YearSheetView({ onNavigate }: Props) {
 
       <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
         Set monthly budgets on the Dashboard to drive the projections; the starting balance is
-        saved per year.
+        saved per year. Click any filled-in number to see the transactions behind it.
       </p>
+
+      {drill && (
+        <CategoryDetailModal
+          category={drill}
+          transactions={transactions}
+          scopeLabel={`in ${formatMonth(drill.month)}`}
+          onClose={() => setDrill(null)}
+        />
+      )}
     </Shell>
   )
 }
 
-function SectionRows({ section }: { section: SheetSection }) {
+function SectionRows({
+  section,
+  onDrill,
+}: {
+  section: SheetSection
+  onDrill: (cat: Category) => (monthIndex: number) => void
+}) {
   return (
     <>
       <SectionHeader title={section.title.toUpperCase()} tone="expense" />
       {section.rows.map((r) => (
-        <DataRow key={r.id} label={`${r.emoji} ${r.label}`} cells={r.cells} total={r.total} avg={r.avg} />
+        <DataRow
+          key={r.id}
+          label={`${r.emoji} ${r.label}`}
+          cells={r.cells}
+          total={r.total}
+          avg={r.avg}
+          onDrill={onDrill(r.id)}
+        />
       ))}
       <TotalRow section={section} label={`Total ${section.title}`} tone="expense" />
     </>
@@ -249,13 +286,32 @@ function SectionHeader({ title, tone }: { title: string; tone: 'income' | 'expen
   )
 }
 
-function Cell({ cell, accent, extra = '' }: { cell: SheetCell; accent?: string; extra?: string }) {
+function Cell({
+  cell,
+  accent,
+  extra = '',
+  onClick,
+}: {
+  cell: SheetCell
+  accent?: string
+  extra?: string
+  onClick?: () => void
+}) {
+  // Only real numbers drill down — blanks have nothing to show and projected
+  // cells aren't backed by transactions.
+  const clickable = !!onClick && !cell.projected && Math.abs(cell.value) >= 0.005
   return (
     <td
+      onClick={clickable ? onClick : undefined}
+      title={clickable ? 'View the transactions behind this number' : undefined}
       className={`px-2 py-1.5 text-right tabular-nums ${extra} ${
         cell.projected
           ? 'italic text-amber-600/90 dark:text-amber-400/80'
           : accent ?? 'text-slate-700 dark:text-slate-200'
+      } ${
+        clickable
+          ? 'cursor-pointer underline-offset-2 hover:bg-emerald-50 hover:underline dark:hover:bg-emerald-500/10'
+          : ''
       }`}
     >
       {cellText(cell.value)}
@@ -270,11 +326,13 @@ function DataRow({
   cells,
   total,
   avg,
+  onDrill,
 }: {
   label: string
   cells: SheetCell[]
   total: number
   avg: number
+  onDrill?: (monthIndex: number) => void
 }) {
   return (
     <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -282,7 +340,7 @@ function DataRow({
         {label}
       </td>
       {cells.map((c, i) => (
-        <Cell key={i} cell={c} extra={ROW_BORDER} />
+        <Cell key={i} cell={c} extra={ROW_BORDER} onClick={onDrill && (() => onDrill(i))} />
       ))}
       <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100 ${ROW_BORDER}`}>
         {cellText(total)}

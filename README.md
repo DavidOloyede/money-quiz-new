@@ -115,7 +115,9 @@ any other transaction.
 - **Dashboard** — income / spending / net for this month, last month, all time,
   or a **custom date range**; a spending-by-category donut with a sortable
   breakdown; top 5 expenses; a monthly trend chart; and headline stats. Click any
-  category to drill into its transactions and recategorize them. Plus:
+  category, the Income/Spending stat cards, or a **month on the trend chart** to
+  drill into the transactions behind the number — the drill view is sortable by
+  date, amount, description, or category (when more than one is shown). Plus:
   - **Verse of the day** — a daily scripture on money, stewardship, and
     generosity (World English Bible, rotates at midnight, fully offline).
   - **Giving & Generosity** — tithes + charity totals, giving as a % of income
@@ -127,10 +129,12 @@ any other transaction.
   - **Budgets** — set a monthly budget per category and track progress with
     over/under alerts.
   - **Recurring & subscriptions** — repeating bills and subscriptions in one
-    list with an estimated monthly cost. Tap the **★** to flag any charge as
-    recurring; anything in the **Subscriptions category** is badged and gets its
-    own cadence, charge date, and monthly subtotal (set them with **Save** in the
-    detail view).
+    list with an estimated monthly cost. Any charge already in this list shows a
+    lit **★** everywhere it appears; tap a ★ to flag a charge yourself (you'll
+    be offered to mark the merchant's other charges — and future imports — in
+    one click), or untap it to drop the group from the list. Anything in the
+    **Subscriptions category** is badged and gets its own cadence, charge date,
+    and monthly subtotal (set them with **Save** in the detail view).
   - **Trends & anomalies** — callouts like *"Dining is up 40% vs your 3-month
     average."*
   - **Top merchants** and a **Transfers & Zelle** panel for the money that's
@@ -140,7 +144,9 @@ any other transaction.
   totals and averages, a green/red **NET** row, and a **Projected End Balance**
   row that runs from an editable per-year starting balance. Months that haven't
   happened yet are *projected* from your budgets (or your monthly average so
-  far), shown in italics.
+  far), shown in italics. Click any filled-in actual number to see the exact
+  transactions it was calculated from (totals, blanks, and projections aren't
+  clickable — there's nothing behind them).
 - **Quiz** — 8–10 multiple-choice questions computed from your real numbers
   (spending by category, largest expense, month-over-month changes, recurring
   costs, busiest spending day, budget vs actual, and more). Each answer reveals

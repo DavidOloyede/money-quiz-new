@@ -13,6 +13,8 @@ import { formatCurrency, formatCurrencyShort, formatMonth } from '../../lib/form
 
 interface Props {
   data: MonthlyPoint[]
+  /** Called with the "YYYY-MM" key when the user clicks a month's bars. */
+  onSelectMonth?: (monthKey: string) => void
 }
 
 interface TooltipProps {
@@ -42,11 +44,17 @@ function TrendTooltip({ active, label, payload }: TooltipProps) {
   )
 }
 
-export function MonthlyTrend({ data }: Props) {
+export function MonthlyTrend({ data, onSelectMonth }: Props) {
   return (
-    <div className="h-64 w-full">
+    <div className={`h-64 w-full ${onSelectMonth ? 'cursor-pointer' : ''}`}>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 8, left: -8, bottom: 0 }}
+          onClick={(state) => {
+            if (onSelectMonth && state?.activeLabel) onSelectMonth(String(state.activeLabel))
+          }}
+        >
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
           <XAxis
             dataKey="monthKey"

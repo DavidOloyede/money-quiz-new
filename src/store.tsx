@@ -24,8 +24,14 @@ import type {
 import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
-import { merchantKey, txSignature } from './lib/merchant'
-import { recurringTransferIds, type RecurringKind, type RecurringKindOverrides } from './lib/analysis'
+import { groupKey, merchantKey, txSignature } from './lib/merchant'
+import {
+  autoRecurringBill,
+  recurringBills,
+  recurringTransferIds,
+  type RecurringKind,
+  type RecurringKindOverrides,
+} from './lib/analysis'
 import { plaidApi, type PlaidItemSummary } from './lib/plaid'
 import { mapPlaidTransactions } from './lib/plaidMap'
 import {
@@ -245,27 +251,60 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   recurringTxnsRef.current = recurringTxns
   const aliasesRef = useRef(aliases)
   aliasesRef.current = aliases
+  const recurringKindsRef = useRef(recurringKinds)
+  recurringKindsRef.current = recurringKinds
   const configRef = useRef(categoryConfig)
   configRef.current = categoryConfig
   const sourcesRef = useRef(sources)
   sourcesRef.current = sources
 
   // The live transaction list. Two flags are *derived* (never persisted on the
-  // raw rows): `recurring` — set when the merchant is ★-flagged OR this exact
-  // charge is (per-transaction, e.g. one Amazon charge that repeats); and
-  // `counts` — set on recurring same-amount transfers we promote into
-  // spending/income (minus opted-out groups). Recomputed when any input changes.
+  // raw rows): `recurring` — set when the merchant is ★-flagged, this exact
+  // charge is (per-transaction, e.g. one Amazon charge that repeats), or the
+  // charge belongs to a group already shown in the Recurring & subscriptions
+  // section (auto-detected bills/subscriptions); and `counts` — set on
+  // recurring same-amount transfers we promote into spending/income (minus
+  // opted-out groups). Recomputed when any input changes.
   const transactions = useMemo(() => {
     const counted = recurringTransferIds(rawTransactions, aliases, ignoredTransfers)
-    return rawTransactions.map((t) => {
-      const rec =
-        recurringMerchants[merchantKey(t.description)] ||
-        recurringTxns[txSignature(t.date, t.description, t.amount)]
+    const flag = (t: Transaction, rec: boolean): Transaction => {
       const counts = counted.has(t.id)
       if (!rec && !counts) return t
       return { ...t, recurring: rec ? true : undefined, counts: counts ? true : undefined }
-    })
-  }, [rawTransactions, aliases, ignoredTransfers, recurringMerchants, recurringTxns])
+    }
+    const base = rawTransactions.map((t) =>
+      flag(
+        t,
+        !!(
+          recurringMerchants[merchantKey(t.description)] ||
+          recurringTxns[txSignature(t.date, t.description, t.amount)]
+        ),
+      ),
+    )
+    // Members of groups the Recurring section shows on its own (detection or a
+    // whole-merchant ★) get the star too. Per-transaction sig flags are left
+    // out of this pass on purpose — one starred Amazon charge shouldn't light
+    // up every Amazon charge.
+    const detectBase = rawTransactions.map((t) =>
+      flag(t, !!recurringMerchants[merchantKey(t.description)]),
+    )
+    const sectionIds = new Set(
+      recurringBills(detectBase, aliases, dismissedRecurring, recurringKinds).flatMap((r) => r.ids),
+    )
+    return base.map((t) => (!t.recurring && sectionIds.has(t.id) ? { ...t, recurring: true } : t))
+  }, [
+    rawTransactions,
+    aliases,
+    ignoredTransfers,
+    recurringMerchants,
+    recurringTxns,
+    dismissedRecurring,
+    recurringKinds,
+  ])
+
+  // Ref to the derived list, for callbacks that need the computed ★/counts flags.
+  const transactionsRef = useRef(transactions)
+  transactionsRef.current = transactions
 
   useEffect(() => saveJSON(STORAGE_KEYS.transactions, rawTransactions), [rawTransactions])
   useEffect(() => {
@@ -449,29 +488,51 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   /**
-   * Toggle the ★ recurring flag for ONE transaction. If its merchant is flagged
-   * whole-hog, unflag the merchant; otherwise flip just this charge's signature
-   * (so a single Amazon charge can be recurring without flagging all of Amazon).
+   * Toggle the ★ recurring flag for ONE transaction. Starring flips just this
+   * charge's signature (so a single Amazon charge can be recurring without
+   * flagging all of Amazon). Un-starring clears whichever flag lit it (whole
+   * merchant and/or this charge); if the group would land right back in the
+   * Recurring section via auto-detection, it's also dismissed from the section
+   * so the star actually turns off.
    */
   const toggleRecurring = useCallback((id: string) => {
     const t = txRef.current.find((x) => x.id === id)
     if (!t) return
     const key = merchantKey(t.description)
+    const sig = txSignature(t.date, t.description, t.amount)
+    const starred = transactionsRef.current.find((x) => x.id === id)?.recurring
+    if (!starred) {
+      setRecurringTxns((prev) => ({ ...prev, [sig]: true }))
+      return
+    }
     if (recurringMerchantsRef.current[key]) {
       setRecurringMerchants((prev) => {
         const next = { ...prev }
         delete next[key]
         return next
       })
-      return
     }
-    const sig = txSignature(t.date, t.description, t.amount)
-    setRecurringTxns((prev) => {
-      const next = { ...prev }
-      if (next[sig]) delete next[sig]
-      else next[sig] = true
-      return next
-    })
+    if (recurringTxnsRef.current[sig]) {
+      setRecurringTxns((prev) => {
+        const next = { ...prev }
+        delete next[sig]
+        return next
+      })
+    }
+    const gKey = groupKey(t.description, aliasesRef.current)
+    if (autoRecurringBill(transactionsRef.current, gKey, aliasesRef.current, recurringKindsRef.current)) {
+      setDismissedRecurring((prev) => ({ ...prev, [gKey]: true }))
+    }
+  }, [])
+
+  /** Map a set of transaction ids to the distinct alias-aware group keys behind them. */
+  const groupKeysForIds = useCallback((ids: string[]): string[] => {
+    const idset = new Set(ids)
+    const keys = new Set<string>()
+    for (const t of txRef.current) {
+      if (idset.has(t.id)) keys.add(groupKey(t.description, aliasesRef.current))
+    }
+    return [...keys]
   }, [])
 
   /** Flag/unflag a whole group as recurring (every merchant key behind the given transactions). */
@@ -487,17 +548,36 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }
         return next
       })
-      // When turning a group off, also clear any per-transaction flags it carries.
-      if (!value) {
-        const sigs = new Set(ids.map((i) => sigForId(i)).filter(Boolean) as string[])
-        setRecurringTxns((prev) => {
+      const gKeys = groupKeysForIds(ids)
+      if (value) {
+        // Re-show a group that was hidden from the Recurring section.
+        setDismissedRecurring((prev) => {
           const next = { ...prev }
-          for (const s of sigs) delete next[s]
+          for (const k of gKeys) delete next[k]
+          return next
+        })
+        return
+      }
+      // When turning a group off, also clear any per-transaction flags it carries.
+      const sigs = new Set(ids.map((i) => sigForId(i)).filter(Boolean) as string[])
+      setRecurringTxns((prev) => {
+        const next = { ...prev }
+        for (const s of sigs) delete next[s]
+        return next
+      })
+      // Groups detection alone would put right back get dismissed, so un-starring sticks.
+      const auto = gKeys.filter((k) =>
+        autoRecurringBill(transactionsRef.current, k, aliasesRef.current, recurringKindsRef.current),
+      )
+      if (auto.length > 0) {
+        setDismissedRecurring((prev) => {
+          const next = { ...prev }
+          for (const k of auto) next[k] = true
           return next
         })
       }
     },
-    [keysForIds, sigForId],
+    [keysForIds, groupKeysForIds, sigForId],
   )
 
   const setSubscriptionMeta = useCallback((keys: string[], patch: SubscriptionMeta) => {

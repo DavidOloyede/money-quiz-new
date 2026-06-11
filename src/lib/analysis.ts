@@ -491,6 +491,21 @@ export function recurringBills(
   )
 }
 
+/**
+ * Whether a group would sit in the Recurring & subscriptions section on
+ * detection alone (no ★ flags). Used when un-starring: such a group must also
+ * be dismissed from the section or the star would light right back up.
+ */
+export function autoRecurringBill(
+  transactions: Transaction[],
+  key: string,
+  aliases: Aliases = {},
+  kindOverrides: RecurringKindOverrides = {},
+): boolean {
+  const stripped = transactions.map((t) => (t.recurring ? { ...t, recurring: undefined } : t))
+  return recurringBills(stripped, aliases, {}, kindOverrides).some((r) => r.groupKey === key)
+}
+
 /** Just the spending habits (repeat merchants that aren't bills). */
 export function spendingHabits(
   transactions: Transaction[],

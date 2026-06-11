@@ -14,7 +14,7 @@ import {
   type TimeRange,
 } from '../lib/analysis'
 import { categoryLabel, categoryMeta } from '../lib/categories'
-import { formatCurrency, formatDate, formatPercent } from '../lib/format'
+import { formatCurrency, formatDate, formatMonth, formatPercent } from '../lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal, type DetailTarget } from './CategoryDetailModal'
@@ -320,10 +320,12 @@ export function Dashboard({ onNavigate }: Props) {
               <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-slate-800 dark:text-slate-100">Monthly trend</h3>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">All time</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    All time · click a month for its transactions
+                  </span>
                 </div>
                 <div className="mt-2">
-                  <MonthlyTrend data={trend} />
+                  <MonthlyTrend data={trend} onSelectMonth={(m) => setDrill({ month: m })} />
                 </div>
               </div>
 
@@ -430,8 +432,14 @@ export function Dashboard({ onNavigate }: Props) {
       {drill && (
         <CategoryDetailModal
           category={drill}
-          transactions={filtered}
-          scopeLabel={scopeLabel}
+          // A month drill comes from the all-time trend chart, so it isn't
+          // limited to the dashboard's selected range.
+          transactions={typeof drill === 'object' && 'month' in drill ? transactions : filtered}
+          scopeLabel={
+            typeof drill === 'object' && 'month' in drill
+              ? `in ${formatMonth(drill.month)}`
+              : scopeLabel
+          }
           onClose={() => setDrill(null)}
         />
       )}

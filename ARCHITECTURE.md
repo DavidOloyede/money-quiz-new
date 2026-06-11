@@ -92,9 +92,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
   search, filter, and **change a category**. You can also select many at once.
-  Each row has a **★ star** to flag the charge as a **recurring payment**
-  (remembered for every charge from that store), plus a "Recurring" filter to
-  show only those.
+  Each row has a **★ star** for **recurring payments** — it lights up on its
+  own when the charge belongs to a group already shown in the Recurring &
+  subscriptions card, and you can tap it to flag a charge yourself. There's
+  also a "Recurring" filter to show only those.
 - **`ApplyToSimilar.tsx`** — The little popup after you change a category. It
   offers to update the charges that share the **same amount and a similar name**
   (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
@@ -104,9 +105,17 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   the name in the modals). Renaming works like a category change: it's saved as a
   merchant alias and then offers to **rename the other similarly-named charges
   too**, which merges fragmented descriptors into one group.
-- **`CategoryDetailModal.tsx`** — Click a category to see its transactions; each
-  row can be **recategorized**, **renamed**, or **★-flagged as recurring**
-  (per charge — so a single Amazon charge can repeat).
+- **`RecurringSimilar.tsx`** — The same idea for the ★ star: flag one charge as
+  recurring and a little popup offers to **mark the merchant's other charges
+  too**. Accepting flags the whole merchant, so future imports come in already
+  starred.
+- **`CategoryDetailModal.tsx`** — The shared **drill-in list**: it opens when you
+  click a category, the Income/Spending stat cards, a **month on the trend
+  chart** (showing that month's income *and* spending together), or a **Year
+  Sheet cell**. Columns are **Date, Category, Amount, Description**, and each
+  header sorts the list (Category only when the list actually mixes
+  categories). Each row can be **recategorized**, **renamed**, or **★-flagged
+  as recurring** (per charge — so a single Amazon charge can repeat).
 - **`GroupDetailModal.tsx`** — Click any recurring payment, subscription, or
   recurring transfer to open this: it lists the underlying charges (each
   renamable / recategorizable / ★-flaggable as recurring), lets you **rename** the
@@ -119,7 +128,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   cadence, and charge date are staged and applied with a **Save** button.
 - **`Dashboard.tsx`** — The charts-and-numbers screen. The **Income** and
   **Spending** stat cards are clickable and open the full list of transactions
-  behind each number (transfers & Zelle excluded, same as the totals).
+  behind each number (transfers & Zelle excluded, same as the totals), and
+  clicking a **month on the Monthly trend chart** opens that month's income and
+  spending the same way.
   **Refunds & cashback** (money back from a store) are *not* income — they're
   subtracted from spending in their own category instead, and the Income card
   shows a small "+ $X refunds, counted against spending" note when there are any.
@@ -133,7 +144,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   red per month. The month header and the four summary rows **stay frozen**
   while you scroll, a second horizontal scrollbar sits above the sheet, and
   credit-card credits in spending categories are folded into one
-  **Refunds & Cashback** income row.
+  **Refunds & Cashback** income row. Every filled-in *actual* cell is
+  **clickable** — it opens the drill-in list with exactly the transactions that
+  cell summed (the totals rows, the frozen block, blanks, and projected cells
+  aren't clickable, since there are no transactions behind them).
 - **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak 🔥, and badge
   count 🏅** (the full card in the sidebar, a tiny chip on phones).
 - **`VerseOfDay.tsx`** — A daily **scripture banner** at the top of the
@@ -157,7 +171,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     **Subscriptions category** get a **"sub"** badge and their billing cadence; a
     **Show: All | Subscriptions** toggle narrows to just those (with a
     subscriptions-only monthly subtotal, ended ones struck through and excluded).
-    Tap a row to open its detail/rename; tap ★ to flag a charge **recurring**.
+    Tap a row to open its detail/rename. Every row's **★ is lit** — being in
+    this list is what the star means — and un-tapping it removes the group from
+    the list (and turns off its stars everywhere).
     Repeat *shopping habits* are kept out of this card on purpose (see below).
   - **`SpendingHabitsCard.tsx`** — the **"Spending habits"** box: merchants you
     keep going back to with *varying* amounts (Amazon, the pharmacy, a burger
@@ -236,7 +252,10 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   bill-like category (rent, utilities, insurance, loans, fees), or same-amount
   repeats are bills; a varying amount at a discretionary merchant is a habit.
   `recurringBills` / `spendingHabits` return each half, and the user's re-filings
-  (`recurringKinds` in the store) override the guess.
+  (`recurringKinds` in the store) override the guess. `autoRecurringBill`
+  answers "would this group be in the recurring list even with no ★ flags?" —
+  the store uses it when you un-star something the app detected on its own, so
+  the group is also hidden from the list instead of lighting right back up.
 - **`yearly.ts`** — Builds the **Year Sheet** numbers: per-category monthly
   actuals for a year, grouped into sections, plus **projections** for the months
   that haven't happened yet (budget if set, else the average of the months your
@@ -296,9 +315,13 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
   ended dates.
 - **`store.tsx`** — The **central brain**. It holds the **raw** transactions plus
   the remembered edits, and derives the live list — stamping two flags that are
-  never persisted on the rows: `recurring` (merchant ★-flagged **or** this exact
-  charge flagged) and `counts` (recurring same-amount transfers, minus opted-out
-  groups). The remembered edits:
+  never persisted on the rows: `recurring` (merchant ★-flagged, this exact
+  charge flagged, **or** the charge belongs to a group already shown in the
+  Recurring & subscriptions card — so detected bills are starred without you
+  lifting a finger) and `counts` (recurring same-amount transfers, minus
+  opted-out groups). Un-starring something the app detected on its own also
+  hides that group from the recurring list (otherwise the star would relight
+  immediately). The remembered edits:
   - **category edits** and **renames (aliases)** — per merchant, survive re-imports.
   - **recurring flags** — a per-merchant flag (whole-merchant repeats like Rent)
     **and** `recurringTxns`, a per-charge flag by signature (one Amazon charge that
@@ -361,7 +384,9 @@ It keeps your bank "access token" in a hidden file on your own computer
   Badged and folded into the Recurring & subscriptions list.
 - **Recurring payment** — anything that repeats monthly: ★-flagged charges,
   subscriptions, fixed bills (rent, student loan), and variable bills (power,
-  water) averaged per month. The **★ star** marks a charge as recurring.
+  water) averaged per month. The **★ star** means "this charge is in the
+  Recurring & subscriptions list" — it lights up automatically for detected
+  bills, and tapping it flags (or unflags) a charge yourself.
 - **Bill vs. habit** — every recurring group is filed one of two ways. A
   **bill** is expected (rent, the power bill, a subscription — owed even when
   the amount varies). A **habit** is a repeat *pattern* with varying amounts at
