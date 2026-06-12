@@ -19,18 +19,20 @@ and then quizzes you like a friendly teacher.
 
 ---
 
-## 2. The two big pieces
+## 2. The big pieces
 
-The app is made of **two programs**:
+The app is made of **three programs** (two of them optional):
 
 | Piece | What it is | Does it always run? |
 |-------|------------|---------------------|
 | **The website** (the part you see) | Runs *inside your web browser*, like a game on a website. | Always. |
-| **The Plaid helper** (a tiny server) | A little program that talks to your bank through a company called Plaid. | Only if you want to connect a real bank. |
+| **The cloud backend** (Supabase) | Accounts, cross-device sync, support tickets, the admin panel, and the bank connector. | Only if accounts are configured — and even then, only when you sign in. |
+| **The local Plaid helper** (a tiny server) | A little program for developers that talks to Plaid from your own computer. | Only for local development without the cloud. |
 
-> 🔒 **Big idea:** If you just upload a spreadsheet (CSV) of your transactions,
-> **everything stays on your own computer** — nothing is sent anywhere. The Plaid
-> helper is the *only* part that talks to the internet, and only if you turn it on.
+> 🔒 **Big idea:** Signed out, **everything stays on your own computer** —
+> nothing is sent anywhere. Signing in is what turns on the cloud, and then
+> only *your account* can read your data (the database enforces this with
+> row-level security, not just app code).
 
 ---
 
@@ -42,7 +44,14 @@ Imagine `localStorage` as a **notebook that lives inside your browser**. When yo
 close the tab and come back later, the notebook is still there. If you click
 **"Clear all data,"** you rip all the pages out of the notebook.
 
-Nobody else can read your notebook — it's only on your device.
+Signed out, nobody else can read your notebook — it's only on your device.
+
+**Signed in**, every page of the notebook is also photocopied into your account
+(a table called `user_slices`, one row per notebook page) a couple of seconds
+after you change something. Sign in on your phone and the same notebook
+appears. Sign out on a shared computer and the local copy is wiped — your
+account still has it. Even the app's admin can't read those pages: the
+database has no rule that lets anyone but *you* see them.
 
 ---
 
@@ -204,7 +213,20 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   streak before connecting anything). Answering earns XP — a little more when
   you're right — and the card shows your 🔥 streak.
 - **`QuizHistory.tsx`** — Your past scores and your "day streak".
-- **`SettingsView.tsx`** — Theme, custom categories, and the export/clear buttons.
+- **`SettingsView.tsx`** — Theme, custom categories, the export/clear buttons,
+  and the **Help & support** card.
+- **`AccountView.tsx`** — The **Account** screen: sign in / create an account
+  (email + password, or "Continue with Google"), see your profile, **Sync now**,
+  and sign out. Only appears when the cloud backend is configured.
+- **`SyncGate.tsx`** — The invisible doorman between signing in and your data.
+  When you sign in it fetches your account's copy, asks the right question
+  ("Save this device's data to your account?" or "Use your account's data?"),
+  and reloads the notebook. When you sign out on a shared computer it clears
+  the local copy.
+- **`SupportCard.tsx`** — File a **support ticket** (bug, question, feature
+  request) and read replies, right inside Settings.
+- **`AdminView.tsx`** — The **Admin** panel (only for admin accounts): user
+  list, activity log, the support-ticket queue, and top-line metrics.
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a
   number box, a "nothing here yet" message, and all the little drawings/icons).
 
@@ -293,12 +315,23 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   (how often money went *out*), and the recurring questions ask about
   **bills only** — repeat habits like Amazon runs are left out.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
-- **`plaid.ts`** — Talks to the Plaid helper server (start a connection, sync,
-  disconnect).
+- **`plaid.ts`** — Talks to the bank connector (the cloud one when accounts are
+  configured, your local helper server otherwise): start a connection, sync,
+  disconnect.
 - **`plaidMap.ts`** — Translates Plaid's data into our Transaction cards and maps
   Plaid's categories onto ours.
 - **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
   report).
+- **`supabase.ts`** — Creates the one shared connection to the cloud backend —
+  or `null` when no cloud is configured, which is how every cloud feature knows
+  to hide itself.
+- **`cloudSync.ts`** — The **photocopier**. It watches every save to the
+  notebook and, a couple of seconds later, mirrors the changed pages to your
+  account (`user_slices`). It also pulls everything down at sign-in and skips
+  pages that haven't actually changed.
+- **`track.ts`** — The **activity logger**: small batched events ("viewed the
+  quiz", "imported a file — 214 rows") for the admin activity log. It never
+  records store names or amounts, and it records nothing when you're signed out.
 
 And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
 (including a monthly church tithe and small donations, so the giving features
@@ -354,11 +387,46 @@ everywhere.
 
 ---
 
-## 8. The Plaid helper server (`server/plaidServer.mjs`)
+## 8. The cloud backend (the `supabase/` folder)
 
-Banks won't let a website talk to them directly with a secret password — that
-would be unsafe. So there's a **tiny separate program** that holds the secret and
-does the bank-talking. The website asks *it*, and it asks Plaid.
+This is the **optional online half** of the app, built on a service called
+Supabase (a hosted Postgres database with sign-in built in). Setting it up is
+covered step-by-step in [docs/SETUP-backend.md](docs/SETUP-backend.md). It
+gives the app:
+
+- **Accounts** — sign in with **email + password** or **Google**. The list of
+  users lives in a `profiles` table, and the very first admin (the app owner's
+  email) is stamped `admin` automatically when they sign up.
+- **Sync** — the `user_slices` table holds each user's photocopied notebook
+  pages (section 3). A database rule says *only the owner can read or write
+  their rows* — not other users, not even admins.
+- **Bank connections** — `supabase/functions/plaid/` is the **cloud version of
+  the Plaid helper**: a small program that runs next to the database, checks
+  *who is asking* on every request, keeps each person's bank tokens
+  **encrypted** in the `plaid_items` table, and never lets them reach a
+  browser. No Plaid keys configured → it runs in the same "pretend" mock mode.
+- **Activity log** — the `activity_events` table collects the small events
+  from `track.ts` so the admin can see what's being used and what's breaking.
+  Crashes also go to **Sentry** (an error-collecting service) with the
+  financial details scrubbed out.
+- **Support tickets** — `support_tickets` and `ticket_messages` hold each
+  user's help requests and the replies; users see only their own, admins see
+  the whole queue.
+
+> 🔑 **The security model in one sentence:** every table has **row-level
+> security** — rules *inside the database* that check who you are on every
+> read and write — so even a bug in the app's code can't show one person
+> another person's data.
+
+---
+
+## 9. The local Plaid helper (`server/plaidServer.mjs`)
+
+The original, single-person version of the bank connector — still handy for
+developing on your own computer without any cloud setup. Banks won't let a
+website talk to them directly with a secret password, so this **tiny separate
+program** holds the secret and does the bank-talking. The website asks *it*,
+and it asks Plaid.
 
 - If you **don't** give it Plaid keys, it runs in **"pretend" (mock) mode** and
   serves fake-but-realistic transactions, so you can try the whole "connect a
@@ -370,7 +438,7 @@ It keeps your bank "access token" in a hidden file on your own computer
 
 ---
 
-## 9. The tools the project is built with
+## 10. The tools the project is built with
 
 - **React** — the toolkit for building the screens out of Lego-brick components.
 - **TypeScript** — JavaScript with "fill-in-the-blank" rules (types) that catch
@@ -381,10 +449,14 @@ It keeps your bank "access token" in a hidden file on your own computer
   nice, including dark mode.
 - **Recharts** — draws the pie and bar charts.
 - **PapaParse** — reads spreadsheet (CSV) files.
+- **Supabase** — the optional cloud backend: sign-in, the database (Postgres)
+  with row-level security, and the small cloud program for Plaid.
+- **Sentry** — collects crash reports (with financial details scrubbed) so
+  bugs get noticed and fixed.
 
 ---
 
-## 10. Quick glossary
+## 11. Quick glossary
 
 - **Component** — a reusable piece of the screen (a button, a card, a chart).
 - **localStorage** — the browser's private notebook that remembers your data.
@@ -415,6 +487,16 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **Plaid** — the company that securely connects apps to real banks.
 - **Mock mode** — the "pretend" mode that uses fake data so you can try things
   for free.
+- **Account** — an optional sign-in (email/password or Google) that backs up
+  your notebook to the cloud and lets it follow you across devices.
+- **Slice** — one page of the notebook (your transactions, your budgets, your
+  game progress…); the unit the photocopier syncs.
+- **Row-level security (RLS)** — rules inside the database that check *who you
+  are* on every read/write, so only you can see your data.
+- **Edge Function** — a small program that runs next to the database (the
+  cloud bank connector is one).
+- **Ticket** — a help request you file under Settings → Help & support;
+  admins answer from the Admin panel.
 
 ---
 

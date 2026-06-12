@@ -7,10 +7,18 @@ Two ways to get your data in:
 
 - **CSV import** — 100% in your browser. No backend, no account, no bank login;
   transactions are parsed locally and stored only in `localStorage`.
-- **Connect a bank with Plaid** *(optional)* — runs through a small local server
-  you control (see below). Still no third-party of ours touches your data.
+- **Connect a bank with Plaid** *(optional)* — through the multi-user Supabase
+  backend when configured, or a small local server you control (see below).
 
-Use **Clear all data** anytime to wipe everything.
+**Accounts are optional.** Signed out, everything stays on your device exactly
+as before. Sign in (email/password or Google) and your data syncs to your
+account so it follows you across devices — see
+[docs/SETUP-backend.md](docs/SETUP-backend.md) to set up the backend
+(Supabase auth + sync, bank connections, activity logging, support tickets,
+admin panel).
+
+Use **Clear all data** anytime to wipe everything (including your account's
+copy when signed in).
 
 ## Quick start
 
@@ -82,9 +90,15 @@ shape the importer expects (`Date,Description,Amount`).
 ## Connect a bank with Plaid (optional)
 
 Linking a real bank or card uses [Plaid](https://plaid.com). Plaid's API secret
-can never live in the browser, so this needs the small bundled server
-(`server/plaidServer.mjs`) — it's dependency-free (plain Node) and holds the
-access token locally.
+can never live in the browser, so a backend does the bank-talking:
+
+- **With the Supabase backend configured** (see
+  [docs/SETUP-backend.md](docs/SETUP-backend.md)), connections go through the
+  multi-user `plaid` Edge Function — sign in first; each user's access tokens
+  are stored encrypted in the database and never reach the browser.
+- **For fully-local development**, the small bundled server
+  (`server/plaidServer.mjs`) still works — dependency-free (plain Node), holds
+  the access token on your machine:
 
 ```bash
 npm run server      # starts http://localhost:8787
@@ -166,17 +180,25 @@ any other transaction.
 ## Tech stack
 
 React + TypeScript (Vite), Tailwind CSS v4, Recharts for charts, and PapaParse
-for CSV parsing. The app is client-side; the optional Plaid connector is a small
-dependency-free Node server.
+for CSV parsing. The optional cloud backend is Supabase (Postgres + Auth +
+row-level security + an Edge Function for Plaid) with Sentry for error
+tracking; for fully-local dev there's still a small dependency-free Node
+Plaid server.
 
 ## Privacy
 
 - **No bank credentials are ever requested, collected, or stored by this app.**
   CSV import is files only; Plaid Link collects your login inside Plaid's own UI,
   never here.
-- **CSV import** is fully local — nothing is sent anywhere.
-- **Plaid** (only if you choose to connect) routes through the local server you
-  run; your Plaid access token is stored on your machine in `server/.data/`
-  (gitignored) and transactions are saved into your browser like any other import.
-- App data is persisted only in `localStorage` under keys prefixed `moneyquiz.`,
-  and **Clear all data** removes all of it.
+- **CSV import** is fully local — nothing is sent anywhere while signed out.
+- **Signed in**, your data syncs to *your* row-level-secured account; admins
+  cannot read it (the `user_slices` table has no admin access policy).
+- **Plaid** access tokens are AES-256-GCM encrypted at rest in the backend and
+  never reach the browser (in local-server mode they live in `server/.data/`,
+  gitignored).
+- Activity logging records *what you did* (viewed the quiz, imported a file),
+  never transaction descriptions, merchants, or amounts — and only for
+  signed-in users. Crash reports are scrubbed the same way.
+- App data is persisted in `localStorage` under keys prefixed `moneyquiz.`,
+  and **Clear all data** removes all of it — from your account too when
+  signed in.
