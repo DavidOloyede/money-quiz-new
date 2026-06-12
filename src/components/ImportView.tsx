@@ -14,7 +14,7 @@ import { CheckIcon, DownloadIcon, ShieldIcon, UploadIcon, XIcon } from './icons'
 type Stage = 'idle' | 'mapping'
 
 interface Props {
-  onNavigate: (v: 'import' | 'dashboard' | 'quiz') => void
+  onNavigate: (v: 'import' | 'dashboard' | 'quiz' | 'account') => void
 }
 
 export function ImportView({ onNavigate }: Props) {
@@ -119,7 +119,7 @@ export function ImportView({ onNavigate }: Props) {
         </div>
       </div>
 
-      <ConnectBank />
+      <ConnectBank onNavigate={onNavigate} />
 
       {notice && (
         <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-900 p-3 text-sm text-emerald-700 dark:text-emerald-300">

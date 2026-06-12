@@ -123,7 +123,9 @@ create table public.plaid_items (
   access_token_enc text,
   is_mock boolean not null default false,
   cursor text,
-  transactions jsonb not null default '[]'::jsonb,
+  -- map of transaction_id -> Plaid transaction, same shape the local dev
+  -- server keeps in server/.data/store.json
+  transactions jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

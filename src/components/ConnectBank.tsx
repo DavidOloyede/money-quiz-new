@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { AccountType } from '../types'
 import { useStore } from '../store'
-import { openPlaidLink, plaidApi, type PlaidHealth } from '../lib/plaid'
+import { useAuth } from '../auth'
+import { openPlaidLink, plaidApi, plaidNeedsSignIn, type PlaidHealth } from '../lib/plaid'
 import { CheckIcon, LinkIcon, XIcon } from './icons'
 
 type Status =
   | { kind: 'loading' }
+  | { kind: 'signin' }
   | { kind: 'down' }
   | { kind: 'ready'; health: PlaidHealth }
 
-export function ConnectBank() {
+export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => void }) {
   const { addPlaidSource, syncPlaidSource } = useStore()
+  const { loading: authLoading, session } = useAuth()
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
   const [institution, setInstitution] = useState('')
   const [accountType, setAccountType] = useState<AccountType>('bank')
@@ -18,8 +21,17 @@ export function ConnectBank() {
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
 
+  const signedIn = !!session
   useEffect(() => {
+    if (plaidNeedsSignIn) {
+      if (authLoading) return
+      if (!signedIn) {
+        setStatus({ kind: 'signin' })
+        return
+      }
+    }
     let alive = true
+    setStatus({ kind: 'loading' })
     plaidApi
       .health()
       .then((health) => alive && setStatus({ kind: 'ready', health }))
@@ -27,7 +39,7 @@ export function ConnectBank() {
     return () => {
       alive = false
     }
-  }, [])
+  }, [authLoading, signedIn])
 
   const afterConnect = async (itemId: string, name: string) => {
     const n = await syncPlaidSource(itemId)
@@ -110,12 +122,38 @@ export function ConnectBank() {
             <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">Checking for the Plaid server…</p>
           )}
 
+          {status.kind === 'signin' && (
+            <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+              Bank connections are tied to your account so they can follow you across devices.{' '}
+              {onNavigate ? (
+                <button
+                  onClick={() => onNavigate('account')}
+                  className="font-medium text-emerald-700 dark:text-emerald-300 hover:underline"
+                >
+                  Sign in or create an account
+                </button>
+              ) : (
+                'Sign in from the Account tab'
+              )}{' '}
+              to connect one. CSV import below works without an account.
+            </div>
+          )}
+
           {status.kind === 'down' && (
             <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
-              The connection server isn’t running. Start it with{' '}
-              <code className="rounded bg-slate-200 dark:bg-slate-700 px-1">npm run server</code> (it
-              runs in demo mode with no setup, or add Plaid keys in <code>.env</code>). CSV import
-              below works without it.
+              {plaidNeedsSignIn ? (
+                <>
+                  The connection service isn’t reachable right now — try again in a moment. CSV
+                  import below works regardless.
+                </>
+              ) : (
+                <>
+                  The connection server isn’t running. Start it with{' '}
+                  <code className="rounded bg-slate-200 dark:bg-slate-700 px-1">npm run server</code>{' '}
+                  (it runs in demo mode with no setup, or add Plaid keys in <code>.env</code>). CSV
+                  import below works without it.
+                </>
+              )}
             </div>
           )}
 
