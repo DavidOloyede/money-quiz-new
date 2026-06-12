@@ -1,7 +1,18 @@
 /**
- * Tiny typed wrapper around localStorage. Everything in this app stays on the
- * user's device — nothing here ever leaves the browser.
+ * Tiny typed wrapper around localStorage. Signed out, everything stays on the
+ * user's device. When someone signs in, cloudSync registers a save listener
+ * here to mirror slices to their account — localStorage remains what the app
+ * actually reads.
  */
+
+type SaveListener = (key: string, value: unknown) => void
+
+let saveListener: SaveListener | null = null
+
+/** cloudSync hooks saves here; null detaches (sign-out). */
+export function setSaveListener(fn: SaveListener | null): void {
+  saveListener = fn
+}
 
 export const STORAGE_KEYS = {
   transactions: 'moneyquiz.transactions.v1',
@@ -75,6 +86,7 @@ export function saveJSON(key: string, value: unknown): void {
   } catch {
     // Storage may be full or unavailable (private mode); fail silently.
   }
+  saveListener?.(key, value)
 }
 
 export function removeKey(key: string): void {

@@ -6,13 +6,15 @@ import {
   MoonIcon,
   QuizIcon,
   SettingsIcon,
+  ShieldIcon,
   SunIcon,
   TableIcon,
   TrashIcon,
   UploadIcon,
+  UserIcon,
 } from './icons'
 
-export type View = 'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings'
+export type View = 'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings' | 'account' | 'admin'
 
 interface NavItem {
   id: View
@@ -35,6 +37,19 @@ interface NavProps {
   hasData: boolean
   theme: ThemeMode
   onToggleTheme: () => void
+  /** Cloud features configured — show the Account entry. */
+  showAccount?: boolean
+  /** Signed in as an admin — show the Admin entry. */
+  showAdmin?: boolean
+  /** This device is mirroring data to a signed-in account. */
+  syncActive?: boolean
+}
+
+function navItems(showAccount?: boolean, showAdmin?: boolean): NavItem[] {
+  const items = [...ITEMS]
+  if (showAccount) items.push({ id: 'account', label: 'Account', icon: UserIcon })
+  if (showAdmin) items.push({ id: 'admin', label: 'Admin', icon: ShieldIcon })
+  return items
 }
 
 function ThemeToggle({ theme, onToggleTheme, compact }: { theme: ThemeMode; onToggleTheme: () => void; compact?: boolean }) {
@@ -54,7 +69,7 @@ function ThemeToggle({ theme, onToggleTheme, compact }: { theme: ThemeMode; onTo
   )
 }
 
-export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleTheme }: NavProps) {
+export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin, syncActive }: NavProps) {
   return (
     <aside className="hidden md:flex md:flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
       <div className="flex items-center gap-2.5 px-5 h-16 border-b border-slate-100 dark:border-slate-800">
@@ -66,7 +81,7 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
       </div>
 
       <nav className="flex-1 p-3 space-y-1">
-        {ITEMS.map((item) => {
+        {navItems(showAccount, showAdmin).map((item) => {
           const active = view === item.id
           const Icon = item.icon
           return (
@@ -100,14 +115,14 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
           Clear all data
         </button>
         <p className="mt-2 px-2 text-[11px] leading-snug text-slate-400 dark:text-slate-500">
-          All data stays in your browser.
+          {syncActive ? 'Synced to your account.' : 'All data stays in your browser.'}
         </p>
       </div>
     </aside>
   )
 }
 
-export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onToggleTheme }: NavProps) {
+export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin }: NavProps) {
   return (
     <header className="md:hidden sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
       <div className="flex items-center justify-between px-4 h-14">
@@ -129,7 +144,7 @@ export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onTogg
         </div>
       </div>
       <nav className="flex border-t border-slate-100 dark:border-slate-800">
-        {ITEMS.map((item) => {
+        {navItems(showAccount, showAdmin).map((item) => {
           const active = view === item.id
           const Icon = item.icon
           return (

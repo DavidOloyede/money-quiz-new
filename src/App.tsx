@@ -1,9 +1,12 @@
 import { lazy, Suspense, useRef, useState } from 'react'
 import { StoreProvider, useStore } from './store'
+import { AuthProvider, useAuth } from './auth'
+import { SyncGate, useSync } from './components/SyncGate'
 import { MobileTopNav, Sidebar, type View } from './components/Nav'
 import { ImportView } from './components/ImportView'
 import { QuizView } from './components/QuizView'
 import { SettingsView } from './components/SettingsView'
+import { AccountView } from './components/AccountView'
 import { TrashIcon } from './components/icons'
 
 // The dashboard pulls in Recharts; load it on demand to keep the initial bundle small.
@@ -12,6 +15,10 @@ const Dashboard = lazy(() =>
 )
 const YearSheetView = lazy(() =>
   import('./components/YearSheetView').then((m) => ({ default: m.YearSheetView })),
+)
+// Admin tooling is for one person; keep it out of everyone else's bundle.
+const AdminView = lazy(() =>
+  import('./components/AdminView').then((m) => ({ default: m.AdminView })),
 )
 
 function ViewFallback() {
@@ -25,9 +32,11 @@ function ViewFallback() {
 function ConfirmClear({
   onCancel,
   onConfirm,
+  alsoCloud,
 }: {
   onCancel: () => void
   onConfirm: () => void
+  alsoCloud: boolean
 }) {
   return (
     <div
@@ -44,7 +53,8 @@ function ConfirmClear({
         <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-100">Clear all data?</h3>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           This permanently removes every transaction, your category edits, and your saved column
-          mapping from this browser. This can&apos;t be undone.
+          mapping from this browser{alsoCloud ? ' and from your account' : ''}. This can&apos;t be
+          undone.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <button
@@ -107,6 +117,8 @@ function ConfirmLeaveQuiz({
 
 function Shell() {
   const { clearAll, hasData, theme, setTheme } = useStore()
+  const { enabled: accountsEnabled, isAdmin } = useAuth()
+  const sync = useSync()
   const [view, setView] = useState<View>(() => (hasData ? 'dashboard' : 'import'))
   const [confirmClear, setConfirmClear] = useState(false)
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -129,6 +141,9 @@ function Shell() {
         hasData={hasData}
         theme={theme}
         onToggleTheme={toggleTheme}
+        showAccount={accountsEnabled}
+        showAdmin={isAdmin}
+        syncActive={sync.active}
       />
       <MobileTopNav
         view={view}
@@ -137,6 +152,8 @@ function Shell() {
         hasData={hasData}
         theme={theme}
         onToggleTheme={toggleTheme}
+        showAccount={accountsEnabled}
+        showAdmin={isAdmin}
       />
 
       <main className="min-w-0 flex-1">
@@ -154,15 +171,19 @@ function Shell() {
               />
             )}
             {view === 'settings' && <SettingsView onClear={() => setConfirmClear(true)} />}
+            {view === 'account' && <AccountView />}
+            {view === 'admin' && (isAdmin ? <AdminView /> : <AccountView />)}
           </Suspense>
         </div>
       </main>
 
       {confirmClear && (
         <ConfirmClear
+          alsoCloud={sync.active}
           onCancel={() => setConfirmClear(false)}
           onConfirm={() => {
             clearAll()
+            void sync.clearCloud()
             setConfirmClear(false)
             setView('import')
           }}
@@ -185,8 +206,16 @@ function Shell() {
 
 export default function App() {
   return (
-    <StoreProvider>
-      <Shell />
-    </StoreProvider>
+    <AuthProvider>
+      <SyncGate>
+        {(epoch) => (
+          // Remounting on epoch change makes the store re-read localStorage
+          // after a login pull, account switch, or sign-out wipe.
+          <StoreProvider key={epoch}>
+            <Shell />
+          </StoreProvider>
+        )}
+      </SyncGate>
+    </AuthProvider>
   )
 }

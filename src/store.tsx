@@ -320,6 +320,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.dismissedRecurring, dismissedRecurring), [dismissedRecurring])
   useEffect(() => saveJSON(STORAGE_KEYS.recurringKinds, recurringKinds), [recurringKinds])
   useEffect(() => saveJSON(STORAGE_KEYS.sources, sources), [sources])
+  useEffect(() => saveJSON(STORAGE_KEYS.categories, categoryConfig), [categoryConfig])
   useEffect(() => saveJSON(STORAGE_KEYS.budgets, budgets), [budgets])
   useEffect(() => saveJSON(STORAGE_KEYS.quizHistory, quizHistory), [quizHistory])
   useEffect(() => saveJSON(STORAGE_KEYS.startingBalances, startingBalances), [startingBalances])

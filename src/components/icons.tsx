@@ -72,6 +72,25 @@ export function XIcon({ className }: IconProps) {
   )
 }
 
+export function UserIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
+    </svg>
+  )
+}
+
+export function LifeBuoyIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M5.6 5.6l3.5 3.5M14.9 14.9l3.5 3.5M18.4 5.6l-3.5 3.5M9.1 14.9l-3.5 3.5" />
+    </svg>
+  )
+}
+
 export function ShieldIcon({ className }: IconProps) {
   return (
     <svg {...base(className)}>

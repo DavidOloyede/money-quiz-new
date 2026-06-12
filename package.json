@@ -9,9 +9,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "tsc -b",
-    "server": "node server/plaidServer.mjs"
+    "server": "node server/plaidServer.mjs",
+    "db:push": "supabase db push",
+    "functions:deploy": "supabase functions deploy plaid",
+    "functions:serve": "supabase functions serve plaid --env-file supabase/.env.local"
   },
   "dependencies": {
+    "@sentry/react": "^10.57.0",
+    "@supabase/supabase-js": "^2.108.1",
     "papaparse": "^5.4.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -23,6 +28,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.4.0",
+    "supabase": "^2.106.0",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.8.0",
     "vite": "^6.3.0",
