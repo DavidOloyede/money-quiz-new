@@ -8,6 +8,7 @@ import {
   transactionsToCsv,
   transactionsToJson,
 } from '../lib/exportData'
+import { SupportCard } from './SupportCard'
 import { DownloadIcon, MoonIcon, SunIcon, TrashIcon } from './icons'
 
 interface Props {
@@ -213,6 +214,9 @@ export function SettingsView({ onClear }: Props) {
             <TrashIcon className="h-4 w-4" /> Clear all data
           </button>
         </section>
+
+        {/* Help & support (shown only when cloud accounts are configured) */}
+        <SupportCard />
       </div>
     </div>
   )
