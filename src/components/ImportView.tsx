@@ -4,6 +4,7 @@ import type { ColumnMapping, CsvRow, ImportSource } from '../types'
 import { useStore } from '../store'
 import { rowsToTransactions } from '../lib/importCsv'
 import { newId } from '../lib/storage'
+import { track } from '../lib/track'
 import { sampleCsv } from '../data/sampleData'
 import { TransactionTable } from './TransactionTable'
 import { ImportedFiles } from './ImportedFiles'
@@ -74,6 +75,12 @@ export function ImportView({ onNavigate }: Props) {
     }
     const duplicate = sources.some((s) => s.fileName === source.fileName)
     addImport(result.transactions, source)
+    track('import.csv', {
+      rows: result.transactions.length,
+      dropped: result.droppedPayments,
+      skipped: result.skipped,
+      accountType: source.accountType,
+    })
     saveMapping(m)
     setStage('idle')
     setRows([])

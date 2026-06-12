@@ -3,6 +3,7 @@ import type { AccountType } from '../types'
 import { useStore } from '../store'
 import { useAuth } from '../auth'
 import { openPlaidLink, plaidApi, plaidNeedsSignIn, type PlaidHealth } from '../lib/plaid'
+import { track } from '../lib/track'
 import { CheckIcon, LinkIcon, XIcon } from './icons'
 
 type Status =
@@ -41,8 +42,9 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
     }
   }, [authLoading, signedIn])
 
-  const afterConnect = async (itemId: string, name: string) => {
+  const afterConnect = async (itemId: string, name: string, mock: boolean) => {
     const n = await syncPlaidSource(itemId)
+    track('plaid.connect', { mock, accountType, count: n })
     setDone(`Connected ${name} — imported ${n} transaction${n === 1 ? '' : 's'}.`)
   }
 
@@ -53,7 +55,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
     try {
       const { item } = await plaidApi.mockConnect(institution, accountType)
       addPlaidSource(item)
-      await afterConnect(item.id, item.institution)
+      await afterConnect(item.id, item.institution, true)
       setInstitution('')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect.')
@@ -75,7 +77,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
             const name = metadata?.institution?.name || 'Bank'
             const { item } = await plaidApi.exchange(publicToken, name, accountType)
             addPlaidSource(item)
-            await afterConnect(item.id, item.institution)
+            await afterConnect(item.id, item.institution, false)
           } catch (e) {
             setError(e instanceof Error ? e.message : 'Could not finish connecting.')
           } finally {

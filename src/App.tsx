@@ -1,7 +1,8 @@
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { StoreProvider, useStore } from './store'
 import { AuthProvider, useAuth } from './auth'
 import { SyncGate, useSync } from './components/SyncGate'
+import { track } from './lib/track'
 import { MobileTopNav, Sidebar, type View } from './components/Nav'
 import { ImportView } from './components/ImportView'
 import { QuizView } from './components/QuizView'
@@ -122,6 +123,8 @@ function Shell() {
   const [view, setView] = useState<View>(() => (hasData ? 'dashboard' : 'import'))
   const [confirmClear, setConfirmClear] = useState(false)
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+
+  useEffect(() => track('nav.view', { view }), [view])
 
   // Guard against losing a quiz in progress: QuizView reports "dirty" while
   // mid-quiz, and navigating away first asks for confirmation.

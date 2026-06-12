@@ -3,6 +3,7 @@ import { useStore } from '../store'
 import { askedKinds, generateQuiz, quizInsights, type EvidenceCard, type QuizQuestion } from '../lib/quiz'
 import { quizXp } from '../lib/gamification'
 import { formatCurrency } from '../lib/format'
+import { track } from '../lib/track'
 import { QuizHistory } from './QuizHistory'
 import { BadgesCard } from './BadgesCard'
 import { DailyQuestionCard } from './DailyQuestionCard'
@@ -167,7 +168,9 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
   const goNext = () => {
     if (isLast) {
       if (!recordedRef.current) {
-        recordQuizResult(score(questions, answers), questions.length)
+        const correct = score(questions, answers)
+        recordQuizResult(correct, questions.length)
+        track('quiz.complete', { correct, total: questions.length })
         recordedRef.current = true
       }
       setPhase('done')
