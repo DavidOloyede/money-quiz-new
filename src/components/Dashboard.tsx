@@ -9,6 +9,7 @@ import {
   monthlyTrend,
   prevMonthKey,
   rangeLabel,
+  recurringPayments,
   spendingByCategory,
   topExpenses,
   type TimeRange,
@@ -28,6 +29,7 @@ import { RecurringTransfersCard } from './RecurringTransfersCard'
 import { GroupDetailModal } from './GroupDetailModal'
 import { TrendsCard } from './TrendsCard'
 import { TopMerchantsCard } from './TopMerchantsCard'
+import { SortHeader } from './SortHeader'
 import { StatCard } from './StatCard'
 import { EmptyState } from './EmptyState'
 import { ChartIcon } from './icons'
@@ -59,6 +61,7 @@ export function Dashboard({ onNavigate }: Props) {
     setGivingGoal,
     aliases,
     dismissedRecurring,
+    recurringKinds,
     paidOffDebts,
     setDebtPaidOff,
   } = useStore()
@@ -89,6 +92,12 @@ export function Dashboard({ onNavigate }: Props) {
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
   const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
   const excluded = useMemo(() => excludedSummary(filtered), [filtered])
+  // One grouping pass shared by the Recurring & subscriptions and Spending
+  // habits cards (each takes its kind from the same result).
+  const recurring = useMemo(
+    () => recurringPayments(transactions, aliases, dismissedRecurring, recurringKinds),
+    [transactions, aliases, dismissedRecurring, recurringKinds],
+  )
   const trend = useMemo(() => monthlyTrend(transactions), [transactions])
 
   const sortedCats = useMemo(() => {
@@ -258,20 +267,10 @@ export function Dashboard({ onNavigate }: Props) {
                       <thead>
                         <tr className="bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
                           <th className="px-3 py-2">
-                            <button
-                              onClick={() => toggleSort('category')}
-                              className="font-medium hover:text-slate-600"
-                            >
-                              Category{sortIndicator('category', sortKey, sortAsc)}
-                            </button>
+                            <SortHeader sortKey="category" label="Category" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                           </th>
                           <th className="px-3 py-2 text-right">
-                            <button
-                              onClick={() => toggleSort('total')}
-                              className="font-medium hover:text-slate-600"
-                            >
-                              Amount{sortIndicator('total', sortKey, sortAsc)}
-                            </button>
+                            <SortHeader sortKey="total" label="Amount" align="right" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                           </th>
                           <th className="px-3 py-2 text-right">Share</th>
                         </tr>
@@ -371,8 +370,8 @@ export function Dashboard({ onNavigate }: Props) {
               onSetBudget={setBudget}
             />
             <TopMerchantsCard transactions={filtered} />
-            <RecurringCard transactions={transactions} onOpenGroup={setGroupIds} />
-            <SpendingHabitsCard transactions={transactions} onOpenGroup={setGroupIds} />
+            <RecurringCard items={recurring.filter((r) => r.kind === 'bill')} onOpenGroup={setGroupIds} />
+            <SpendingHabitsCard items={recurring.filter((r) => r.kind === 'habit')} onOpenGroup={setGroupIds} />
             <DebtCard
               transactions={transactions}
               aliases={aliases}
@@ -447,11 +446,6 @@ export function Dashboard({ onNavigate }: Props) {
       {groupIds && <GroupDetailModal ids={groupIds} onClose={() => setGroupIds(null)} />}
     </ViewShell>
   )
-}
-
-function sortIndicator(key: SortKey, active: SortKey, asc: boolean): string {
-  if (key !== active) return ''
-  return asc ? ' ↑' : ' ↓'
 }
 
 function ViewShell({

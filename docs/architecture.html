@@ -1,0 +1,1568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Money Quiz — Interactive Architecture Explorer</title>
+<style>
+  :root {
+    --ui: #3b82f6;      --ui-bg: #dbeafe;      --ui-dk: #1d4ed8;
+    --state: #8b5cf6;   --state-bg: #ede9fe;   --state-dk: #6d28d9;
+    --logic: #10b981;   --logic-bg: #d1fae5;   --logic-dk: #047857;
+    --data: #f59e0b;    --data-bg: #fef3c7;    --data-dk: #b45309;
+    --ext: #f43f5e;     --ext-bg: #ffe4e6;     --ext-dk: #be123c;
+    --ink: #0f172a; --ink2: #475569; --ink3: #94a3b8;
+    --line: #e2e8f0; --bg: #f8fafc; --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); background: var(--bg);
+  }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; }
+  code { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 5px; padding: 0 5px; white-space: nowrap; }
+
+  /* ---------- header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .hwrap { max-width: 1480px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo .coin { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fcd34d, #f59e0b 70%); border: 2px solid #d97706; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #78350f; font-size: 15px; }
+  .logo b { font-size: 16px; }
+  .logo small { display: block; color: var(--ink3); font-size: 11px; margin-top: -2px; }
+  nav.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.tabs button {
+    border: 1px solid transparent; background: none; padding: 7px 13px; border-radius: 9px;
+    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); cursor: pointer;
+  }
+  nav.tabs button:hover { background: #f1f5f9; }
+  nav.tabs button.on { background: #0f172a; color: #fff; }
+  nav.tabs button .pill { display: inline-block; background: #fde68a; color: #92400e; border-radius: 99px; font-size: 10px; padding: 0 6px; margin-left: 5px; vertical-align: 1px; }
+
+  /* ---------- search ---------- */
+  .search { position: relative; margin-left: auto; }
+  .search input {
+    width: 290px; max-width: 60vw; padding: 8px 12px 8px 32px; border-radius: 10px; border: 1px solid var(--line);
+    font: inherit; font-size: 13.5px; background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>') 10px 50% no-repeat;
+  }
+  .search input:focus { outline: 2px solid #bae6fd; border-color: #7dd3fc; }
+  .results {
+    position: absolute; right: 0; top: calc(100% + 6px); width: 430px; max-width: 86vw; max-height: 420px; overflow: auto;
+    background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 35px rgba(15,23,42,.14);
+    display: none;
+  }
+  .results.open { display: block; }
+  .results .grp { padding: 7px 12px 3px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+  .results button {
+    display: flex; width: 100%; text-align: left; gap: 9px; align-items: baseline;
+    background: none; border: 0; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .results button:hover, .results button.kb { background: #f0f9ff; }
+  .results .what { color: var(--ink3); font-size: 11.5px; margin-left: auto; white-space: nowrap; }
+  .results .empty { padding: 14px; color: var(--ink3); font-size: 13px; }
+
+  /* ---------- layout ---------- */
+  main { max-width: 1480px; margin: 0 auto; padding: 18px 20px 70px; }
+  section.tab { display: none; }
+  section.tab.on { display: block; }
+  .intro { color: var(--ink2); font-size: 14px; max-width: 880px; margin: 4px 0 14px; }
+
+  .split { display: flex; gap: 16px; align-items: flex-start; }
+  .canvas {
+    flex: 1 1 auto; min-width: 0; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 8px; overflow: auto;
+  }
+  .canvas svg { display: block; width: 100%; height: auto; min-width: 900px; }
+  aside.panel {
+    flex: 0 0 380px; max-width: 380px; position: sticky; top: 70px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+    max-height: calc(100vh - 95px); overflow: auto;
+  }
+  @media (max-width: 1000px) {
+    .split { flex-direction: column; }
+    aside.panel { position: static; max-width: none; flex: 1 1 auto; width: 100%; max-height: none; }
+  }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 10px 4px 2px; font-size: 12.5px; color: var(--ink2); }
+  .legend .sw { display: inline-block; width: 13px; height: 13px; border-radius: 4px; vertical-align: -2px; margin-right: 5px; border: 1.5px solid; }
+
+  /* ---------- svg nodes ---------- */
+  .node { cursor: pointer; }
+  .node rect { fill: #fff; stroke-width: 1.6; rx: 10; transition: opacity .15s, filter .15s; }
+  .node text { pointer-events: none; }
+  .node .t { font-size: 13.5px; font-weight: 700; fill: var(--ink); }
+  .node .s { font-size: 10.5px; fill: var(--ink2); }
+  .node.layer-ui rect    { stroke: var(--ui);    fill: var(--ui-bg); }
+  .node.layer-state rect { stroke: var(--state); fill: var(--state-bg); }
+  .node.layer-logic rect { stroke: var(--logic); fill: var(--logic-bg); }
+  .node.layer-data rect  { stroke: var(--data);  fill: var(--data-bg); }
+  .node.layer-ext rect   { stroke: var(--ext);   fill: var(--ext-bg); }
+  .node:hover rect { filter: brightness(.97); }
+  .node.sel rect { stroke-width: 3; filter: drop-shadow(0 3px 8px rgba(15,23,42,.22)); }
+  .node.dim { opacity: .26; }
+  .node.pulse rect { animation: pulse 1.1s ease-in-out 3; }
+  @keyframes pulse { 0%,100% { stroke-width: 1.6; } 50% { stroke-width: 5; } }
+
+  .edge { fill: none; stroke: #64748b; stroke-width: 1.3; opacity: .17; transition: opacity .15s; marker-end: url(#arr); }
+  .edge.hi { opacity: .95; stroke-width: 2.1; stroke: #0f172a; marker-end: url(#arrHi); }
+  .edge.dim { opacity: .05; }
+  .edgelabel { font-size: 10px; fill: var(--ink2); }
+  .boundary { stroke: #cbd5e1; stroke-dasharray: 6 5; stroke-width: 1.4; }
+  .boundary-label { font-size: 11px; fill: var(--ink3); font-style: italic; }
+
+  /* ---------- detail panel ---------- */
+  .panel h2 { margin: 0 0 2px; font-size: 17px; }
+  .panel .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 99px; margin-bottom: 10px; }
+  .chip.ui    { background: var(--ui-bg);    color: var(--ui-dk); }
+  .chip.state { background: var(--state-bg); color: var(--state-dk); }
+  .chip.logic { background: var(--logic-bg); color: var(--logic-dk); }
+  .chip.data  { background: var(--data-bg);  color: var(--data-dk); }
+  .chip.ext   { background: var(--ext-bg);   color: var(--ext-dk); }
+  .panel p { font-size: 13.5px; color: var(--ink2); margin: 8px 0; }
+  .panel h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); margin: 16px 0 6px; }
+  .filelist { list-style: none; padding: 0; margin: 0; }
+  .filelist li { padding: 3px 0; font-size: 12.5px; display: flex; gap: 8px; align-items: baseline; }
+  .filelist .note { color: var(--ink3); font-size: 11.5px; }
+  .fnlist { list-style: none; padding: 0; margin: 0; }
+  .fnlist li { padding: 4px 0; font-size: 12.5px; border-bottom: 1px dashed #f1f5f9; }
+  .fnlist .what { color: var(--ink2); }
+  .deps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .deps button {
+    border: 1px solid var(--line); background: #f8fafc; border-radius: 8px; padding: 3px 9px;
+    font: inherit; font-size: 12px; font-weight: 600; color: var(--ink2); cursor: pointer;
+  }
+  .deps button:hover { background: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+  .hint { color: var(--ink3); font-size: 12.5px; }
+  mark { background: #fef08a; border-radius: 3px; padding: 0 2px; }
+
+  /* ---------- data flow ---------- */
+  .flowpick { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .flowpick button {
+    border: 1px solid var(--line); background: #fff; border-radius: 11px; padding: 9px 14px;
+    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink2); cursor: pointer; text-align: left;
+  }
+  .flowpick button.on { border-color: #0f172a; background: #0f172a; color: #fff; }
+  .flowbox { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; }
+  .flowbox .stepno { font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--ink3); text-transform: uppercase; }
+  .flowbox h3 { margin: 3px 0 7px; font-size: 17px; }
+  .flowbox .body { font-size: 14px; color: var(--ink2); max-width: 980px; }
+  .flowbox .body code { white-space: normal; }
+  .flownav { display: flex; align-items: center; gap: 10px; margin-top: 13px; }
+  .flownav button {
+    border: 1px solid var(--line); background: #fff; padding: 7px 16px; border-radius: 9px;
+    font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer;
+  }
+  .flownav button.primary { background: #059669; border-color: #059669; color: #fff; }
+  .flownav button:disabled { opacity: .4; cursor: default; }
+  .flownav .where { color: var(--ink3); font-size: 12.5px; }
+  .stepdots { display: flex; gap: 5px; margin-left: auto; }
+  .stepdots i { width: 9px; height: 9px; border-radius: 50%; background: #e2e8f0; cursor: pointer; }
+  .stepdots i.on { background: #059669; }
+
+  /* ---------- db ---------- */
+  .dbgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
+  table.kv { border-collapse: collapse; width: 100%; font-size: 13px; background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  table.kv th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink3); background: #f8fafc; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  table.kv td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  table.kv tr:last-child td { border-bottom: 0; }
+  .yes { color: #b91c1c; font-weight: 700; }
+  .no { color: #047857; font-weight: 700; }
+
+  /* ---------- start here / drift ---------- */
+  .steps { counter-reset: s; max-width: 950px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 18px 15px 62px; margin-bottom: 10px; position: relative; }
+  .step::before {
+    counter-increment: s; content: counter(s);
+    position: absolute; left: 16px; top: 16px; width: 30px; height: 30px; border-radius: 50%;
+    background: #0f172a; color: #fff; font-weight: 800; font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .step h3 { margin: 0 0 4px; font-size: 15.5px; }
+  .step .files { font-size: 12.5px; margin: 2px 0 6px; }
+  .step p { margin: 4px 0; font-size: 13.5px; color: var(--ink2); }
+  .drift { max-width: 950px; }
+  .drift .item { background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; }
+  .drift .item h3 { margin: 0 0 4px; font-size: 15px; }
+  .drift .item p { margin: 4px 0; font-size: 13.5px; color: #57534e; }
+  .drift .fixed { display: inline-block; background: #dcfce7; color: #166534; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 9px; margin-left: 6px; vertical-align: 1px; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; font-size: 13px; margin-top: 6px; }
+  .twocol b { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink3); display: block; }
+  @media (max-width: 760px) { .twocol { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="logo">
+      <div class="coin">$</div>
+      <div><b>Money Quiz</b><small>architecture explorer · generated 2026-06-11, verified against the code</small></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="overview" class="on">Overview</button>
+      <button data-tab="flow">Data Flow</button>
+      <button data-tab="db">Database</button>
+      <button data-tab="start">Start Here</button>
+      <button data-tab="drift">Doc Drift<span class="pill">3</span></button>
+    </nav>
+    <div class="search">
+      <input id="q" type="search" placeholder="Search files, components, functions…" autocomplete="off" spellcheck="false" />
+      <div class="results" id="qr"></div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============================== OVERVIEW ============================== -->
+  <section class="tab on" id="tab-overview">
+    <p class="intro">
+      Money Quiz is a <b>client-side React + TypeScript app</b> (built with Vite) that imports bank transactions,
+      categorizes them, charts them, and quizzes you on your own spending. Everything lives in the browser's
+      <code>localStorage</code>; the only server is an <b>optional</b> tiny Node process for connecting real banks via Plaid.
+      Click any node for a plain-English explanation, its real files, and what it talks to. Arrows point from a module to what it uses.
+    </p>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--ui-bg);border-color:var(--ui)"></i>UI (React components)</span>
+      <span><i class="sw" style="background:var(--state-bg);border-color:var(--state)"></i>State (the store)</span>
+      <span><i class="sw" style="background:var(--logic-bg);border-color:var(--logic)"></i>Logic (pure helpers, <code>src/lib</code>)</span>
+      <span><i class="sw" style="background:var(--data-bg);border-color:var(--data)"></i>Data (persistence &amp; bundled data)</span>
+      <span><i class="sw" style="background:var(--ext-bg);border-color:var(--ext)"></i>External (server / internet)</span>
+    </div>
+    <div class="split">
+      <div class="canvas"><svg id="svgMain"></svg></div>
+      <aside class="panel" id="detail">
+        <h2>Pick a node</h2>
+        <p>Click any box on the map to see what it does, which files it's made of, what it depends on, and what depends on it.</p>
+        <h3>The one-minute version</h3>
+        <p><b>Views</b> (Import, Dashboard, Year Sheet, Quiz, Settings) read everything from <b>store.tsx</b>, the single
+        React context that owns the transactions and all remembered edits. The store persists itself to
+        <b>localStorage</b> through <code>storage.ts</code> and delegates every calculation to pure helpers in
+        <code>src/lib</code> — most importantly <b>analysis.ts</b> (totals, trends, recurring detection) and
+        <b>quiz.ts</b> (question generation). Connecting a real bank goes through the optional <b>Plaid server</b>.</p>
+        <h3>Numbers</h3>
+        <p class="hint">33 components · 18 lib modules (8 with unit tests) · 3 bundled data files · 1 optional server file.
+        Run with <code>npm run dev</code>, test with <code>npm test</code>.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============================== DATA FLOW ============================== -->
+  <section class="tab" id="tab-flow">
+    <p class="intro">Two end-to-end walks through the codebase. Each step highlights the parts of the system doing the work — use <b>Next / Prev</b> or click the dots.</p>
+    <div class="flowpick" id="flowpick"></div>
+    <div class="flowbox">
+      <div class="stepno" id="fStepNo"></div>
+      <h3 id="fTitle"></h3>
+      <div class="body" id="fBody"></div>
+      <div class="flownav">
+        <button id="fPrev">← Prev</button>
+        <button id="fNext" class="primary">Next →</button>
+        <span class="where" id="fWhere"></span>
+        <div class="stepdots" id="fDots"></div>
+      </div>
+    </div>
+    <div class="canvas"><svg id="svgFlow"></svg></div>
+  </section>
+
+  <!-- ============================== DATABASE ============================== -->
+  <section class="tab" id="tab-db">
+    <p class="intro">
+      There is <b>no database server</b> — this is the app's honest data layer. Persistent state is JSON in the browser's
+      <code>localStorage</code> (every key prefixed <code>moneyquiz.</code>, defined in <code>src/lib/storage.ts</code>),
+      plus one small JSON file (<code>server/.data/store.json</code>) that the optional Plaid server keeps on disk.
+      The map below shows the entities and how they reference each other — <b>click a box for column-level detail</b>.
+    </p>
+    <div class="split">
+      <div class="canvas"><svg id="svgDb"></svg></div>
+      <aside class="panel" id="dbDetail">
+        <h2>Pick an entity</h2>
+        <p>Click a box to see its fields, types, and where it's stored. The central entity is <b>Transaction</b>; almost
+        everything else is a "memory" map that re-applies user edits to freshly imported transactions, keyed by one of
+        four identity functions from <code>src/lib/merchant.ts</code> and <code>src/lib/categorize.ts</code>:</p>
+        <ul class="filelist">
+          <li><code>merchantKey(description)</code><span class="note">cleaned merchant identity</span></li>
+          <li><code>overrideKey(description)</code><span class="note">normalized exact description</span></li>
+          <li><code>groupKey(description, aliases)</code><span class="note">alias-aware display-name identity</span></li>
+          <li><code>txSignature(date, desc, amount)</code><span class="note">one specific charge</span></li>
+        </ul>
+      </aside>
+    </div>
+    <h3 style="margin:22px 0 8px;font-size:15px">Every localStorage key (from <code>src/lib/storage.ts</code>)</h3>
+    <table class="kv" id="keysTable">
+      <thead><tr><th>Key</th><th>What it holds</th><th>Wiped by “Clear all data”?</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ============================== START HERE ============================== -->
+  <section class="tab" id="tab-start">
+    <p class="intro">
+      A recommended reading order for a newcomer. The theme: <b>data shapes → identity &amp; categorization → the math →
+      the store → the screens</b>. Each layer only makes sense once you know the one beneath it.
+    </p>
+    <div class="steps" id="startSteps"></div>
+  </section>
+
+  <!-- ============================== DOC DRIFT ============================== -->
+  <section class="tab" id="tab-drift">
+    <p class="intro">
+      <code>ARCHITECTURE.md</code> was checked claim-by-claim against the code on <b>2026-06-11</b>. It is impressively
+      accurate — every file, component, storage key, and behavioral claim was verified — except for the three drifts
+      below. All three were fixed in <code>ARCHITECTURE.md</code> as part of this documentation pass.
+    </p>
+    <div class="drift" id="driftList"></div>
+  </section>
+
+</main>
+
+<script>
+/* ================================================================
+   DATA — every path, function, and claim below was verified against
+   the repository on 2026-06-11.
+   ================================================================ */
+
+const NODES = [
+  // entry + shell
+  { id:'entry', layer:'ui', x:560, y:14,  w:250, h:42,  t:'main.tsx — entry point', s:'index.html → React 19 root' },
+  { id:'app',   layer:'ui', x:540, y:78,  w:290, h:46,  t:'App.tsx — shell & "routing"', s:'view state + confirm dialogs' },
+  // views
+  { id:'nav',        layer:'ui', x:20,  y:156, w:140, h:52, t:'Nav', s:'sidebar / mobile tabs' },
+  { id:'importview', layer:'ui', x:176, y:156, w:172, h:52, t:'Import screen', s:'CSV upload · bank connect' },
+  { id:'dashboard',  layer:'ui', x:364, y:156, w:162, h:52, t:'Dashboard', s:'stats · donut · trend' },
+  { id:'yearsheet',  layer:'ui', x:542, y:156, w:172, h:52, t:'Year Sheet', s:'spreadsheet of the year' },
+  { id:'quizview',   layer:'ui', x:730, y:156, w:152, h:52, t:'Quiz screen', s:'play · results · badges' },
+  { id:'settings',   layer:'ui', x:898, y:156, w:142, h:52, t:'Settings', s:'theme · categories · export' },
+  // shared UI
+  { id:'shared',    layer:'ui', x:20,  y:240, w:212, h:56, t:'Shared widgets', s:'ProgressWidget · VerseOfDay · EmptyState' },
+  { id:'txtable',   layer:'ui', x:248, y:240, w:282, h:56, t:'Transaction table & drill-in modals', s:'+ apply-to-similar / rename / ★ popups' },
+  { id:'dashcards', layer:'ui', x:546, y:240, w:252, h:56, t:'Dashboard cards', s:'recurring · habits · giving · debt …' },
+  { id:'charts',    layer:'ui', x:814, y:240, w:202, h:56, t:'Charts', s:'Recharts donut + bars' },
+  // state
+  { id:'store', layer:'state', x:430, y:332, w:330, h:62, t:'store.tsx — the central brain', s:'raw txns + remembered edits → live list' },
+  { id:'types', layer:'state', x:800, y:332, w:182, h:62, t:'types.ts', s:'shared data shapes' },
+  // logic row 1
+  { id:'csvimport',  layer:'logic', x:20,  y:436, w:182, h:56, t:'CSV import engine', s:'importCsv.ts · parse.ts' },
+  { id:'catlogic',   layer:'logic', x:218, y:436, w:216, h:56, t:'Categories & auto-sorter', s:'categories.ts · categorize.ts' },
+  { id:'merchant',   layer:'logic', x:450, y:436, w:166, h:56, t:'Merchant identity', s:'merchant.ts' },
+  { id:'analysis',   layer:'logic', x:632, y:436, w:182, h:56, t:'Analysis engine', s:'analysis.ts — the calculator' },
+  { id:'yearly',     layer:'logic', x:830, y:436, w:152, h:56, t:'Year Sheet math', s:'yearly.ts' },
+  { id:'fmt',        layer:'logic', x:998, y:436, w:140, h:56, t:'Formatting', s:'format.ts' },
+  // logic row 2
+  { id:'quizengine', layer:'logic', x:20,  y:530, w:218, h:56, t:'Quiz & daily question', s:'quiz.ts · dailyQuestion.ts' },
+  { id:'gamelogic',  layer:'logic', x:254, y:530, w:232, h:56, t:'Gamification', s:'gamification.ts · badges.ts' },
+  { id:'faithlogic', layer:'logic', x:502, y:530, w:188, h:56, t:'Giving & debt math', s:'giving.ts · debt.ts' },
+  { id:'exportdata', layer:'logic', x:706, y:530, w:172, h:56, t:'Export & report', s:'exportData.ts' },
+  { id:'plaidclient',layer:'logic', x:894, y:530, w:188, h:56, t:'Plaid client', s:'plaid.ts · plaidMap.ts' },
+  // data
+  { id:'sampledata', layer:'data', x:20,  y:634, w:276, h:56, t:'Bundled data', s:'sample txns · 49 verses · 15 questions' },
+  { id:'storage',    layer:'data', x:430, y:634, w:262, h:56, t:'storage.ts — localStorage wrapper', s:'STORAGE_KEYS · loadJSON/saveJSON' },
+  { id:'localstore', layer:'data', x:430, y:728, w:262, h:48, t:'Browser localStorage', s:'all keys prefixed moneyquiz.' },
+  // external
+  { id:'plaidserver', layer:'ext', x:1130, y:530, w:246, h:62, t:'Plaid helper server', s:'server/plaidServer.mjs (optional)' },
+  { id:'plaidapi',    layer:'ext', x:1130, y:660, w:246, h:48, t:'Plaid API (plaid.com)', s:'or built-in mock mode' },
+];
+
+const EDGES = [
+  ['entry','app'],
+  ['app','nav'],['app','importview'],['app','dashboard'],['app','yearsheet'],['app','quizview'],['app','settings'],['app','store'],
+  ['nav','shared'],
+  ['importview','csvimport'],['importview','store'],['importview','txtable'],['importview','plaidclient'],['importview','sampledata'],
+  ['dashboard','analysis'],['dashboard','charts'],['dashboard','dashcards'],['dashboard','txtable'],['dashboard','store'],['dashboard','shared'],
+  ['yearsheet','yearly'],['yearsheet','store'],['yearsheet','txtable'],
+  ['quizview','quizengine'],['quizview','store'],['quizview','gamelogic'],['quizview','shared'],
+  ['settings','store'],['settings','exportdata'],['settings','catlogic'],
+  ['txtable','store'],['txtable','merchant'],['txtable','analysis'],['txtable','catlogic'],
+  ['dashcards','analysis'],['dashcards','faithlogic'],['dashcards','fmt'],
+  ['shared','gamelogic'],['shared','sampledata'],
+  ['charts','fmt'],
+  ['store','storage'],['store','analysis'],['store','merchant'],['store','catlogic'],['store','gamelogic'],['store','plaidclient'],['store','sampledata'],['store','types'],
+  ['csvimport','catlogic'],['csvimport','storage'],
+  ['quizengine','analysis'],['quizengine','merchant'],['quizengine','catlogic'],['quizengine','fmt'],['quizengine','sampledata'],['quizengine','storage'],['quizengine','gamelogic'],
+  ['analysis','catlogic'],['analysis','merchant'],
+  ['yearly','analysis'],['yearly','catlogic'],
+  ['gamelogic','faithlogic'],
+  ['faithlogic','analysis'],
+  ['exportdata','analysis'],['exportdata','fmt'],['exportdata','catlogic'],
+  ['plaidclient','plaidserver'],['plaidclient','catlogic'],
+  ['plaidserver','plaidapi'],
+  ['storage','localstore'],
+  ['sampledata','catlogic'],
+];
+
+const DETAILS = {
+entry: {
+  title: 'Entry point', layer: 'ui',
+  blurb: `<p><code>index.html</code> has a single <code>&lt;div id="root"&gt;</code>; <code>src/main.tsx</code> mounts
+  <code>&lt;App /&gt;</code> into it with React 19's <code>createRoot</code>, wrapped in <code>StrictMode</code>.
+  Vite (with the React and Tailwind v4 plugins, see <code>vite.config.ts</code>) serves it in dev and bundles it for production.
+  There is no router library — "navigation" is a single piece of React state inside App.</p>`,
+  files: [
+    ['index.html','HTML shell, favicon, #root'],
+    ['src/main.tsx','createRoot + StrictMode'],
+    ['src/index.css','Tailwind entry'],
+    ['vite.config.ts','Vite + Vitest config'],
+    ['package.json','scripts: dev / build / test / server'],
+  ],
+  funcs: [],
+},
+app: {
+  title: 'App.tsx — shell & view switching', layer: 'ui',
+  blurb: `<p>The boss component. <code>Shell</code> keeps one <code>view</code> state
+  (<code>'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings'</code>) and renders the matching screen inside the
+  sidebar/mobile nav. Dashboard and Year Sheet are <b>lazy-loaded</b> so Recharts stays out of the initial bundle.</p>
+  <p>It also owns two guard dialogs: <code>ConfirmClear</code> ("Clear all data?") and <code>ConfirmLeaveQuiz</code> —
+  QuizView reports "dirty" through a ref while a quiz is mid-flight, and <code>navigate()</code> intercepts the switch.</p>`,
+  files: [['src/App.tsx','Shell, ConfirmClear, ConfirmLeaveQuiz']],
+  funcs: [
+    ['Shell()','holds view state, theme toggle, navigation guard'],
+    ['navigate(v)','blocks nav with "Leave the quiz?" while dirty'],
+    ['ConfirmClear / ConfirmLeaveQuiz','modal confirm dialogs'],
+  ],
+},
+nav: {
+  title: 'Navigation', layer: 'ui',
+  blurb: `<p><code>Sidebar</code> (desktop, left) and <code>MobileTopNav</code> (phones, top) render the same five
+  items: Import, Dashboard, Year Sheet, Quiz, Settings. They also host the light/dark <code>ThemeToggle</code>, the
+  "Clear all data" button, and the XP/streak widget. <code>icons.tsx</code> is the app's hand-rolled SVG icon set
+  (17 icons, no icon library).</p>`,
+  files: [
+    ['src/components/Nav.tsx','Sidebar, MobileTopNav, ThemeToggle, View type'],
+    ['src/components/icons.tsx','all SVG icons + CoinLogo'],
+  ],
+  funcs: [
+    ['type View','the 5 screen ids — the closest thing to a route table'],
+    ['Sidebar / MobileTopNav','desktop and mobile chrome'],
+  ],
+},
+importview: {
+  title: 'Import screen', layer: 'ui',
+  blurb: `<p>Where data enters. Three paths: <b>(1)</b> drag-and-drop a CSV — parsed in the browser by PapaParse, then
+  <code>ColumnMapping</code> asks which column is the date/amount (pre-filled by <code>guessMapping</code>, with a live
+  preview and account-type guess); <b>(2)</b> <code>ConnectBank</code> talks to the optional Plaid server (real Plaid
+  Link or one-click mock mode); <b>(3)</b> "Load sample data". <code>ImportedFiles</code> lists every source with
+  Sync (Plaid) and Delete buttons.</p>`,
+  files: [
+    ['src/components/ImportView.tsx','upload card, PapaParse, notices'],
+    ['src/components/ColumnMapping.tsx','column mapper + preview'],
+    ['src/components/ConnectBank.tsx','Plaid connect card (health-checked)'],
+    ['src/components/ImportedFiles.tsx','source list, sync / remove'],
+  ],
+  funcs: [
+    ['handleFile(file)','PapaParse → headers + rows → mapping stage'],
+    ['onConfirmMapping(m)','rowsToTransactions → store.addImport (+25 XP)'],
+    ['ConnectBank','health → mock_connect or Plaid Link → sync'],
+  ],
+},
+dashboard: {
+  title: 'Dashboard', layer: 'ui',
+  blurb: `<p>The charts-and-numbers screen. A range picker (This month / Last month / This year / Custom) filters the
+  transactions; <code>headlineStats</code>, <code>spendingByCategory</code>, <code>monthlyTrend</code> and
+  <code>topExpenses</code> feed the stat cards, donut, trend chart and lists. The Income & Spending stat cards, every
+  category row, each month on the trend chart, and the Transfers &amp; Zelle panel all <b>drill into</b>
+  <code>CategoryDetailModal</code>. Refunds/cashback are shown as a note on the Income card — they net against
+  spending, not income.</p>`,
+  files: [
+    ['src/components/Dashboard.tsx','range picker, stats, drill wiring'],
+    ['src/components/StatCard.tsx','clickable number tile'],
+  ],
+  funcs: [
+    ['Dashboard()','filters by range, memoizes all analysis calls'],
+    ['setDrill(target)','opens the shared drill-in modal'],
+  ],
+},
+yearsheet: {
+  title: 'Year Sheet', layer: 'ui',
+  blurb: `<p>A Google-Sheets-style budget grid: one column per month, sections for Income / Daily Living / Home /
+  Transportation / Subscriptions &amp; Entertainment / Giving / Debt &amp; Fees. Past months show actuals; future months
+  show <i>projected</i> values in italics (budget if set, else the run-rate average). The header + four summary rows are
+  <b>frozen</b> with <code>position: sticky</code> at hard-coded offsets, a twin horizontal scrollbar sits above the
+  sheet, and every filled-in actual cell is clickable — it opens the drill-in modal with exactly the transactions that
+  cell summed. An editable starting balance per year feeds the Projected End Balance row.</p>`,
+  files: [['src/components/YearSheetView.tsx','grid, frozen rows, twin scrollbars, cell drill']],
+  funcs: [
+    ['drillCell(category, direction)(month)','builds the CellTarget for the modal'],
+    ['commitBalance()','parses & saves the starting balance per year'],
+  ],
+},
+quizview: {
+  title: 'Quiz screen', layer: 'ui',
+  blurb: `<p>Three phases: intro (with <code>DailyQuestionCard</code> and the badge case), playing, results.
+  <code>start()</code> calls <code>generateQuiz</code>; fewer than 3 possible questions shows a "not enough data" notice.
+  After each answer the card shows the real figure, a takeaway, and — for most questions — <b>"the numbers behind this
+  answer"</b>: evidence lists of the actual transactions. Finishing records the score in the store (last 50 kept) and
+  awards XP. The view reports "dirty" upward so App can warn before navigating away mid-quiz.</p>`,
+  files: [
+    ['src/components/QuizView.tsx','phases, scoring, evidence lists, results'],
+    ['src/components/DailyQuestionCard.tsx','one question per day, +XP'],
+    ['src/components/QuizHistory.tsx','past scores + day streak'],
+    ['src/components/BadgesCard.tsx','earned & locked badges'],
+  ],
+  funcs: [
+    ['start()','generateQuiz with budgets/aliases/dismissed/kinds'],
+    ['goNext()','on last question → recordQuizResult(correct, total)'],
+    ['Results','score, +XP chip, quizInsights filtered to asked kinds'],
+  ],
+},
+settings: {
+  title: 'Settings', layer: 'ui',
+  blurb: `<p>Theme switch, the category manager (rename/recolor built-ins, add or delete custom categories — built-ins
+  can't be deleted; deleting a custom category re-files its transactions to "Other"), data export (CSV / JSON / printable
+  report via <code>exportData.ts</code>), and the Clear-all-data button.</p>`,
+  files: [['src/components/SettingsView.tsx','theme, categories, export, clear']],
+  funcs: [],
+},
+txtable: {
+  title: 'Transaction table & drill-in modals', layer: 'ui',
+  blurb: `<p>The editing surface used everywhere. <code>TransactionTable</code> (on Import) searches, filters
+  (including a ★ Recurring-only filter), multi-selects, and edits inline. <code>CategoryDetailModal</code> is the shared
+  drill-in list (per category, Income/Spending flows, a whole month, or one Year Sheet cell) with sortable Date /
+  Category / Amount / Description headers — Category only sorts when the list actually mixes categories.
+  <code>GroupDetailModal</code> inspects one recurring group: rename, ★, "Treat as bill / habit", make-subscription,
+  cadence &amp; dates, staged behind a Save button.</p>
+  <p>Three companion hooks give every edit its "apply to similar?" follow-up toast:
+  <code>useApplyToSimilar</code> (same amount + similar name first, whole merchant second),
+  <code>useRenameSimilar</code> (rename other similarly-named descriptors → merges groups), and
+  <code>useRecurringSimilar</code> (★ the merchant's other charges too).</p>`,
+  files: [
+    ['src/components/TransactionTable.tsx','search, filters, bulk edit'],
+    ['src/components/CategoryDetailModal.tsx','shared drill-in (DetailTarget)'],
+    ['src/components/GroupDetailModal.tsx','recurring-group editor'],
+    ['src/components/ApplyToSimilar.tsx','useApplyToSimilar hook + toast'],
+    ['src/components/RenameDescription.tsx','useRenameSimilar + EditableDescription'],
+    ['src/components/RecurringSimilar.tsx','useRecurringSimilar hook + toast'],
+  ],
+  funcs: [
+    ['useApplyToSimilar().change(id, cat)','recategorize + offer bulk update'],
+    ['useRenameSimilar().rename(id, name)','alias + offer to merge look-alikes'],
+    ['useRecurringSimilar().toggle(id)','★ one charge + offer the merchant'],
+    ['type DetailTarget','category | {flow} | {month} | CellTarget'],
+  ],
+},
+dashcards: {
+  title: 'Dashboard cards', layer: 'ui',
+  blurb: `<p>The info boxes on the Dashboard, each a thin view over one analysis function:
+  <b>RecurringCard</b> (expected bills + subscriptions, All|Subscriptions toggle, per-month estimates),
+  <b>SpendingHabitsCard</b> (repeat merchants with varying amounts — patterns, not bills),
+  <b>RecurringTransfersCard</b> (same-amount same-day Zelle/transfers with a "Counts" checkbox),
+  <b>BudgetsCard</b> (budget vs spend per category), <b>GivingCard</b> (tithes+charity vs the 10% benchmark, giving
+  goal), <b>DebtCard</b> (loan payments trend + "possibly paid off?" confirmations), <b>TrendsCard</b>
+  ("Dining is up 40%"), and <b>TopMerchantsCard</b>.</p>`,
+  files: [
+    ['src/components/RecurringCard.tsx','bills & subscriptions list'],
+    ['src/components/SpendingHabitsCard.tsx','repeat patterns'],
+    ['src/components/RecurringTransfersCard.tsx','counted transfers'],
+    ['src/components/BudgetsCard.tsx','budget progress'],
+    ['src/components/GivingCard.tsx','generosity stats + goal'],
+    ['src/components/DebtCard.tsx','debt freedom + payoff detection'],
+    ['src/components/TrendsCard.tsx','spendingTrends callouts'],
+    ['src/components/TopMerchantsCard.tsx','favorite stores'],
+  ],
+  funcs: [],
+},
+charts: {
+  title: 'Charts', layer: 'ui',
+  blurb: `<p>The only third-party visualization code: <b>Recharts</b>. <code>CategoryDonut</code> is the pie of
+  spending by category (click a slice to drill in), <code>MonthlyTrend</code> the income-vs-spending bar chart
+  (click a month to drill in). Both use category colors from the registry and formatting from <code>format.ts</code>.</p>`,
+  files: [
+    ['src/components/charts/CategoryDonut.tsx','pie + tooltip + onSelect'],
+    ['src/components/charts/MonthlyTrend.tsx','bars + tooltip + onSelectMonth'],
+  ],
+  funcs: [],
+},
+shared: {
+  title: 'Shared widgets', layer: 'ui',
+  blurb: `<p>Small pieces used across screens. <code>ProgressWidget</code>/<code>ProgressChip</code> show level, XP
+  bar, 🔥 streak and 🏅 badge count (full card in the sidebar, tiny chip on phones). <code>VerseOfDay</code> is the
+  daily scripture banner on the Dashboard (rotates at local midnight, picked deterministically from 49 bundled verses).
+  <code>EmptyState</code> is the "nothing here yet" placeholder each view shows before data exists.</p>`,
+  files: [
+    ['src/components/ProgressWidget.tsx','levelProgress display'],
+    ['src/components/VerseOfDay.tsx','verseForDay banner'],
+    ['src/components/EmptyState.tsx','empty placeholder'],
+  ],
+  funcs: [],
+},
+store: {
+  title: 'store.tsx — the central brain', layer: 'state',
+  blurb: `<p>One React context (<code>StoreProvider</code> / <code>useStore</code>) that owns <b>all</b> state: the raw
+  transactions plus every remembered edit — category overrides (two levels: exact description, then merchant),
+  renames/aliases, ★ recurring flags (per merchant <i>and</i> per charge), group meta (cadence/charge day/renewal/ended),
+  ignored transfers, dismissed recurring groups, bill⇄habit re-filings, budgets, quiz history, XP/streak/badges, theme.</p>
+  <p>The live transaction list is <b>derived</b> in a <code>useMemo</code>: it stamps two never-persisted flags —
+  <code>recurring</code> (★) and <code>counts</code> (promoted transfers) — using <code>recurringBills</code> /
+  <code>recurringTransferIds</code>. Un-starring an auto-detected group also dismisses it so the star doesn't relight.
+  Every slice auto-saves to localStorage via effects; a badge-award effect runs <code>awardBadges</code> whenever inputs
+  change. <code>clearAll()</code> wipes the DATA_KEYS but deliberately keeps XP/streak/badges.</p>`,
+  files: [['src/store.tsx','StoreProvider, useStore, all actions']],
+  funcs: [
+    ['addImport(tx, source)','re-applies overrides, appends, +25 XP'],
+    ['loadSample()','sample txns + Netflix/Spotify pre-staged as subscriptions'],
+    ['setCategory / setCategoryBulk / setCategoryForMerchant','three edit levels'],
+    ['toggleRecurring(id) / setGroupRecurring(ids, v)','★ per charge / per group'],
+    ['setAlias(ids, name)','rename → merchant alias'],
+    ['setSubscriptionMeta / setRecurringKind / setRecurringDismissed / setTransferCounted','group tweaks'],
+    ['syncPlaidSource(id)','pull from server, replace that source’s rows'],
+    ['recordQuizResult(c, t)','history (last 50) + quizXp'],
+    ['clearAll()','wipes data keys, keeps GameState'],
+  ],
+},
+types: {
+  title: 'types.ts — data shapes', layer: 'state',
+  blurb: `<p>The vocabulary of the whole app, imported by nearly every module. <code>Transaction</code> (signed amount:
+  negative = money out; optional derived flags <code>recurring</code>/<code>counts</code>), <code>ColumnMapping</code>,
+  <code>ImportSource</code>, <code>SubscriptionMeta</code>, <code>GameState</code>, <code>QuizResult</code>,
+  <code>Budgets</code>, <code>StartingBalances</code>, <code>PaidOffDebts</code>, <code>ThemeMode</code>.
+  <code>Category</code> is a plain string (users can create their own); <code>BuiltinCategory</code> enumerates the 22
+  built-in ids.</p>`,
+  files: [['src/types.ts','all shared interfaces']],
+  funcs: [],
+},
+csvimport: {
+  title: 'CSV import engine', layer: 'logic',
+  blurb: `<p><code>importCsv.ts</code> turns parsed CSV rows into clean <code>Transaction</code>s:
+  <code>guessMapping</code> sniffs column names, <code>guessAccountType</code> tells bank vs credit-card exports,
+  <code>rowsToTransactions</code> normalizes each row — and on credit cards <b>drops the "payment" rows</b>
+  (<code>isCardPayment</code>) so paying the card from checking isn't double-counted. A bank-supplied category column is
+  honored via <code>coerceCategory</code> before falling back to keyword auto-categorization.</p>
+  <p><code>parse.ts</code> handles the messy raw values: dates in ISO / US / dotted / written forms (with M-D
+  auto-swap when the "month" is &gt;12) and amounts with $, commas, parentheses-negatives, and CR/DR markers.</p>`,
+  files: [
+    ['src/lib/importCsv.ts','mapping, normalization, payment-row removal'],
+    ['src/lib/parse.ts','parseDate, parseAmount'],
+  ],
+  funcs: [
+    ['rowsToTransactions(rows, mapping, opts)','the importer'],
+    ['guessMapping(headers) / guessAccountType(headers, rows)','smart defaults'],
+    ['mappingFitsHeaders(m, headers)','reuse last mapping when it still fits'],
+    ['parseDate(s) → "YYYY-MM-DD" | null',''],
+    ['parseAmount(s) → number (NaN if unparseable)',''],
+  ],
+},
+catlogic: {
+  title: 'Categories & auto-categorization', layer: 'logic',
+  blurb: `<p><code>categories.ts</code> is a <b>runtime registry</b>, not an enum: 22 built-in categories (label, color,
+  emoji) plus user overrides and custom categories, synced from the store via <code>applyCategoryConfig</code>. Each
+  category has a <code>kind</code> that drives all the math: <code>spending</code>, <code>income</code>, or
+  <code>excluded</code> (Transfers, Zelle — tracked but kept out of totals). <code>SUBSCRIPTIONS_CATEGORY</code> is the
+  single source of truth for what counts as a subscription.</p>
+  <p><code>categorize.ts</code> is the sorter: ~20 ordered keyword rules over a tokenized description (transfers first
+  so card payments never look like purchases; dining before transport so "Uber Eats" isn't a ride). Unmatched positive
+  amounts default to income.</p>`,
+  files: [
+    ['src/lib/categories.ts','registry, kinds, colors, custom categories'],
+    ['src/lib/categorize.ts','keyword rules, overrideKey'],
+  ],
+  funcs: [
+    ['categorize(description, amount) → Category','first matching rule wins'],
+    ['allCategories() / categoryDef(id) / categoryLabel·Color·Emoji(id)','registry reads'],
+    ['isSpendingCategory / isIncomeCategory / isExcludedCategory','the kind switch'],
+    ['applyCategoryConfig(cfg) / makeCategoryId(label)','customization'],
+    ['overrideKey(description)','normalized key for remembered edits'],
+  ],
+},
+merchant: {
+  title: 'Merchant identity', layer: 'logic',
+  blurb: `<p>Collapses noisy bank descriptors ("STARBUCKS #123 SEATTLE") into stable identities for grouping —
+  recurring detection, apply-to-similar, top merchants. <code>merchantKey</code> strips prefixes, ids, noise words and
+  state codes (Zelle/Venmo get keyed by counterparty). <code>groupKey</code> is the <b>alias-aware</b> identity: it
+  groups by display name, so renaming two descriptors to the same name reliably merges them.
+  <code>txSignature</code> (date|description|amount) pins flags to one specific charge so they survive re-imports.</p>`,
+  files: [['src/lib/merchant.ts','keys, labels, signatures']],
+  funcs: [
+    ['merchantKey(description)','stable lowercase merchant identity'],
+    ['groupKey(description, aliases)','display-name (alias-aware) group identity'],
+    ['groupLabel / displayDescription','what to show, honoring aliases'],
+    ['txSignature(date, desc, amount)','per-charge identity'],
+    ['sharesName(a, b)','do two descriptors share a significant word?'],
+  ],
+},
+analysis: {
+  title: 'Analysis engine — analysis.ts', layer: 'logic',
+  blurb: `<p>The calculator behind every number on screen. Ground rules: transfers/Zelle are excluded from all totals
+  <i>unless</i> a transaction carries the <code>counts</code> flag (<code>countsTowardTotals</code>); a positive amount
+  in a spending category is a <b>refund</b> — it subtracts from that category's spending in the month it lands instead of
+  counting as income (<code>isRefund</code> / <code>isRealIncome</code>).</p>
+  <p>Recurring detection groups counted expenses by <code>groupKey</code>; a group qualifies if ★-flagged, in the
+  Subscriptions category, repeating across 3+ months, or the <b>same amount</b> recurring 3+ times. Every group is then
+  classified <code>bill</code> (expected: flagged, subscription, bill-like category, or fixed amount) or
+  <code>habit</code> (varying amounts at a discretionary merchant) — user re-filings override.
+  <code>recurringTransfers</code> finds same-amount, same-day (±4) transfers across 3+ months and promotes them into the
+  totals. Covered by <code>analysis.test.ts</code>.</p>`,
+  files: [
+    ['src/lib/analysis.ts','totals, trends, recurring, budgets'],
+    ['src/lib/analysis.test.ts','unit tests (Vitest)'],
+  ],
+  funcs: [
+    ['totalSpending / totalIncome / totalRefunds / netTotal','headline math'],
+    ['spendingByCategory / monthlyTrend / topExpenses / headlineStats','dashboard feeds'],
+    ['recurringPayments / recurringBills / spendingHabits','grouped repeats + bill⇄habit'],
+    ['autoRecurringBill(txns, key, …)','"would detection alone list this group?"'],
+    ['recurringTransfers / recurringTransferIds','transfers that are really bills'],
+    ['spendingTrends','"Dining is up 40%" callouts (≥25% and ≥$25)'],
+    ['budgetStatus / excludedSummary / merchantStats / topMerchants','cards'],
+    ['filterByRange / filterByDateRange / monthKey / shiftMonth','time windows'],
+  ],
+},
+yearly: {
+  title: 'Year Sheet math — yearly.ts', layer: 'logic',
+  blurb: `<p>Builds the Year Sheet grid: per-category monthly actuals for one year, foldered into fixed sections
+  (Daily Living, Home, Transportation, Subscriptions &amp; Entertainment, Giving, Debt &amp; Fees, plus a trailing
+  "Other"). Months after the last actual month are <b>projected</b>: the category's budget if set, else its run-rate
+  average over the months the data actually covers (imports starting in April don't drag Jan–Mar into the average).
+  Positive amounts in spending categories fold into a synthetic <b>Refunds &amp; Cashback</b> income row.
+  <code>endBalances</code> runs the starting balance through the cumulative NET. Covered by <code>yearly.test.ts</code>.</p>`,
+  files: [
+    ['src/lib/yearly.ts','buildYearSheet, sections, projections'],
+    ['src/lib/yearly.test.ts','unit tests'],
+  ],
+  funcs: [
+    ['buildYearSheet(txns, year, budgets, now)','the whole grid'],
+    ['endBalances(startingBalance, net)','projected end-of-month balances'],
+    ['yearsPresent(txns)','which years have data'],
+  ],
+},
+fmt: {
+  title: 'Formatting — format.ts', layer: 'logic',
+  blurb: `<p>Presentation helpers used everywhere: USD currency (full, absolute, and compact "$1.2k" for chart axes),
+  percentages, and UTC-safe date/month formatting ("Apr 3, 2026", "Apr 2026").</p>`,
+  files: [['src/lib/format.ts','formatCurrency, formatDate, …']],
+  funcs: [
+    ['formatCurrency / formatAbs / formatCurrencyShort',''],
+    ['formatPercent / formatDate / formatMonth',''],
+  ],
+},
+quizengine: {
+  title: 'Quiz & daily question engine', layer: 'logic',
+  blurb: `<p><code>quiz.ts</code> builds multiple-choice questions from <b>your real numbers</b>: 11 per-time-range
+  generators (category spend, biggest category, % share, largest expense ×2, merchant visit count, average daily spend,
+  net, total spending, total income, transaction count) plus 8 one-offs (category trend, busiest weekday, recurring
+  count/total — <i>bills only</i>, budget vs actual, and three faith-informed ones: tithe total, tithe % of income, debt
+  payments, with scripture takeaways). Distractor builders round figures so the right answer doesn't stand out;
+  <code>pickSpread</code> round-robins kinds; most questions carry <b>evidence cards</b> listing the transactions behind
+  the figure. Returns 5–10 questions, reshuffled each call.</p>
+  <p><code>dailyQuestion.ts</code> wraps it into the one-a-day habit: personalized when data exists, otherwise a
+  deterministic pick from the 15 general literacy questions; saved under <code>moneyquiz.daily.v1</code> so reloads show
+  the same question; rolls at local midnight; answering pays XP (+bonus when correct).</p>`,
+  files: [
+    ['src/lib/quiz.ts','generators, choices, evidence, insights'],
+    ['src/lib/quiz.test.ts','unit tests'],
+    ['src/lib/dailyQuestion.ts','daily state, rollover, XP'],
+    ['src/lib/dailyQuestion.test.ts','unit tests'],
+  ],
+  funcs: [
+    ['generateQuiz(txns, opts) → QuizQuestion[]','5–10 varied questions'],
+    ['quizInsights(txns, askedKinds, opts)','end-of-quiz summary, only asked topics'],
+    ['askedKinds(questions)','base kinds present in a quiz'],
+    ['getDailyState(txns, opts) / answerDaily(state, choice)','idempotent per day'],
+    ['dailyQuestionXp(correct)','10 + 5 bonus'],
+  ],
+},
+gamelogic: {
+  title: 'Gamification — XP, streaks, badges', layer: 'logic',
+  blurb: `<p><code>gamification.ts</code>: pure XP math. Opening the app on a new day checks in (+10 XP + streak bonus,
+  capped); quizzes earn 10/correct + 15 completion + 25 perfect; imports +25; the daily question 10 (+5 correct).
+  Levels follow <code>50·n·(n−1)</code> with stewardship titles (Steward in Training → Good &amp; Faithful Steward, after
+  Luke 16:10). <code>badges.ts</code>: 7 one-time achievements (First Steps, Week/Month streaks, perfect quiz, Cheerful
+  Giver — 3 consecutive giving months, First Fruits — a month at the 10% benchmark, Debt Slayer) stamped by
+  <code>awardBadges</code>, which returns the same object when nothing is new so the store's effect can't loop.
+  Giving earns badges, never XP — by design. GameState survives "Clear all data".</p>`,
+  files: [
+    ['src/lib/gamification.ts','XP table, checkIn, levels, titles'],
+    ['src/lib/gamification.test.ts','unit tests'],
+    ['src/lib/badges.ts','BADGES, earnedBadgeIds, awardBadges'],
+    ['src/lib/badges.test.ts','unit tests'],
+  ],
+  funcs: [
+    ['checkIn(state, day)','idempotent daily streak + XP'],
+    ['quizXp(correct, total) / levelProgress(xp) / levelTitle(level)',''],
+    ['awardBadges(game, inputs)','stamps new badges, never un-awards'],
+  ],
+},
+faithlogic: {
+  title: 'Giving & debt math', layer: 'logic',
+  blurb: `<p><code>giving.ts</code>: tithes + charity rolled together and measured against income —
+  <code>givingStats</code>, per-month <code>monthlyGiving</code>, and progress toward a %-of-income
+  <code>givingGoalStatus</code>, with the traditional 10% tithe as the benchmark line. <code>debt.ts</code>: recurring
+  payments narrowed to the Loans &amp; Debt category, a monthly trend, and <code>paidOffCandidates</code> — recurring
+  loans that have gone quiet for 45+ days <i>measured against the newest transaction in the data</i> (not the wall
+  clock), so a stale import doesn't cry wolf. Both covered by tests.</p>`,
+  files: [
+    ['src/lib/giving.ts','givingStats, monthlyGiving, goal'],
+    ['src/lib/giving.test.ts','unit tests'],
+    ['src/lib/debt.ts','debtRecurring, paidOffCandidates'],
+    ['src/lib/debt.test.ts','unit tests'],
+  ],
+  funcs: [
+    ['givingStats(txns) / monthlyGiving(txns) / givingGoalStatus(...)',''],
+    ['paidOffCandidates(txns, …)','45-day quiet detector vs newest data'],
+  ],
+},
+exportdata: {
+  title: 'Export & report — exportData.ts', layer: 'logic',
+  blurb: `<p>Builds the downloads on the Settings screen: transactions as CSV or JSON, and a plain-text summary report
+  (totals, category breakdown, top expenses, recurring payments) that can be opened in a print dialog.</p>`,
+  files: [['src/lib/exportData.ts','CSV/JSON download, buildReport, printReport']],
+  funcs: [
+    ['transactionsToCsv / transactionsToJson',''],
+    ['buildReport(txns) / printReport(text) / downloadText(...)',''],
+  ],
+},
+plaidclient: {
+  title: 'Plaid client', layer: 'logic',
+  blurb: `<p><code>plaid.ts</code> is the browser-side client for the optional local server (base URL
+  <code>http://localhost:8787</code>, overridable via <code>VITE_PLAID_API</code>): health check, link-token creation,
+  mock connect, token exchange, sync, item list/remove — plus <code>openPlaidLink</code>, which loads Plaid's hosted
+  Link script so bank credentials never touch this app. <code>plaidMap.ts</code> converts Plaid transactions to our
+  model: flips the sign (Plaid: positive = money out), maps Plaid's Personal Finance Category taxonomy onto our
+  category ids, and lets our own keyword pass win for Zelle and Subscriptions.</p>`,
+  files: [
+    ['src/lib/plaid.ts','plaidApi.*, openPlaidLink'],
+    ['src/lib/plaidMap.ts','mapPlaidTransactions, taxonomy map'],
+  ],
+  funcs: [
+    ['plaidApi.health / createLinkToken / mockConnect / exchange / sync / items / removeItem','HTTP calls'],
+    ['openPlaidLink(token, onSuccess, onExit)','loads cdn.plaid.com Link'],
+    ['mapPlaidTransactions(txns, sourceId)','Plaid shape → Transaction'],
+  ],
+},
+storage: {
+  title: 'storage.ts — localStorage wrapper', layer: 'data',
+  blurb: `<p>A tiny typed wrapper around <code>localStorage</code> — nothing here ever leaves the browser.
+  <code>STORAGE_KEYS</code> names every key the app owns (all prefixed <code>moneyquiz.…v1</code>);
+  <code>DATA_KEYS</code> is the subset wiped by "Clear all data" — deliberately excluding the <code>game</code> key so
+  XP/streak/badges survive, and the <code>theme</code> key. <code>loadJSON</code>/<code>saveJSON</code> fail silently
+  (private mode, full storage). <code>newId()</code> makes UUIDs for transactions and sources. See the
+  <b>Database</b> tab for every key.</p>`,
+  files: [['src/lib/storage.ts','STORAGE_KEYS, DATA_KEYS, loadJSON/saveJSON, newId']],
+  funcs: [
+    ['loadJSON(key, fallback) / saveJSON(key, value) / removeKey(key)',''],
+    ['newId()','crypto.randomUUID with fallback'],
+  ],
+},
+localstore: {
+  title: 'Browser localStorage', layer: 'data',
+  blurb: `<p>The "notebook". All persistent app data lives here as JSON under <code>moneyquiz.*</code> keys — see the
+  <b>Database</b> tab for the full schema. Nothing is sent to any server: CSV import is 100% local, and even
+  Plaid-synced transactions end up here, in your browser.</p>`,
+  files: [],
+  funcs: [],
+},
+sampledata: {
+  title: 'Bundled data — src/data/', layer: 'data',
+  blurb: `<p><code>sampleData.ts</code>: 68 realistic transactions spanning Apr–Jun 2026 (frequent Starbucks, a laptop
+  as the obvious largest expense, recurring rent/payroll, a monthly church tithe) so the whole app demos without an
+  upload; also exports the sample as CSV. <code>verses.ts</code>: 49 scripture verses on money &amp; stewardship
+  (World English Bible, public domain) with a deterministic days-since-epoch picker. <code>generalQuestions.ts</code>:
+  15 general money-literacy questions used by the daily question when no data is connected.</p>`,
+  files: [
+    ['src/data/sampleData.ts','68 sample rows + sampleCsv()'],
+    ['src/data/verses.ts','49 verses + verseForDay()'],
+    ['src/data/verses.test.ts','unit tests'],
+    ['src/data/generalQuestions.ts','15 literacy questions'],
+  ],
+  funcs: [
+    ['loadSampleTransactions()','rows → categorized Transactions'],
+    ['verseForDay(date)','deterministic daily rotation'],
+  ],
+},
+plaidserver: {
+  title: 'Plaid helper server (optional)', layer: 'ext',
+  blurb: `<p>A single-file, <b>dependency-free</b> Node HTTP server (<code>npm run server</code>, port 8787). It exists
+  because Plaid's API secret can never live in the browser. Endpoints: <code>GET /api/health</code>,
+  <code>POST /api/plaid/create_link_token</code>, <code>mock_connect</code>, <code>exchange_public_token</code>,
+  <code>sync</code> (cursor-based <code>/transactions/sync</code> loop), <code>GET/DELETE /api/plaid/items</code>.</p>
+  <p>Without <code>PLAID_CLIENT_ID</code>/<code>PLAID_SECRET</code> (see <code>.env.example</code>) it runs in
+  <b>mock mode</b>, serving ~20 realistic fake transactions so the whole connect flow works offline. Access tokens are
+  stored in <code>server/.data/store.json</code> (gitignored). Single-user, local — not a multi-tenant service.</p>`,
+  files: [
+    ['server/plaidServer.mjs','the whole server'],
+    ['.env.example','PLAID_CLIENT_ID / PLAID_SECRET / PLAID_ENV'],
+    ['server/.data/store.json','runtime token store (gitignored)'],
+  ],
+  funcs: [
+    ['handlers map','method+path → async handler'],
+    ['mockTransactions(accountType)','Plaid-shaped fake data'],
+    ['plaid(path, body)','authenticated fetch to *.plaid.com'],
+  ],
+},
+plaidapi: {
+  title: 'Plaid API', layer: 'ext',
+  blurb: `<p>The real <code>https://{sandbox|production}.plaid.com</code> REST API, reached only from the helper
+  server (never the browser). Bank login happens inside Plaid's hosted Link UI
+  (<code>cdn.plaid.com/link/v2/stable/link-initialize.js</code>), so credentials never touch this codebase. Entirely
+  optional: mock mode and CSV import work with no Plaid account at all.</p>`,
+  files: [],
+  funcs: [],
+},
+};
+
+/* ---------------- extra files for search (config / docs) ---------------- */
+const EXTRA_FILES = [
+  ['README.md', null, 'project guide & feature tour'],
+  ['ARCHITECTURE.md', null, 'plain-English architecture doc (verified by this page)'],
+  ['tsconfig.json', 'entry', 'TS project references'],
+  ['tsconfig.app.json', 'entry', 'app TS config'],
+  ['tsconfig.node.json', 'entry', 'node-side TS config'],
+  ['public/coin.svg', 'entry', 'favicon'],
+  ['src/vite-env.d.ts', 'entry', 'Vite type shims'],
+  ['.gitignore', null, 'ignores server/.data, dist, …'],
+  ['.env.example', 'plaidserver', 'Plaid env template'],
+];
+
+/* ================================================================
+   DATA FLOWS
+   ================================================================ */
+const FLOWS = [
+{
+  id: 'quiz',
+  label: '🎯 Taking the quiz & getting results',
+  steps: [
+    { t: 'Open the Quiz tab', nodes: ['app','quizview'],
+      b: `You click <b>Quiz</b> in the nav. <code>App.tsx</code> flips its <code>view</code> state to <code>'quiz'</code>
+      and renders <code>QuizView</code>. While a quiz is mid-flight, QuizView reports "dirty" upward through a ref —
+      if you try to navigate away, App shows the <i>"Leave the quiz?"</i> dialog instead of switching, so progress isn't
+      lost by accident. The intro screen also shows the <b>Daily Question</b> card and your badge case.` },
+    { t: 'Press “Start quiz”', nodes: ['quizview','store','quizengine'],
+      b: `<code>QuizView.start()</code> pulls the live transaction list (and budgets, aliases, dismissed groups,
+      bill⇄habit re-filings) from <code>useStore()</code> and calls
+      <code>generateQuiz(transactions, {budgets, aliases, dismissedRecurring, recurringKinds})</code> in
+      <code>src/lib/quiz.ts</code>. If fewer than 3 questions can be built, a "not enough data yet" notice appears
+      instead.` },
+    { t: 'Questions are generated from your real numbers', nodes: ['quizengine','analysis','merchant','catlogic'],
+      b: `<code>buildCtx</code> slices the data into time ranges that actually have transactions (this month, last
+      month, this year). Eleven per-range generators plus eight one-off generators each compute a real figure through
+      <code>analysis.ts</code> — <code>spendingByCategory</code>, <code>totalSpending</code>, <code>totalIncome</code>
+      (refunds excluded), <code>recurringBills</code> (bills only, habits left out) — then wrap it in multiple choice.
+      Distractor builders (<code>moneyChoices</code>, <code>countChoices</code>, <code>pctChoices</code>) round values
+      so the correct answer doesn't stand out by precision. <code>pickSpread</code> round-robins question types and
+      returns 5–10 questions, reshuffled every run.` },
+    { t: 'You answer — and see the receipts', nodes: ['quizview'],
+      b: `Each tap calls <code>choose()</code>: the option grid locks, the correct answer turns green,
+      <code>answerDetail</code> states the real figure and <code>takeaway</code> adds a one-sentence insight. Most
+      questions also carry <b>evidence cards</b> ("the numbers behind this answer") — the actual transactions the
+      figure came from, built by <code>txCard()</code> (capped at 25 rows); trend questions show the two months side by
+      side.` },
+    { t: 'Finishing records the result', nodes: ['quizview','store','gamelogic'],
+      b: `On the last question, "See results" calls <code>recordQuizResult(correct, total)</code> in the store: the
+      attempt is appended to <code>quizHistory</code> (only the last 50 kept) and
+      <code>quizXp()</code> awards <b>10 XP per correct + 15 for finishing + 25 for a perfect score</b>. The Results
+      screen shows the score, the +XP chip, <code>quizInsights()</code> (filtered to only the topics this quiz actually
+      asked about), past scores, and a per-question review.` },
+    { t: 'Side effects: persistence & badges', nodes: ['store','storage','localstore','gamelogic'],
+      b: `Store effects fire automatically: <code>saveJSON</code> writes <code>moneyquiz.quizHistory.v1</code> and
+      <code>moneyquiz.game.v1</code> to localStorage, and the badge effect re-runs <code>awardBadges</code> — a perfect
+      score stamps the <b>🎯 Know Your Flock</b> badge (never un-awarded). The XP bar in the sidebar updates instantly
+      because every component reads the same store context.` },
+  ],
+},
+{
+  id: 'import',
+  label: '📥 Importing a CSV → seeing the Dashboard',
+  steps: [
+    { t: 'Drop a CSV on the Import screen', nodes: ['importview'],
+      b: `<code>ImportView.handleFile()</code> hands the file to <b>PapaParse</b>
+      (<code>header: true, skipEmptyLines: 'greedy'</code>) — parsing happens entirely in the browser; the file is never
+      uploaded anywhere. With headers and rows in hand, the view switches to the mapping stage.` },
+    { t: 'Map the columns', nodes: ['importview','csvimport'],
+      b: `<code>ColumnMapping</code> shows dropdowns pre-filled by <code>guessMapping(headers)</code> (regex sniffing
+      for date/description/amount/debit/credit/category columns) and <code>guessAccountType()</code> (a "Balance"
+      column smells like a bank; payment markers smell like a credit card). A saved mapping from last time is reused
+      when <code>mappingFitsHeaders()</code> says it still matches. A live preview shows exactly how rows will import.` },
+    { t: 'Rows become clean Transactions', nodes: ['csvimport','catlogic'],
+      b: `<code>rowsToTransactions()</code> normalizes every row: <code>parseDate</code> handles US/ISO/written dates,
+      <code>parseAmount</code> handles "$1,234.56" and "(45.00)", HTML entities are cleaned. On credit-card files,
+      payment rows (<code>isCardPayment</code> — "PAYMENT THANK YOU" etc.) are <b>dropped</b> so spending isn't counted
+      twice. The category comes from the bank's own column when one maps (<code>coerceCategory</code>), otherwise from
+      <code>categorize()</code>'s keyword rules — transfers and Zelle checked first so internal money movement never
+      looks like spending.` },
+    { t: 'Into the store', nodes: ['store','gamelogic'],
+      b: `<code>store.addImport(transactions, source)</code> first runs <code>withOverrides()</code> — re-applying your
+      remembered category edits by exact description, then by merchant — so re-imports come in already fixed. The rows
+      are appended to <code>rawTransactions</code>, the file is recorded as an <code>ImportSource</code> (so it can be
+      removed later), and the import earns <b>+25 XP</b>.` },
+    { t: 'Persist & derive the live list', nodes: ['store','storage','localstore','analysis'],
+      b: `Effects save everything to localStorage (<code>moneyquiz.transactions.v1</code>,
+      <code>moneyquiz.sources.v1</code>, …). The store's central <code>useMemo</code> then derives the <b>live</b> list:
+      each transaction is stamped with <code>recurring</code> (★ — manually flagged, or its group appears in the
+      Recurring &amp; subscriptions list via <code>recurringBills</code>) and <code>counts</code> (recurring same-amount
+      transfers promoted into the totals via <code>recurringTransferIds</code>). These two flags are never persisted —
+      they're recomputed whenever inputs change.` },
+    { t: 'The Dashboard lights up', nodes: ['dashboard','analysis','charts','dashcards'],
+      b: `Every consumer of <code>useStore()</code> re-renders. The Dashboard filters to the selected range and calls
+      the analysis engine: <code>headlineStats</code> → Income/Spending/Net cards (refunds netted against spending),
+      <code>spendingByCategory</code> → the donut, <code>monthlyTrend</code> → the bar chart, plus the recurring /
+      habits / giving / debt / budget cards. Clicking any number drills into <code>CategoryDetailModal</code>, where
+      each row can be recategorized, renamed, or ★-flagged — and those edits flow right back into the store,
+      updating every screen at once.` },
+  ],
+},
+];
+
+/* ================================================================
+   DATABASE TAB
+   ================================================================ */
+const DB_NODES = [
+  { id:'importsource', layer:'data',  x:30,  y:40,  w:230, h:64, t:'ImportSource[]', s:'moneyquiz.sources.v1' },
+  { id:'tx',           layer:'state', x:420, y:30,  w:260, h:84, t:'Transaction[]', s:'moneyquiz.transactions.v1 · the heart' },
+  { id:'catdef',       layer:'logic', x:810, y:40,  w:260, h:64, t:'CategoryConfig', s:'moneyquiz.categories.v1' },
+  { id:'merchmem',     layer:'data',  x:810, y:160, w:260, h:84, t:'Merchant-keyed memory', s:'aliases · merchantOverrides · ★ recurring · groupMeta' },
+  { id:'descmem',      layer:'data',  x:810, y:290, w:260, h:64, t:'Description-keyed memory', s:'overrides (exact description → category)' },
+  { id:'groupmem',     layer:'data',  x:810, y:400, w:260, h:84, t:'Group-keyed memory', s:'dismissedRecurring · recurringKinds · paidOffDebts' },
+  { id:'sigmem',       layer:'data',  x:420, y:430, w:260, h:64, t:'Signature-keyed memory', s:'recurringTxns (one specific charge)' },
+  { id:'prefs',        layer:'data',  x:420, y:170, w:260, h:84, t:'Preferences & settings', s:'budgets · startingBalances · givingGoal · mapping · theme' },
+  { id:'game',         layer:'state', x:30,  y:170, w:230, h:74, t:'GameState', s:'moneyquiz.game.v1 — survives Clear' },
+  { id:'quizresult',   layer:'data',  x:30,  y:300, w:230, h:64, t:'QuizResult[]', s:'moneyquiz.quizHistory.v1 (last 50)' },
+  { id:'daily',        layer:'data',  x:30,  y:420, w:230, h:64, t:'DailyState', s:'moneyquiz.daily.v1 (today’s question)' },
+  { id:'serverstore',  layer:'ext',   x:420, y:550, w:260, h:74, t:'server/.data/store.json', s:'Plaid items + tokens (on disk, gitignored)' },
+];
+const DB_EDGES = [
+  { e:['tx','importsource'], label:'sourceId → id' },
+  { e:['tx','catdef'], label:'category → id' },
+  { e:['merchmem','tx'], label:'merchantKey(description)' },
+  { e:['descmem','tx'], label:'overrideKey(description)' },
+  { e:['groupmem','tx'], label:'groupKey(description, aliases)' },
+  { e:['sigmem','tx'], label:'txSignature(date, desc, amt)' },
+  { e:['prefs','catdef'], label:'budgets keyed by category id' },
+  { e:['daily','quizresult'], label:'' },
+  { e:['serverstore','tx'], label:'sync → mapPlaidTransactions' },
+];
+
+const DB_DETAILS = {
+importsource: {
+  title: 'ImportSource[]', store: 'moneyquiz.sources.v1', cleared: true,
+  blurb: 'One row per imported file or connected bank account, so each can be listed, synced (Plaid), and removed together with its transactions.',
+  fields: [
+    ['id','string','UUID (or Plaid item id); transactions point here via sourceId'],
+    ['fileName','string','file name, or institution name for Plaid'],
+    ['importedAt','string','ISO timestamp'],
+    ['accountType',"'bank' | 'credit'",'credit → payment rows were dropped at import'],
+    ['count','number','transactions contributed'],
+    ['dropped','number','card-payment rows removed'],
+    ['kind?',"'file' | 'plaid'",'default file'],
+    ['institution?','string','Plaid only'],
+  ],
+},
+tx: {
+  title: 'Transaction[]', store: 'moneyquiz.transactions.v1', cleared: true,
+  blurb: 'The central entity — every purchase or deposit. The store persists the raw rows; the two derived flags below are stamped at runtime and never saved.',
+  fields: [
+    ['id','string','UUID (or "plaid:<txid>")'],
+    ['date','string','always normalized to YYYY-MM-DD'],
+    ['description','string','raw bank descriptor (display may use an alias)'],
+    ['amount','number','signed: negative = money out, positive = money in'],
+    ['category','string','category id, resolved through the registry'],
+    ['overridden?','boolean','user manually changed the category'],
+    ['recurring?','boolean','DERIVED at runtime: the ★ flag'],
+    ['counts?','boolean','DERIVED at runtime: promoted recurring transfer'],
+    ['sourceId?','string','→ ImportSource.id'],
+  ],
+},
+catdef: {
+  title: 'CategoryConfig (+ CategoryDef registry)', store: 'moneyquiz.categories.v1', cleared: false,
+  blurb: '22 built-in categories live in code (categories.ts); this key stores only the user’s customizations, merged into the live registry at load.',
+  fields: [
+    ['overrides','Record<id, {label?, color?, emoji?}>','re-skins for built-ins'],
+    ['custom','CategoryDef[]','fully user-defined categories (kind: spending)'],
+    ['CategoryDef.kind',"'spending' | 'income' | 'excluded'",'drives all math: excluded = transfers/Zelle'],
+  ],
+},
+merchmem: {
+  title: 'Merchant-keyed memory (4 maps)', store: 'aliases.v1 · merchantOverrides.v1 · recurring.v1 · groupMeta.v1', cleared: true,
+  blurb: 'Four localStorage maps keyed by merchantKey(description), so edits survive re-imports of the same merchant.',
+  fields: [
+    ['aliases','Record<merchantKey, string>','clean display names (renames); also changes grouping'],
+    ['merchantOverrides','Record<merchantKey, Category>','"apply to all charges from this merchant"'],
+    ['recurring (★)','Record<merchantKey, true>','whole-merchant recurring flags'],
+    ['groupMeta','Record<merchantKey, SubscriptionMeta>','cadence · billingDay · renewalDate · endedDate'],
+    ['(legacy)','subscriptions.v1 / subscriptionTxns.v1','read once and migrated into recurring/groupMeta'],
+  ],
+},
+descmem: {
+  title: 'Description-keyed memory', store: 'moneyquiz.overrides.v1', cleared: true,
+  blurb: 'Category edits remembered by normalized exact description (overrideKey). Checked BEFORE the merchant-level map when re-applying edits to fresh imports.',
+  fields: [
+    ['overrides','Record<overrideKey, Category>','set by setCategory / setCategoryBulk'],
+  ],
+},
+groupmem: {
+  title: 'Group-keyed memory (3 maps)', store: 'dismissedRecurring.v1 · recurringKinds.v1 · paidOffDebts.v1', cleared: true,
+  blurb: 'Keyed by groupKey — the alias-aware display-name identity — because these decisions apply to a whole recurring group even when it spans multiple raw descriptors.',
+  fields: [
+    ['dismissedRecurring','Record<groupKey, true>','groups removed from the Recurring list'],
+    ['recurringKinds',"Record<groupKey, 'bill' | 'habit'>",'user re-filings, override the heuristic'],
+    ['paidOffDebts','Record<groupKey, ISO date>','loans confirmed paid off 🎉'],
+  ],
+},
+sigmem: {
+  title: 'Signature-keyed memory', store: 'moneyquiz.recurringTxns.v1', cleared: true,
+  blurb: 'Per-charge ★ flags keyed by txSignature(date|description|amount) — so ONE Amazon charge can be marked recurring without flagging all of Amazon, surviving re-imports.',
+  fields: [
+    ['recurringTxns','Record<txSignature, true>','single-charge ★ flags'],
+  ],
+},
+prefs: {
+  title: 'Preferences & settings', store: 'budgets · startingBalances · givingGoal · mapping · theme', cleared: 'mixed',
+  blurb: 'Small scalar/map settings. All wiped by Clear-all-data except theme.',
+  fields: [
+    ['budgets','Record<Category, number>','monthly budget per category (moneyquiz.budgets.v1)'],
+    ['startingBalances','Record<"YYYY", number>','Year Sheet starting balance per year'],
+    ['givingGoal','number','% of income; 0 = unset'],
+    ['mapping','ColumnMapping','last CSV column mapping, reused next import'],
+    ['theme',"'light' | 'dark'",'NOT wiped by Clear all data'],
+  ],
+},
+game: {
+  title: 'GameState', store: 'moneyquiz.game.v1', cleared: false,
+  blurb: 'XP, streak, and badges. Deliberately NOT in DATA_KEYS — clearing your data never takes the level you earned.',
+  fields: [
+    ['xp','number','lifetime points; level derived via 50·n·(n−1)'],
+    ['streak','number','consecutive days, counting today'],
+    ['bestStreak','number','high-water mark (feeds streak badges)'],
+    ['lastActiveDay','string','YYYY-MM-DD local — makes checkIn idempotent'],
+    ['badges','Record<badgeId, ISO date>','7 possible ids, never un-awarded'],
+  ],
+},
+quizresult: {
+  title: 'QuizResult[]', store: 'moneyquiz.quizHistory.v1', cleared: true,
+  blurb: 'One row per finished quiz; only the most recent 50 are kept.',
+  fields: [
+    ['at','string','ISO timestamp'],
+    ['correct','number',''],
+    ['total','number',''],
+  ],
+},
+daily: {
+  title: 'DailyState', store: 'moneyquiz.daily.v1', cleared: true,
+  blurb: 'Today’s daily question, saved so reloads show the same one; regenerated after local midnight. Wiped with the data since a personalized question can embed your figures.',
+  fields: [
+    ['day','string','YYYY-MM-DD (local) it was generated for'],
+    ['question','QuizQuestion','prompt, options, correctIndex, detail, takeaway'],
+    ['source',"'personal' | 'general'",'your data vs the literacy bank'],
+    ['answer','number | null','first answer wins'],
+  ],
+},
+serverstore: {
+  title: 'server/.data/store.json', store: 'on disk, next to the server (gitignored)', cleared: 'n/a (delete the file / remove items)',
+  blurb: 'The optional Plaid server’s only persistence: connected items, their access tokens, sync cursors, and a transaction cache. Never leaves your machine.',
+  fields: [
+    ['items','Record<itemId, Item>','one per connected bank'],
+    ['Item.institution / accountType','string','display + credit handling'],
+    ['Item.accessToken?','string','real mode only — the secret the browser must never see'],
+    ['Item.mock?','boolean','mock-mode items serve fake data'],
+    ['Item.cursor','string | null','for incremental /transactions/sync'],
+    ['Item.transactions','Record<txId, PlaidTxn>','cache merged on each sync'],
+  ],
+},
+};
+
+const STORAGE_KEY_ROWS = [
+  ['moneyquiz.transactions.v1','Raw imported transactions (flags are derived, not stored)', true],
+  ['moneyquiz.mapping.v1','Last CSV column mapping', true],
+  ['moneyquiz.overrides.v1','Category edits by exact description', true],
+  ['moneyquiz.merchantOverrides.v1','Category edits by merchant', true],
+  ['moneyquiz.sources.v1','Imported files / connected accounts', true],
+  ['moneyquiz.recurring.v1','★ recurring flags per merchant', true],
+  ['moneyquiz.recurringTxns.v1','★ recurring flags per single charge (signature)', true],
+  ['moneyquiz.subscriptions.v1 / subscriptionTxns.v1','Legacy keys — read once and migrated into recurring/groupMeta', true],
+  ['moneyquiz.groupMeta.v1','Cadence / billing day / renewal / ended per merchant', true],
+  ['moneyquiz.aliases.v1','Merchant renames (clean display names)', true],
+  ['moneyquiz.ignoredTransfers.v1','Recurring transfers opted OUT of counting', true],
+  ['moneyquiz.dismissedRecurring.v1','Groups removed from the Recurring list', true],
+  ['moneyquiz.recurringKinds.v1','Bill ⇄ habit re-filings per group', true],
+  ['moneyquiz.daily.v1','Today’s daily question + answer', true],
+  ['moneyquiz.categories.v1','Category customizations (overrides + custom)', false],
+  ['moneyquiz.budgets.v1','Monthly budget per category', true],
+  ['moneyquiz.quizHistory.v1','Past quiz scores (last 50)', true],
+  ['moneyquiz.startingBalances.v1','Year Sheet starting balance per year', true],
+  ['moneyquiz.givingGoal.v1','Giving goal (% of income)', true],
+  ['moneyquiz.paidOffDebts.v1','Loans confirmed paid off', true],
+  ['moneyquiz.game.v1','XP · streak · badges — kept on purpose', false],
+  ['moneyquiz.theme.v1','Light / dark preference', false],
+];
+
+/* ================================================================
+   START HERE
+   ================================================================ */
+const START_STEPS = [
+  { t: 'Run it first', f: 'README.md · package.json',
+    p: `<code>npm install && npm run dev</code>, click <b>Load sample data</b>, take a quiz, click around the Dashboard
+    and Year Sheet. Ten minutes of using the app makes every file below instantly recognizable. (<code>npm test</code>
+    runs the Vitest suite; <code>npm run server</code> starts the optional Plaid backend in mock mode.)`},
+  { t: 'Learn the vocabulary', f: 'src/types.ts',
+    p: `Small and dense: <code>Transaction</code> (signed amounts; which flags are derived vs stored),
+    <code>ColumnMapping</code>, <code>ImportSource</code>, <code>GameState</code>. Every other file speaks in these
+    types.`},
+  { t: 'See where data lives', f: 'src/lib/storage.ts',
+    p: `One screen of code that demystifies persistence: every localStorage key the app owns, and the
+    <code>DATA_KEYS</code> vs <code>game</code>/<code>theme</code> split that makes "Clear all data" keep your level.`},
+  { t: 'Identity & categorization', f: 'src/lib/merchant.ts · src/lib/categorize.ts · src/lib/categories.ts',
+    p: `The three ideas the analysis depends on: <code>merchantKey</code>/<code>groupKey</code>/<code>txSignature</code>
+    (what counts as "the same merchant / group / charge"), the keyword sorter, and the category <i>registry</i> with its
+    crucial <code>kind</code> field (spending / income / excluded) — the reason transfers never pollute your totals.`},
+  { t: 'The calculator', f: 'src/lib/analysis.ts (+ analysis.test.ts)',
+    p: `The biggest and most important lib file. Read in order: <code>countsTowardTotals</code>, the refund rules
+    (<code>isRefund</code>/<code>isRealIncome</code>), the totals, then recurring detection
+    (<code>recurringPayments</code> → bill ⇄ habit classification) and <code>recurringTransfers</code>. The tests
+    document the intended behavior of every edge case.`},
+  { t: 'The brain', f: 'src/store.tsx',
+    p: `Now the store makes sense: raw transactions + the memory maps you saw in storage.ts, the derived
+    <code>useMemo</code> that stamps ★/<code>counts</code>, and ~25 actions the screens call. Note the ref pattern
+    (StrictMode double-invoke safety) and the badge-award effect.`},
+  { t: 'Shell & navigation', f: 'src/App.tsx · src/components/Nav.tsx',
+    p: `Tiny after the store: one <code>view</code> state, five screens, two confirm dialogs, lazy-loaded
+    Dashboard/Year Sheet. There is no router — keep that in mind when you look for URLs.`},
+  { t: 'Follow an import', f: 'src/components/ImportView.tsx · ColumnMapping.tsx · src/lib/importCsv.ts · parse.ts',
+    p: `The full ingest path (also walked step-by-step in the <b>Data Flow</b> tab): PapaParse → guessed mapping →
+    <code>rowsToTransactions</code> → <code>store.addImport</code>. Pay attention to credit-card payment removal — the
+    subtlest correctness rule in the app.`},
+  { t: 'The read side', f: 'src/components/Dashboard.tsx · cards · charts · CategoryDetailModal.tsx',
+    p: `Dashboard is a pure consumer: filter by range, call analysis functions, render. Then open
+    <code>CategoryDetailModal</code> + the three "similar" hooks (<code>ApplyToSimilar</code>,
+    <code>RenameDescription</code>, <code>RecurringSimilar</code>) — the app's edit-once-fix-everywhere pattern.`},
+  { t: 'The quiz engine', f: 'src/lib/quiz.ts · dailyQuestion.ts · src/components/QuizView.tsx',
+    p: `Generators compute real figures and wrap them in multiple choice with carefully rounded distractors; evidence
+    cards justify each answer. <code>dailyQuestion.ts</code> reuses it for the one-a-day habit loop.`},
+  { t: 'The extras', f: 'src/lib/yearly.ts · gamification.ts · badges.ts · giving.ts · debt.ts',
+    p: `Each is small, pure, and tested: the Year Sheet grid with projections, XP/levels/streaks, badge rules,
+    giving stats, and the paid-off-loan detector. Read whichever the feature you're touching needs.`},
+  { t: 'Only if you touch bank connections', f: 'server/plaidServer.mjs · src/lib/plaid.ts · plaidMap.ts',
+    p: `A dependency-free Node server with a handlers map, mock mode, and a JSON token store; the client wraps it in
+    <code>plaidApi</code>. Run <code>npm run server</code> and click "Connect (demo)" to see the whole loop without a
+    Plaid account.`},
+];
+
+/* ================================================================
+   DOC DRIFT
+   ================================================================ */
+const DRIFT = [
+  { t: 'App.tsx screen list omitted the Year Sheet',
+    doc: '§5 said App.tsx “decides which screen you’re looking at (Import, Dashboard, Quiz, or Settings)”.',
+    code: 'src/App.tsx and Nav.tsx route five screens — Import, Dashboard, Year Sheet (view id “yearly”), Quiz, Settings — and lazy-load Dashboard and YearSheetView to keep Recharts out of the initial bundle.',
+  },
+  { t: 'Sample dataset size was off',
+    doc: '§“src/data” said sampleData.ts is “a pretend set of ~65 transactions”.',
+    code: 'SAMPLE_ROWS in src/data/sampleData.ts contains 68 transactions (Apr–Jun 2026). (The file’s own comment and the Import screen copy say “~60” — directionally fine, but the doc now says 68.)',
+  },
+  { t: 'Category edits are remembered at TWO levels, not one',
+    doc: '§7 said remembered edits include “category edits and renames (aliases) — per merchant, survive re-imports”.',
+    code: 'store.tsx keeps category edits in two maps applied in order: overrides (keyed by normalized exact description via overrideKey — set by setCategory/setCategoryBulk) first, then merchantOverrides (keyed by merchantKey — set by “apply to all from this merchant”). Renames are per merchant. withOverrides() re-applies description-level edits before merchant-level ones on every import.',
+  },
+];
+
+/* ================================================================
+   DIAGRAM ENGINE (vanilla SVG)
+   ================================================================ */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+function anchors(n) {
+  return {
+    top:    { x: n.x + n.w / 2, y: n.y,        dx: 0,  dy: -1 },
+    bottom: { x: n.x + n.w / 2, y: n.y + n.h,  dx: 0,  dy: 1 },
+    left:   { x: n.x,           y: n.y + n.h/2, dx: -1, dy: 0 },
+    right:  { x: n.x + n.w,     y: n.y + n.h/2, dx: 1,  dy: 0 },
+  };
+}
+function bestAnchors(a, b) {
+  const A = anchors(a), B = anchors(b);
+  let best = null, bestD = Infinity;
+  for (const ka in A) for (const kb in B) {
+    const p = A[ka], q = B[kb];
+    const d = Math.hypot(p.x - q.x, p.y - q.y);
+    if (d < bestD) { bestD = d; best = [p, q]; }
+  }
+  return best;
+}
+
+function renderDiagram(svgId, nodes, edges, opts = {}) {
+  const svg = document.getElementById(svgId);
+  const vb = opts.viewBox || '0 0 1400 800';
+  svg.setAttribute('viewBox', vb);
+  svg.innerHTML = '';
+
+  const defs = el('defs', {}, svg);
+  for (const [id, color] of [['arr', '#64748b'], ['arrHi', '#0f172a']]) {
+    const m = el('marker', { id: id + '-' + svgId, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 6.5, markerHeight: 6.5, orient: 'auto-start-reverse' }, defs);
+    el('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: color }, m);
+  }
+
+  if (opts.boundary) {
+    el('line', { x1: opts.boundary.x, y1: opts.boundary.y1, x2: opts.boundary.x, y2: opts.boundary.y2, class: 'boundary' }, svg);
+    const tl = el('text', { x: opts.boundary.x + 8, y: opts.boundary.y1 + 14, class: 'boundary-label' }, svg);
+    tl.textContent = opts.boundary.label;
+  }
+
+  const byId = {}; nodes.forEach(n => byId[n.id] = n);
+  const edgeEls = [];
+  const egroup = el('g', {}, svg);
+  for (const ed of edges) {
+    const pair = Array.isArray(ed) ? ed : ed.e;
+    const [sa, ta] = [byId[pair[0]], byId[pair[1]]];
+    if (!sa || !ta) continue;
+    const [p, q] = bestAnchors(sa, ta);
+    const k = 36;
+    const d = `M ${p.x} ${p.y} C ${p.x + p.dx * k} ${p.y + p.dy * k}, ${q.x + q.dx * k} ${q.y + q.dy * k}, ${q.x} ${q.y}`;
+    const path = el('path', { d, class: 'edge' }, egroup);
+    path.style.markerEnd = `url(#arr-${svgId})`;
+    edgeEls.push({ from: pair[0], to: pair[1], elp: path });
+    if (!Array.isArray(ed) && ed.label) {
+      const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2 - 5;
+      const t = el('text', { x: mx, y: my, class: 'edgelabel', 'text-anchor': 'middle' }, egroup);
+      t.textContent = ed.label;
+    }
+  }
+
+  const nodeEls = {};
+  for (const n of nodes) {
+    const g = el('g', { class: `node layer-${n.layer}`, 'data-id': n.id }, svg);
+    el('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: 10 }, g);
+    const tt = el('text', { x: n.x + n.w / 2, y: n.y + (n.s ? n.h / 2 - 3 : n.h / 2 + 5), 'text-anchor': 'middle', class: 't' }, g);
+    tt.textContent = n.t;
+    if (n.s) {
+      const ts = el('text', { x: n.x + n.w / 2, y: n.y + n.h / 2 + 14, 'text-anchor': 'middle', class: 's' }, g);
+      ts.textContent = n.s;
+    }
+    g.addEventListener('click', (ev) => { ev.stopPropagation(); opts.onSelect && opts.onSelect(n.id); });
+    nodeEls[n.id] = g;
+  }
+
+  svg.addEventListener('click', () => opts.onSelect && opts.onSelect(null));
+
+  return {
+    select(id) {
+      for (const nid in nodeEls) {
+        nodeEls[nid].classList.toggle('sel', nid === id);
+        nodeEls[nid].classList.remove('dim', 'pulse');
+      }
+      for (const e of edgeEls) {
+        const on = id && (e.from === id || e.to === id);
+        e.elp.classList.toggle('hi', !!on);
+        e.elp.classList.toggle('dim', !!id && !on);
+        e.elp.style.markerEnd = on ? `url(#arrHi-${svgId})` : `url(#arr-${svgId})`;
+      }
+      if (id) {
+        const keep = new Set([id]);
+        edgeEls.forEach(e => { if (e.from === id) keep.add(e.to); if (e.to === id) keep.add(e.from); });
+        for (const nid in nodeEls) nodeEls[nid].classList.toggle('dim', !keep.has(nid));
+      }
+    },
+    highlight(ids) {
+      const set = new Set(ids || []);
+      for (const nid in nodeEls) {
+        nodeEls[nid].classList.toggle('sel', set.has(nid));
+        nodeEls[nid].classList.toggle('dim', set.size > 0 && !set.has(nid));
+        nodeEls[nid].classList.remove('pulse');
+      }
+      for (const e of edgeEls) {
+        const on = set.has(e.from) && set.has(e.to);
+        e.elp.classList.toggle('hi', on);
+        e.elp.classList.toggle('dim', set.size > 0 && !on);
+        e.elp.style.markerEnd = on ? `url(#arrHi-${svgId})` : `url(#arr-${svgId})`;
+      }
+    },
+    pulse(id) {
+      if (nodeEls[id]) { nodeEls[id].classList.add('pulse'); setTimeout(() => nodeEls[id].classList.remove('pulse'), 3500); }
+    },
+  };
+}
+
+/* ================================================================
+   OVERVIEW: selection + detail panel
+   ================================================================ */
+const LAYER_NAMES = { ui: 'UI layer', state: 'State layer', logic: 'Logic layer', data: 'Data layer', ext: 'External' };
+const depsOf = id => EDGES.filter(e => e[0] === id).map(e => e[1]);
+const usersOf = id => EDGES.filter(e => e[1] === id).map(e => e[0]);
+const nodeTitle = id => (NODES.find(n => n.id === id) || {}).t || id;
+
+let mainDia, flowDia, dbDia;
+const detailPanel = document.getElementById('detail');
+const defaultDetailHTML = detailPanel.innerHTML;
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function showDetail(id, highlightFile) {
+  if (!id) { detailPanel.innerHTML = defaultDetailHTML; mainDia.select(null); return; }
+  const d = DETAILS[id]; const n = NODES.find(x => x.id === id);
+  mainDia.select(id);
+  let h = `<h2>${d.title}</h2><span class="chip ${d.layer}">${LAYER_NAMES[d.layer]}</span>${d.blurb}`;
+  if (d.files.length) {
+    h += `<h3>Key files</h3><ul class="filelist">` + d.files.map(([p, note]) => {
+      const hl = highlightFile === p;
+      return `<li><code>${hl ? '<mark>' + p + '</mark>' : p}</code>${note ? `<span class="note">${note}</span>` : ''}</li>`;
+    }).join('') + `</ul>`;
+  }
+  if (d.funcs.length) {
+    h += `<h3>Important functions & hooks</h3><ul class="fnlist">` + d.funcs.map(([f, w]) =>
+      `<li><code>${esc(f)}</code>${w ? ` <span class="what">— ${w}</span>` : ''}</li>`).join('') + `</ul>`;
+  }
+  const deps = depsOf(id), users = usersOf(id);
+  if (deps.length) h += `<h3>Depends on →</h3><div class="deps">` + deps.map(x => `<button data-go="${x}">${nodeTitle(x)}</button>`).join('') + `</div>`;
+  if (users.length) h += `<h3>← Used by</h3><div class="deps">` + users.map(x => `<button data-go="${x}">${nodeTitle(x)}</button>`).join('') + `</div>`;
+  detailPanel.innerHTML = h;
+  detailPanel.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { showDetail(b.dataset.go); mainDia.pulse(b.dataset.go); }));
+  detailPanel.scrollTop = 0;
+}
+
+mainDia = renderDiagram('svgMain', NODES, EDGES, {
+  viewBox: '0 0 1400 800',
+  boundary: { x: 1100, y1: 500, y2: 730, label: 'outside the browser' },
+  onSelect: id => showDetail(id),
+});
+
+/* ================================================================
+   TABS
+   ================================================================ */
+const tabsEl = document.getElementById('tabs');
+function setTab(name) {
+  tabsEl.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.querySelectorAll('section.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + name));
+}
+tabsEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setTab(b.dataset.tab); });
+
+/* ================================================================
+   DATA FLOW TAB
+   ================================================================ */
+flowDia = renderDiagram('svgFlow', NODES, EDGES, {
+  viewBox: '0 0 1400 800',
+  boundary: { x: 1100, y1: 500, y2: 730, label: 'outside the browser' },
+  onSelect: () => {},
+});
+let curFlow = 0, curStep = 0;
+const flowpick = document.getElementById('flowpick');
+FLOWS.forEach((f, i) => {
+  const b = document.createElement('button');
+  b.textContent = f.label;
+  b.addEventListener('click', () => { curFlow = i; curStep = 0; renderFlow(); });
+  flowpick.appendChild(b);
+});
+function renderFlow() {
+  const f = FLOWS[curFlow], s = f.steps[curStep];
+  flowpick.querySelectorAll('button').forEach((b, i) => b.classList.toggle('on', i === curFlow));
+  document.getElementById('fStepNo').textContent = `Step ${curStep + 1} of ${f.steps.length}`;
+  document.getElementById('fTitle').textContent = s.t;
+  document.getElementById('fBody').innerHTML = s.b;
+  document.getElementById('fWhere').textContent = 'Highlighted: ' + s.nodes.map(nodeTitle).join('  ·  ');
+  document.getElementById('fPrev').disabled = curStep === 0;
+  const next = document.getElementById('fNext');
+  next.textContent = curStep === f.steps.length - 1 ? 'Restart ↺' : 'Next →';
+  const dots = document.getElementById('fDots');
+  dots.innerHTML = '';
+  f.steps.forEach((_, i) => {
+    const d = document.createElement('i');
+    if (i === curStep) d.className = 'on';
+    d.addEventListener('click', () => { curStep = i; renderFlow(); });
+    dots.appendChild(d);
+  });
+  flowDia.highlight(s.nodes);
+}
+document.getElementById('fPrev').addEventListener('click', () => { if (curStep > 0) { curStep--; renderFlow(); } });
+document.getElementById('fNext').addEventListener('click', () => {
+  curStep = curStep === FLOWS[curFlow].steps.length - 1 ? 0 : curStep + 1; renderFlow();
+});
+renderFlow();
+
+/* ================================================================
+   DATABASE TAB
+   ================================================================ */
+const dbPanel = document.getElementById('dbDetail');
+const dbDefaultHTML = dbPanel.innerHTML;
+function showDbDetail(id) {
+  if (!id) { dbPanel.innerHTML = dbDefaultHTML; dbDia.select(null); return; }
+  const d = DB_DETAILS[id];
+  dbDia.select(id);
+  let h = `<h2>${d.title}</h2><p class="hint mono" style="margin-top:0">${d.store}</p><p>${d.blurb}</p>`;
+  h += `<h3>Columns / fields</h3><table class="kv"><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>`;
+  h += d.fields.map(([f, t, w]) => `<tr><td><code>${esc(f)}</code></td><td class="mono" style="font-size:11.5px">${esc(t)}</td><td>${w}</td></tr>`).join('');
+  h += `</tbody></table>`;
+  h += `<h3>Wiped by “Clear all data”?</h3><p>${d.cleared === true ? '<span class="yes">Yes</span>' : d.cleared === false ? '<span class="no">No — kept on purpose</span>' : d.cleared}</p>`;
+  dbPanel.innerHTML = h;
+  dbPanel.scrollTop = 0;
+}
+dbDia = renderDiagram('svgDb', DB_NODES, DB_EDGES, {
+  viewBox: '0 0 1100 660',
+  onSelect: id => showDbDetail(id),
+});
+document.querySelector('#keysTable tbody').innerHTML = STORAGE_KEY_ROWS.map(([k, w, wiped]) =>
+  `<tr><td class="mono" style="font-size:12px">${k}</td><td>${w}</td><td>${wiped ? '<span class="yes">yes</span>' : '<span class="no">no</span>'}</td></tr>`).join('');
+
+/* ================================================================
+   START HERE + DRIFT
+   ================================================================ */
+document.getElementById('startSteps').innerHTML = START_STEPS.map(s =>
+  `<div class="step"><h3>${s.t}</h3><div class="files mono">${s.f}</div><p>${s.p}</p></div>`).join('');
+
+document.getElementById('driftList').innerHTML = DRIFT.map(d =>
+  `<div class="item"><h3>${d.t}<span class="fixed">fixed in ARCHITECTURE.md</span></h3>
+   <div class="twocol"><div><b>The doc said</b>${d.doc}</div><div><b>The code does</b>${d.code}</div></div></div>`).join('') +
+  `<p class="hint" style="margin-top:14px">Everything else in ARCHITECTURE.md checked out: all 33 components, 18 lib
+  modules, every storage key, the refund/transfer rules, the recurring bill-vs-habit logic, the XP table, badge rules,
+  verse/question counts (49 / 15), and the Plaid server behavior were verified against the source on 2026-06-11.</p>`;
+
+/* ================================================================
+   SEARCH
+   ================================================================ */
+const INDEX = [];
+NODES.forEach(n => {
+  INDEX.push({ kind: 'Component / module', label: n.t, node: n.id, extra: LAYER_NAMES[n.layer] });
+  const d = DETAILS[n.id];
+  d.files.forEach(([p, note]) => INDEX.push({ kind: 'File', label: p, node: n.id, file: p, extra: note || n.t }));
+  d.funcs.forEach(([f]) => INDEX.push({ kind: 'Function', label: f.split('(')[0].split(' →')[0], node: n.id, extra: 'in ' + d.files.map(x=>x[0]).join(', ').split(',')[0] }));
+});
+EXTRA_FILES.forEach(([p, node, note]) => INDEX.push({ kind: 'File', label: p, node, file: p, extra: note }));
+
+const qEl = document.getElementById('q'), qrEl = document.getElementById('qr');
+let kbIdx = -1, curResults = [];
+function doSearch() {
+  const q = qEl.value.trim().toLowerCase();
+  kbIdx = -1;
+  if (!q) { qrEl.classList.remove('open'); return; }
+  curResults = INDEX.filter(it => it.label.toLowerCase().includes(q)).slice(0, 24);
+  if (!curResults.length) {
+    qrEl.innerHTML = `<div class="empty">No file, component, or function matches “${esc(qEl.value)}”.</div>`;
+    qrEl.classList.add('open'); return;
+  }
+  let h = '', lastKind = '';
+  curResults.forEach((r, i) => {
+    if (r.kind !== lastKind) { h += `<div class="grp">${r.kind}</div>`; lastKind = r.kind; }
+    h += `<button data-i="${i}"><span class="mono">${esc(r.label)}</span><span class="what">${esc(r.extra || '')}</span></button>`;
+  });
+  qrEl.innerHTML = h;
+  qrEl.classList.add('open');
+  qrEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => pickResult(curResults[+b.dataset.i])));
+}
+function pickResult(r) {
+  qrEl.classList.remove('open'); qEl.value = r.label;
+  if (!r.node) {
+    setTab('drift');
+    return;
+  }
+  setTab('overview');
+  showDetail(r.node, r.file);
+  mainDia.pulse(r.node);
+  document.getElementById('svgMain').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+qEl.addEventListener('input', doSearch);
+qEl.addEventListener('focus', doSearch);
+qEl.addEventListener('keydown', e => {
+  const btns = qrEl.querySelectorAll('button');
+  if (e.key === 'ArrowDown') { kbIdx = Math.min(kbIdx + 1, btns.length - 1); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { kbIdx = Math.max(kbIdx - 1, 0); e.preventDefault(); }
+  else if (e.key === 'Enter' && kbIdx >= 0 && curResults[kbIdx]) { pickResult(curResults[kbIdx]); return; }
+  else if (e.key === 'Escape') { qrEl.classList.remove('open'); return; }
+  btns.forEach((b, i) => b.classList.toggle('kb', i === kbIdx));
+  if (btns[kbIdx]) btns[kbIdx].scrollIntoView({ block: 'nearest' });
+});
+document.addEventListener('click', e => { if (!e.target.closest('.search')) qrEl.classList.remove('open'); });
+</script>
+</body>
+</html>

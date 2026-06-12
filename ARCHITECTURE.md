@@ -79,8 +79,10 @@ Every feature is just a different view of those little Transaction cards.
 Each "screen" or button on the page is a **component** — a reusable Lego brick.
 
 - **`App.tsx`** — The boss. It shows the menu and decides which screen you're
-  looking at (Import, Dashboard, Quiz, or Settings). It also pops up the
-  "Are you sure?" box when you clear data.
+  looking at (Import, Dashboard, **Year Sheet**, Quiz, or Settings). The
+  Dashboard and Year Sheet are loaded lazily so the chart library doesn't slow
+  down the first page load. It also pops up the "Are you sure?" box when you
+  clear data and the "Leave the quiz?" warning when you navigate away mid-quiz.
 - **`Nav.tsx`** — The menu (on the side for computers, on top for phones). Also
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.
@@ -109,6 +111,11 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   recurring and a little popup offers to **mark the merchant's other charges
   too**. Accepting flags the whole merchant, so future imports come in already
   starred.
+- **`SortHeader.tsx`** — The shared **sortable column header** used by every
+  table (transaction list, Dashboard category table, drill-in modals). It always
+  reserves space for the ↑/↓ arrow so the columns never shift when you change
+  the sort, and on right-aligned columns (Amount) the arrow sits to the *left*
+  of the label so the numbers stay lined up.
 - **`CategoryDetailModal.tsx`** — The shared **drill-in list**: it opens when you
   click a category, the Income/Spending stat cards, a **month on the trend
   chart** (showing that month's income *and* spending together), or a **Year
@@ -293,7 +300,7 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
   report).
 
-And in **`src/data/`**: **`sampleData.ts`** is a pretend set of ~65 transactions
+And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
 (including a monthly church tithe and small donations, so the giving features
 have something to show), **`verses.ts`** holds ~49 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,
@@ -322,7 +329,11 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
   opted-out groups). Un-starring something the app detected on its own also
   hides that group from the recurring list (otherwise the star would relight
   immediately). The remembered edits:
-  - **category edits** and **renames (aliases)** — per merchant, survive re-imports.
+  - **category edits** — remembered at **two levels**: by the exact (normalized)
+    description when you fix one transaction, and by merchant when you say
+    "apply to all charges from this store". Both are re-applied on re-import,
+    exact-description first.
+  - **renames (aliases)** — per merchant, survive re-imports.
   - **recurring flags** — a per-merchant flag (whole-merchant repeats like Rent)
     **and** `recurringTxns`, a per-charge flag by signature (one Amazon charge that
     repeats). *(Subscriptions are instead identified by the Subscriptions

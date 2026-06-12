@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { Transaction } from '../types'
 import { recurringTransfers } from '../lib/analysis'
 import { formatCurrency } from '../lib/format'
@@ -16,7 +17,7 @@ interface Props {
  */
 export function RecurringTransfersCard({ transactions, onOpenGroup }: Props) {
   const { aliases, ignoredTransfers, setTransferCounted } = useStore()
-  const items = recurringTransfers(transactions, aliases)
+  const items = useMemo(() => recurringTransfers(transactions, aliases), [transactions, aliases])
   if (items.length === 0) return null
 
   return (

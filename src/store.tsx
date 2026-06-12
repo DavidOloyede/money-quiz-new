@@ -272,26 +272,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!rec && !counts) return t
       return { ...t, recurring: rec ? true : undefined, counts: counts ? true : undefined }
     }
-    const base = rawTransactions.map((t) =>
-      flag(
-        t,
-        !!(
-          recurringMerchants[merchantKey(t.description)] ||
-          recurringTxns[txSignature(t.date, t.description, t.amount)]
-        ),
-      ),
+    // merchantKey() is regex-heavy — resolve each row's whole-merchant ★ once.
+    const merchantFlagged = rawTransactions.map(
+      (t) => !!recurringMerchants[merchantKey(t.description)],
     )
     // Members of groups the Recurring section shows on its own (detection or a
     // whole-merchant ★) get the star too. Per-transaction sig flags are left
     // out of this pass on purpose — one starred Amazon charge shouldn't light
     // up every Amazon charge.
-    const detectBase = rawTransactions.map((t) =>
-      flag(t, !!recurringMerchants[merchantKey(t.description)]),
-    )
+    const detectBase = rawTransactions.map((t, i) => flag(t, merchantFlagged[i]))
     const sectionIds = new Set(
       recurringBills(detectBase, aliases, dismissedRecurring, recurringKinds).flatMap((r) => r.ids),
     )
-    return base.map((t) => (!t.recurring && sectionIds.has(t.id) ? { ...t, recurring: true } : t))
+    return rawTransactions.map((t, i) =>
+      flag(
+        t,
+        merchantFlagged[i] ||
+          !!recurringTxns[txSignature(t.date, t.description, t.amount)] ||
+          sectionIds.has(t.id),
+      ),
+    )
   }, [
     rawTransactions,
     aliases,

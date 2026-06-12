@@ -13,6 +13,7 @@ import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'
+import { SortHeader } from './SortHeader'
 import { XIcon, StarIcon } from './icons'
 
 interface Props {
@@ -99,15 +100,6 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     }
   }
 
-  const sortButton = (key: SortKey, label: string) => (
-    <button
-      onClick={() => toggleSort(key)}
-      className="font-medium hover:text-slate-600 dark:hover:text-slate-300"
-    >
-      {label}
-      {sortKey === key ? (sortAsc ? ' ↑' : ' ↓') : ''}
-    </button>
-  )
   const keys = useMemo(() => [...new Set(items.map((t) => merchantKey(t.description)))], [items])
   const first = items[0]
   const defaultName = first ? groupLabel(first.description, aliases) : ''
@@ -341,15 +333,17 @@ export function GroupDetailModal({ ids, onClose }: Props) {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
                 <tr>
-                  <th className="px-5 py-2.5 font-medium">{sortButton('date', 'Date')}</th>
+                  <th className="px-5 py-2.5 font-medium">
+                    <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
+                  </th>
                   <th className="px-3 py-2.5 font-medium">
-                    {mixedCategories ? sortButton('category', 'Category') : 'Category'}
+                    <SortHeader sortKey="category" label="Category" sortable={mixedCategories} current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                   </th>
                   <th className="px-3 py-2.5 text-right font-medium">
-                    {sortButton('amount', 'Amount')}
+                    <SortHeader sortKey="amount" label="Amount" align="right" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                   </th>
                   <th className="px-5 py-2.5 font-medium">
-                    {sortButton('description', 'Description')}
+                    <SortHeader sortKey="description" label="Description" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                   </th>
                 </tr>
               </thead>

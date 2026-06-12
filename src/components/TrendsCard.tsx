@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { Transaction } from '../types'
 import { spendingTrends } from '../lib/analysis'
 import { categoryMeta } from '../lib/categories'
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export function TrendsCard({ transactions }: Props) {
-  const trends = spendingTrends(transactions)
+  const trends = useMemo(() => spendingTrends(transactions), [transactions])
   if (trends.length === 0) return null
   const month = trends[0].monthKey
 

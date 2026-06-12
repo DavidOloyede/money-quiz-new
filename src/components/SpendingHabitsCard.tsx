@@ -1,11 +1,10 @@
-import type { Transaction } from '../types'
-import { spendingHabits } from '../lib/analysis'
+import type { RecurringPayment } from '../lib/analysis'
 import { categoryMeta } from '../lib/categories'
 import { formatCurrency } from '../lib/format'
-import { useStore } from '../store'
 
 interface Props {
-  transactions: Transaction[]
+  /** Repeat-habit groups, precomputed by Dashboard's shared recurringPayments pass. */
+  items: RecurringPayment[]
   onOpenGroup: (ids: string[]) => void
 }
 
@@ -16,10 +15,7 @@ interface Props {
  * Recurring & subscriptions card. A group can be re-filed as a bill (or a bill
  * as a habit) from its detail view.
  */
-export function SpendingHabitsCard({ transactions, onOpenGroup }: Props) {
-  const { aliases, dismissedRecurring, recurringKinds } = useStore()
-
-  const items = spendingHabits(transactions, aliases, dismissedRecurring, recurringKinds)
+export function SpendingHabitsCard({ items, onOpenGroup }: Props) {
   if (items.length === 0) return null
   const total = items.reduce((s, r) => s + r.monthlyEstimate, 0)
 

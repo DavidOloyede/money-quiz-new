@@ -6,6 +6,7 @@ import { displayDescription } from '../lib/merchant'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRecurringSimilar } from './RecurringSimilar'
+import { SortHeader } from './SortHeader'
 import { StarIcon } from './icons'
 
 interface Props {
@@ -169,16 +170,12 @@ export function TransactionTable({ transactions }: Props) {
                 />
               </th>
               <th className="px-4 py-2.5">
-                <button onClick={() => toggleSort('date')} className="font-medium hover:text-slate-600 dark:hover:text-slate-300">
-                  Date{sortKey === 'date' ? (sortAsc ? ' ↑' : ' ↓') : ''}
-                </button>
+                <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
               </th>
               <th className="px-4 py-2.5 font-medium">Description</th>
               <th className="px-4 py-2.5 font-medium">Category</th>
               <th className="px-4 py-2.5 text-right">
-                <button onClick={() => toggleSort('amount')} className="font-medium hover:text-slate-600 dark:hover:text-slate-300">
-                  Amount{sortKey === 'amount' ? (sortAsc ? ' ↑' : ' ↓') : ''}
-                </button>
+                <SortHeader sortKey="amount" label="Amount" align="right" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
               </th>
             </tr>
           </thead>

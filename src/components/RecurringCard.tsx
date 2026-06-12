@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import type { SubscriptionMeta, Transaction } from '../types'
-import { recurringBills, type RecurringPayment } from '../lib/analysis'
+import type { SubscriptionMeta } from '../types'
+import type { RecurringPayment } from '../lib/analysis'
 import { categoryMeta } from '../lib/categories'
 import { formatCurrency, formatDate } from '../lib/format'
 import { useStore } from '../store'
 import { StarIcon } from './icons'
 
 interface Props {
-  transactions: Transaction[]
+  /** Recurring bill groups, precomputed by Dashboard's shared recurringPayments pass. */
+  items: RecurringPayment[]
   onOpenGroup: (ids: string[]) => void
 }
 
@@ -31,12 +32,10 @@ function cadenceLine(r: RecurringPayment, meta: SubscriptionMeta | undefined): s
  * pharmacy runs) live in the Spending habits card instead. The ★ flags a row as
  * recurring; a Show: All | Subscriptions toggle narrows to the subscriptions.
  */
-export function RecurringCard({ transactions, onOpenGroup }: Props) {
-  const { aliases, subscriptionMeta, dismissedRecurring, recurringKinds, setGroupRecurring } =
-    useStore()
+export function RecurringCard({ items, onOpenGroup }: Props) {
+  const { subscriptionMeta, setGroupRecurring } = useStore()
   const [view, setView] = useState<View>('all')
 
-  const items = recurringBills(transactions, aliases, dismissedRecurring, recurringKinds)
   if (items.length === 0) return null
   const subs = items.filter((r) => r.isSubscription)
   const shown = view === 'subs' ? subs : items
