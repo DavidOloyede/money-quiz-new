@@ -575,14 +575,15 @@ txtable: {
 dashcards: {
   title: 'Dashboard cards', layer: 'ui',
   blurb: `<p>The info boxes on the Dashboard, each a thin view over one analysis function:
-  <b>RecurringCard</b> (expected bills + subscriptions, All|Subscriptions toggle, per-month estimates),
+  <b>RecurringCard</b> (expected bills + subscriptions on a <b>month calendar</b> — charge-day grid plus an upcoming
+  list capped at four, with a day's charges / the full run opening in a popup; All|Subscriptions toggle, per-month estimates),
   <b>SpendingHabitsCard</b> (repeat merchants with varying amounts — patterns, not bills),
   <b>RecurringTransfersCard</b> (same-amount same-day Zelle/transfers with a "Counts" checkbox),
   <b>BudgetsCard</b> (budget vs spend per category), <b>GivingCard</b> (tithes+charity vs the 10% benchmark, giving
   goal), <b>DebtCard</b> (loan payments trend + "possibly paid off?" confirmations), <b>TrendsCard</b>
   ("Dining is up 40%"), and <b>TopMerchantsCard</b>.</p>`,
   files: [
-    ['src/components/RecurringCard.tsx','bills & subscriptions list'],
+    ['src/components/RecurringCard.tsx','bills & subscriptions calendar'],
     ['src/components/SpendingHabitsCard.tsx','repeat patterns'],
     ['src/components/RecurringTransfersCard.tsx','counted transfers'],
     ['src/components/BudgetsCard.tsx','budget progress'],
@@ -732,6 +733,7 @@ analysis: {
     ['spendingByCategory / monthlyTrend / topExpenses / headlineStats','dashboard feeds'],
     ['recurringPayments / recurringBills / spendingHabits','grouped repeats + bill⇄habit'],
     ['autoRecurringBill(txns, key, …)','"would detection alone list this group?"'],
+    ['chargesInMonth / upcomingCharges','place bills on the calendar / next-due list'],
     ['recurringTransfers / recurringTransferIds','transfers that are really bills'],
     ['spendingTrends','"Dining is up 40%" callouts (≥25% and ≥$25)'],
     ['budgetStatus / excludedSummary / merchantStats / topMerchants','cards'],

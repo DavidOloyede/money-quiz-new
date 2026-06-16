@@ -3,6 +3,7 @@ import type { Transaction } from '../types'
 import {
   autoRecurringBill,
   budgetStatus,
+  chargesInMonth,
   filterByRange,
   monthKey,
   monthlyTrend,
@@ -16,6 +17,7 @@ import {
   totalIncome,
   totalRefunds,
   totalSpending,
+  upcomingCharges,
 } from './analysis'
 
 let n = 0
@@ -201,6 +203,44 @@ describe('bill vs habit classification', () => {
     const refiled = { [amazonKey]: 'bill' as const }
     expect(spendingHabits(txs, {}, {}, refiled)).toHaveLength(0)
     expect(recurringBills(txs, {}, {}, refiled)).toHaveLength(2)
+  })
+})
+
+describe('calendar charges', () => {
+  // A fixed-amount loan landing on the 5th across three months → one recurring bill.
+  const loan = ['2026-01', '2026-02', '2026-03'].map((m) =>
+    tx(`${m}-05`, -220, 'loans', { description: 'Student Loan Payment' }),
+  )
+  const now = new Date(2026, 5, 10) // June 10, 2026
+
+  it('places a monthly bill on its typical day in the month grid', () => {
+    const [r] = recurringPayments(loan)
+    const charges = chargesInMonth([r], {}, now)
+    expect(charges).toHaveLength(1)
+    expect(charges[0].date).toBe('2026-06-05')
+    expect(charges[0].day).toBe(5)
+    expect(charges[0].amount).toBe(220)
+  })
+
+  it("honors the user's billing day over the inferred day", () => {
+    const [r] = recurringPayments(loan)
+    const meta = { [r.keys[0]]: { billingDay: 21 } }
+    expect(chargesInMonth([r], meta, now)[0].date).toBe('2026-06-21')
+  })
+
+  it('rolls a monthly charge already past this month into next month for upcoming', () => {
+    const [r] = recurringPayments(loan) // day 5, today is the 10th → due July 5
+    expect(upcomingCharges([r], {}, now)[0].date).toBe('2026-07-05')
+  })
+
+  it('excludes cancelled subscriptions and only shows annual ones in their renewal month', () => {
+    const netflix = recurringPayments([tx('2026-06-01', -15.49, 'subscriptions', { description: 'Netflix' })])[0]
+    const ended = { [netflix.keys[0]]: { endedDate: '2026-05-01' } }
+    expect(chargesInMonth([netflix], ended, now)).toHaveLength(0)
+
+    const annual = { [netflix.keys[0]]: { cadence: 'annual' as const, renewalDate: '2026-09-01' } }
+    expect(chargesInMonth([netflix], annual, now)).toHaveLength(0) // not due in June
+    expect(upcomingCharges([netflix], annual, now, 120)[0].date).toBe('2026-09-01')
   })
 })
 

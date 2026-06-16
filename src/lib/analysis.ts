@@ -1,4 +1,4 @@
-import type { Category, Transaction } from '../types'
+import type { Category, SubscriptionCadence, SubscriptionMeta, Transaction } from '../types'
 import { isExcludedCategory, isSpendingCategory, SUBSCRIPTIONS_CATEGORY } from './categories'
 import { groupKey, groupLabel, merchantKey } from './merchant'
 
@@ -327,6 +327,8 @@ export interface RecurringPayment {
   recurringAmount: number
   /** Normalized monthly cost: total spend / number of months it spanned. */
   monthlyEstimate: number
+  /** Typical day-of-month it lands on (mode across its transactions). */
+  day: number
   /** True when the charge is essentially the same amount every time. */
   fixed: boolean
   /** True when the user manually ★-flagged this group as recurring. */
@@ -345,6 +347,7 @@ interface RecurringGroup {
   ids: string[]
   cat: Category
   amounts: number[]
+  days: number[]
   months: Set<string>
   total: number
   last: string
@@ -370,12 +373,14 @@ function groupByIdentity(
         ids: [],
         cat: t.category,
         amounts: [],
+        days: [],
         months: new Set<string>(),
         total: 0,
         last: '',
         recurring: false,
       }
     e.amounts.push(-t.amount)
+    e.days.push(dayOfMonth(t.date))
     e.months.add(monthKey(t.date))
     e.keys.add(merchantKey(t.description))
     e.ids.push(t.id)
@@ -422,6 +427,7 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
     avgAmount: e.total / count,
     recurringAmount: mode.value,
     monthlyEstimate: e.total / Math.max(1, e.months.size),
+    day: modeAmount(e.days).value,
     fixed,
     isRecurringFlagged: e.recurring,
     isSubscription: e.cat === SUBSCRIPTIONS_CATEGORY,
@@ -520,6 +526,153 @@ export function spendingHabits(
 
 function dayOfMonth(iso: string): number {
   return Number(iso.slice(8, 10)) || 1
+}
+
+/** Number of days in a given month (monthIdx is 0-based). */
+function daysInMonth(year: number, monthIdx: number): number {
+  return new Date(year, monthIdx + 1, 0).getDate()
+}
+
+/** Build a YYYY-MM-DD string from local date parts (monthIdx is 0-based). */
+function isoOf(year: number, monthIdx: number, day: number): string {
+  return `${year}-${pad(monthIdx + 1)}-${pad(day)}`
+}
+
+/** First populated subscription meta among a recurring group's merchant keys. */
+function metaFor(
+  r: RecurringPayment,
+  subscriptionMeta: Record<string, SubscriptionMeta>,
+): SubscriptionMeta | undefined {
+  return r.keys.map((k) => subscriptionMeta[k]).find(Boolean)
+}
+
+/** Next date on/after `from` that lands on day-of-month `day` (clamped to month length). */
+function nextMonthlyDate(day: number, from: Date): string {
+  const y = from.getFullYear()
+  const m = from.getMonth()
+  const thisMonth = Math.min(day, daysInMonth(y, m))
+  if (thisMonth >= from.getDate()) return isoOf(y, m, thisMonth)
+  const next = new Date(y, m + 1, 1)
+  const ny = next.getFullYear()
+  const nm = next.getMonth()
+  return isoOf(ny, nm, Math.min(day, daysInMonth(ny, nm)))
+}
+
+/** An annual renewal rolled forward by whole years until it's today or later. */
+function nextAnnualDate(renewalDate: string, from: Date): string {
+  const month = Number(renewalDate.slice(5, 7)) - 1
+  const day = Number(renewalDate.slice(8, 10))
+  const today = isoOf(from.getFullYear(), from.getMonth(), from.getDate())
+  let year = Number(renewalDate.slice(0, 4))
+  let candidate = isoOf(year, month, day)
+  while (candidate < today) {
+    year += 1
+    candidate = isoOf(year, month, day)
+  }
+  return candidate
+}
+
+/**
+ * A single expected charge placed on the calendar: a recurring bill or
+ * subscription with the date it's due, the amount, and the group it belongs to
+ * (so the row stays clickable / editable like everywhere else).
+ */
+export interface Charge {
+  groupKey: string
+  merchant: string
+  category: Category
+  /** Member transaction ids, so the charge opens the group's detail. */
+  ids: string[]
+  /** Expected charge magnitude — the fixed amount, or the average estimate. */
+  amount: number
+  /** True when every charge is the same amount (vs an averaged estimate). */
+  fixed: boolean
+  /** ISO date (YYYY-MM-DD) the charge is expected to land. */
+  date: string
+  /** Day of month it lands on. */
+  day: number
+  isSubscription: boolean
+  cadence: SubscriptionCadence
+}
+
+function toCharge(r: RecurringPayment, date: string, cadence: SubscriptionCadence): Charge {
+  return {
+    groupKey: r.groupKey,
+    merchant: r.merchant,
+    category: r.category,
+    ids: r.ids,
+    amount: r.fixed ? r.recurringAmount : r.avgAmount,
+    fixed: r.fixed,
+    date,
+    day: dayOfMonth(date),
+    isSubscription: r.isSubscription,
+    cadence,
+  }
+}
+
+/**
+ * Every recurring bill / subscription that bills within the calendar month of
+ * `monthDate` (cancelled ones excluded) — the basis for the calendar grid.
+ * Monthly groups use the user's billing day if set, otherwise the day they
+ * typically land on; annual subscriptions only appear in their renewal month.
+ */
+export function chargesInMonth(
+  items: RecurringPayment[],
+  subscriptionMeta: Record<string, SubscriptionMeta> = {},
+  monthDate: Date = new Date(),
+): Charge[] {
+  const year = monthDate.getFullYear()
+  const month = monthDate.getMonth()
+  const mKey = `${year}-${pad(month + 1)}`
+  const out: Charge[] = []
+  for (const r of items) {
+    const meta = metaFor(r, subscriptionMeta)
+    if (meta?.endedDate) continue
+    const cadence: SubscriptionCadence = meta?.cadence ?? 'monthly'
+    if (cadence === 'annual') {
+      if (!meta?.renewalDate || meta.renewalDate.slice(0, 7) !== mKey) continue
+      out.push(toCharge(r, meta.renewalDate, cadence))
+    } else {
+      const day = meta?.billingDay ?? r.day
+      if (!day) continue
+      out.push(toCharge(r, isoOf(year, month, Math.min(day, daysInMonth(year, month))), cadence))
+    }
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/**
+ * The next expected charge for each recurring bill / subscription, on or after
+ * `now` and within `withinDays` — cancelled ones skipped, annual ones rolled
+ * forward to their next renewal. Sorted soonest first; drives the "upcoming
+ * charges" list beside the calendar.
+ */
+export function upcomingCharges(
+  items: RecurringPayment[],
+  subscriptionMeta: Record<string, SubscriptionMeta> = {},
+  now: Date = new Date(),
+  withinDays = 45,
+): Charge[] {
+  const start = isoOf(now.getFullYear(), now.getMonth(), now.getDate())
+  const horizon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + withinDays)
+  const end = isoOf(horizon.getFullYear(), horizon.getMonth(), horizon.getDate())
+  const out: Charge[] = []
+  for (const r of items) {
+    const meta = metaFor(r, subscriptionMeta)
+    if (meta?.endedDate) continue
+    const cadence: SubscriptionCadence = meta?.cadence ?? 'monthly'
+    let date: string | undefined
+    if (cadence === 'annual') {
+      if (!meta?.renewalDate) continue
+      date = nextAnnualDate(meta.renewalDate, now)
+    } else {
+      const day = meta?.billingDay ?? r.day
+      if (day) date = nextMonthlyDate(day, now)
+    }
+    if (!date || date < start || date > end) continue
+    out.push(toCharge(r, date, cadence))
+  }
+  return out.sort((a, b) => a.date.localeCompare(b.date))
 }
 
 export interface RecurringTransfer {

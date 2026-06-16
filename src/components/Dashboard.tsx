@@ -353,7 +353,10 @@ export function Dashboard({ onNavigate }: Props) {
             </div>
           </div>
 
-          {/* Giving, budgets, recurring, debt, trends, top merchants */}
+          {/* Recurring & subscriptions calendar — full width for the side-by-side layout */}
+          <RecurringCard items={recurring.filter((r) => r.kind === 'bill')} onOpenGroup={setGroupIds} />
+
+          {/* Giving, budgets, debt, trends, top merchants */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <GivingCard
               filtered={filtered}
@@ -370,7 +373,6 @@ export function Dashboard({ onNavigate }: Props) {
               onSetBudget={setBudget}
             />
             <TopMerchantsCard transactions={filtered} />
-            <RecurringCard items={recurring.filter((r) => r.kind === 'bill')} onOpenGroup={setGroupIds} />
             <SpendingHabitsCard items={recurring.filter((r) => r.kind === 'habit')} onOpenGroup={setGroupIds} />
             <DebtCard
               transactions={transactions}

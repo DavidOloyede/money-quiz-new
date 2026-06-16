@@ -183,16 +183,24 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
   (budgets, repeating bills + subscriptions, recurring transfers, "spending went
   up/down", and favorite stores).
-  - **`RecurringCard.tsx`** is one **"Recurring & subscriptions"** box listing
-    the **expected bills** that repeat — fixed monthly payments (rent, student
-    loan), subscriptions, and variable bills (power, water) **averaged** to a
-    per-month number. Same-amount charges are marked "fixed". Charges in the
-    **Subscriptions category** get a **"sub"** badge and their billing cadence; a
-    **Show: All | Subscriptions** toggle narrows to just those (with a
-    subscriptions-only monthly subtotal, ended ones struck through and excluded).
-    Tap a row to open its detail/rename. Every row's **★ is lit** — being in
-    this list is what the star means — and un-tapping it removes the group from
-    the list (and turns off its stars everywhere).
+  - **`RecurringCard.tsx`** is the full-width **"Recurring & subscriptions"** box,
+    laid out as a **month calendar**: a grid marks the days a charge lands — each
+    shows that **day's total** (e.g. `$55`, or `5 · $178` when several share a
+    day), and today is ringed — and beside it the
+    next few **upcoming charges** are listed (capped at four — "Show all N" opens
+    a **popup**, and clicking a calendar day opens that day's charges in the same
+    popup, so the card never reflows). The calendar shows the **expected bills**
+    that repeat — fixed monthly payments (rent, student loan), subscriptions, and
+    variable bills (power, water) **averaged** to a per-month number; the charge
+    day comes from the user's billing day or, failing that, the day the group
+    usually lands on (`chargesInMonth` / `upcomingCharges`). Below the calendar a
+    **full list** of every recurring group remains: same-amount charges are marked
+    "fixed", **Subscriptions-category** rows get a **"sub"** badge and their billing
+    cadence, and a **Show: All | Subscriptions** toggle narrows to just those (with
+    a subscriptions-only subtotal, ended ones struck through and excluded). Tap any
+    row — calendar charge or list — to open its detail/rename. Every list row's
+    **★ is lit** (being in this list is what the star means); un-tapping it removes
+    the group from the list (and turns off its stars everywhere).
     Repeat *shopping habits* are kept out of this card on purpose (see below).
   - **`SpendingHabitsCard.tsx`** — the **"Spending habits"** box: merchants you
     keep going back to with *varying* amounts (Amazon, the pharmacy, a burger
@@ -288,6 +296,11 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   answers "would this group be in the recurring list even with no ★ flags?" —
   the store uses it when you un-star something the app detected on its own, so
   the group is also hidden from the list instead of lighting right back up.
+  `chargesInMonth` / `upcomingCharges` place those bills on a calendar: each
+  group bills on the user's **billing day** (or, failing that, the day it usually
+  lands on — `RecurringPayment.day`, the mode of its transaction days), annual
+  subscriptions land on their renewal date, and cancelled ones drop out — the
+  first feeds the calendar grid, the second the soonest-first "upcoming" list.
 - **`yearly.ts`** — Builds the **Year Sheet** numbers: per-category monthly
   actuals for a year, grouped into sections, plus **projections** for the months
   that haven't happened yet (budget if set, else the average of the months your
