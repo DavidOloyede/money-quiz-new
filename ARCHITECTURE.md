@@ -21,18 +21,20 @@ and then quizzes you like a friendly teacher.
 
 ## 2. The big pieces
 
-The app is made of **three programs** (two of them optional):
+The app is **a React/TypeScript frontend + a Node.js backend + a PostgreSQL
+database**, plus a sign-in helper:
 
 | Piece | What it is | Does it always run? |
 |-------|------------|---------------------|
-| **The website** (the part you see) | Runs *inside your web browser*, like a game on a website. | Always. |
-| **The cloud backend** (Supabase) | Accounts, cross-device sync, support tickets, the admin panel, and the bank connector. | Only if accounts are configured — and even then, only when you sign in. |
-| **The local Plaid helper** (a tiny server) | A little program for developers that talks to Plaid from your own computer. | Only for local development without the cloud. |
+| **The website** (the part you see) | The React app, running *inside your web browser*. | Always. |
+| **The Node.js backend** (`server/`, Fastify) | The API the website talks to for everything online: cross-device sync, the bank connector, support tickets, the admin panel, and activity logging. It owns the database. | Only when accounts are turned on. |
+| **PostgreSQL** | The database the Node server reads and writes. | With the backend. |
+| **Supabase Auth** | A sign-in service (Google + email/password + password-reset emails). It only checks *who you are* and hands the browser a signed token; it never sees your money data. | With the backend. |
 
 > 🔒 **Big idea:** Signed out, **everything stays on your own computer** —
-> nothing is sent anywhere. Signing in is what turns on the cloud, and then
-> only *your account* can read your data (the database enforces this with
-> row-level security, not just app code).
+> nothing is sent anywhere. Signing in turns on the backend, and then the Node
+> server checks *who you are* on every single request (using the signed token
+> from Supabase) and only ever hands back your own data.
 
 ---
 
@@ -46,12 +48,13 @@ close the tab and come back later, the notebook is still there. If you click
 
 Signed out, nobody else can read your notebook — it's only on your device.
 
-**Signed in**, every page of the notebook is also photocopied into your account
-(a table called `user_slices`, one row per notebook page) a couple of seconds
-after you change something. Sign in on your phone and the same notebook
-appears. Sign out on a shared computer and the local copy is wiped — your
-account still has it. Even the app's admin can't read those pages: the
-database has no rule that lets anyone but *you* see them.
+**Signed in**, every page of the notebook is also photocopied to the Node
+server, which stores it in your account (a table called `user_slices`, one row
+per notebook page) a couple of seconds after you change something. Sign in on
+your phone and the same notebook appears. Sign out on a shared computer and the
+local copy is wiped — your account still has it. Even the app's admin can't
+read those pages: the server has no route that hands anyone else's
+`user_slices` back, so only *you* ever see them.
 
 ---
 
@@ -315,23 +318,26 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   (how often money went *out*), and the recurring questions ask about
   **bills only** — repeat habits like Amazon runs are left out.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
-- **`plaid.ts`** — Talks to the bank connector (the cloud one when accounts are
-  configured, your local helper server otherwise): start a connection, sync,
-  disconnect.
+- **`plaid.ts`** — Talks to the backend's bank connector (`/api/plaid/…`):
+  start a connection, sync, disconnect.
 - **`plaidMap.ts`** — Translates Plaid's data into our Transaction cards and maps
   Plaid's categories onto ours.
 - **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
   report).
-- **`supabase.ts`** — Creates the one shared connection to the cloud backend —
-  or `null` when no cloud is configured, which is how every cloud feature knows
-  to hide itself.
+- **`supabase.ts`** — Sets up the **sign-in** client (Supabase Auth) — or
+  `null` when accounts aren't configured, which is how every account feature
+  knows to hide itself. It's used *only* for login; no data goes through it.
+- **`api.ts`** — The **phone line to the Node backend**. Every call to the API
+  goes through here; it attaches your signed-in token so the server knows it's
+  you, and points at `/api`.
 - **`cloudSync.ts`** — The **photocopier**. It watches every save to the
-  notebook and, a couple of seconds later, mirrors the changed pages to your
-  account (`user_slices`). It also pulls everything down at sign-in and skips
-  pages that haven't actually changed.
+  notebook and, a couple of seconds later, sends the changed pages to the
+  backend (`POST /api/sync`). It also pulls everything down at sign-in and
+  skips pages that haven't actually changed.
 - **`track.ts`** — The **activity logger**: small batched events ("viewed the
-  quiz", "imported a file — 214 rows") for the admin activity log. It never
-  records store names or amounts, and it records nothing when you're signed out.
+  quiz", "imported a file — 214 rows") sent to `POST /api/events` for the admin
+  activity log. It never records store names or amounts, and records nothing
+  when you're signed out.
 
 And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
 (including a monthly church tithe and small donations, so the giving features
@@ -387,58 +393,57 @@ everywhere.
 
 ---
 
-## 8. The cloud backend (the `supabase/` folder)
+## 8. The Node.js backend (the `server/` folder)
 
-This is the **optional online half** of the app, built on a service called
-Supabase (a hosted Postgres database with sign-in built in). Setting it up is
-covered step-by-step in [docs/SETUP-backend.md](docs/SETUP-backend.md). It
-gives the app:
+This is the **online half** of the app: a small **Node.js server** built with
+**Fastify**, talking to a **PostgreSQL** database through **Drizzle** (a typed
+query helper). It's the single API the website calls once you sign in. Setting
+it up is in [docs/SETUP-backend.md](docs/SETUP-backend.md).
 
-- **Accounts** — sign in with **email + password** or **Google**. The list of
-  users lives in a `profiles` table, and the very first admin (the app owner's
-  email) is stamped `admin` automatically when they sign up.
-- **Sync** — the `user_slices` table holds each user's photocopied notebook
-  pages (section 3). A database rule says *only the owner can read or write
-  their rows* — not other users, not even admins.
-- **Bank connections** — `supabase/functions/plaid/` is the **cloud version of
-  the Plaid helper**: a small program that runs next to the database, checks
-  *who is asking* on every request, keeps each person's bank tokens
-  **encrypted** in the `plaid_items` table, and never lets them reach a
-  browser. No Plaid keys configured → it runs in the same "pretend" mock mode.
-- **Activity log** — the `activity_events` table collects the small events
-  from `track.ts` so the admin can see what's being used and what's breaking.
-  Crashes also go to **Sentry** (an error-collecting service) with the
-  financial details scrubbed out.
-- **Support tickets** — `support_tickets` and `ticket_messages` hold each
-  user's help requests and the replies; users see only their own, admins see
-  the whole queue.
+How a request works: the website attaches your **sign-in token** (from Supabase
+Auth) to every call. The server's *front door* (`auth/middleware.ts`) checks
+that token, figures out **which user you are**, and only then runs the request —
+and every database query is filtered to *your* id. So the server, not the
+database, is the security guard.
 
-> 🔑 **The security model in one sentence:** every table has **row-level
-> security** — rules *inside the database* that check who you are on every
-> read and write — so even a bug in the app's code can't show one person
-> another person's data.
+What lives there (`server/src/`):
+
+- **`index.ts`** — starts Fastify and wires up the routes.
+- **`db/schema.ts`** — the shape of the six tables (`profiles`, `user_slices`,
+  `plaid_items`, `activity_events`, `support_tickets`, `ticket_messages`);
+  **`db/client.ts`** is the Postgres connection.
+- **`auth/`** — verifies the Supabase token (`verify.ts`) and the
+  `requireUser` / `requireAdmin` front-door checks (`middleware.ts`). On your
+  first sign-in it creates your `profiles` row; the owner's email
+  (`ADMIN_EMAIL`) is stamped `admin`.
+- **`routes/`** — the actual endpoints:
+  - `me` → who am I.
+  - `sync` → save/fetch your notebook pages (`user_slices`). There is **no**
+    route that returns anyone else's, so admins can't see your money data.
+  - `events` → receive the batched activity log.
+  - `plaid` → the **bank connector**: checks who's asking, keeps each person's
+    bank token **encrypted** in `plaid_items` (`plaid/crypto.ts`), and never
+    lets it reach a browser. No Plaid keys configured → "pretend" (mock) mode
+    with fake-but-realistic data, so the connect → import flow works for free.
+  - `tickets` → your support tickets and replies.
+  - `admin` → users list, activity log, ticket queue, and metrics — every route
+    behind `requireAdmin`.
+
+Crashes in the browser also go to **Sentry** (an error-collecting service) with
+the financial details scrubbed out.
+
+> 🔑 **The security model in one sentence:** the Node server learns who you are
+> from a signed token it can't forge, and every query it runs is scoped to your
+> user id — so one person can never receive another person's data.
+
+> Sign-in itself is handled by **Supabase Auth** (Google + email/password +
+> password-reset emails). It only verifies identity and hands the browser a
+> signed token; it never touches your financial data, which lives in our own
+> database behind the Node server.
 
 ---
 
-## 9. The local Plaid helper (`server/plaidServer.mjs`)
-
-The original, single-person version of the bank connector — still handy for
-developing on your own computer without any cloud setup. Banks won't let a
-website talk to them directly with a secret password, so this **tiny separate
-program** holds the secret and does the bank-talking. The website asks *it*,
-and it asks Plaid.
-
-- If you **don't** give it Plaid keys, it runs in **"pretend" (mock) mode** and
-  serves fake-but-realistic transactions, so you can try the whole "connect a
-  bank" flow for free.
-- If you **do** add real Plaid keys, it talks to real banks.
-
-It keeps your bank "access token" in a hidden file on your own computer
-(`server/.data/`), which is never shared or uploaded to GitHub.
-
----
-
-## 10. The tools the project is built with
+## 9. The tools the project is built with
 
 - **React** — the toolkit for building the screens out of Lego-brick components.
 - **TypeScript** — JavaScript with "fill-in-the-blank" rules (types) that catch
@@ -449,14 +454,17 @@ It keeps your bank "access token" in a hidden file on your own computer
   nice, including dark mode.
 - **Recharts** — draws the pie and bar charts.
 - **PapaParse** — reads spreadsheet (CSV) files.
-- **Supabase** — the optional cloud backend: sign-in, the database (Postgres)
-  with row-level security, and the small cloud program for Plaid.
+- **Node.js + Fastify** — the backend server that owns the data and the API.
+- **PostgreSQL + Drizzle** — the database and the typed helper the server uses
+  to query it.
+- **Supabase Auth** — the sign-in service (Google + email/password). Identity
+  only — it never sees your financial data.
 - **Sentry** — collects crash reports (with financial details scrubbed) so
   bugs get noticed and fixed.
 
 ---
 
-## 11. Quick glossary
+## 10. Quick glossary
 
 - **Component** — a reusable piece of the screen (a button, a card, a chart).
 - **localStorage** — the browser's private notebook that remembers your data.
@@ -488,13 +496,13 @@ It keeps your bank "access token" in a hidden file on your own computer
 - **Mock mode** — the "pretend" mode that uses fake data so you can try things
   for free.
 - **Account** — an optional sign-in (email/password or Google) that backs up
-  your notebook to the cloud and lets it follow you across devices.
+  your notebook to the backend and lets it follow you across devices.
 - **Slice** — one page of the notebook (your transactions, your budgets, your
-  game progress…); the unit the photocopier syncs.
-- **Row-level security (RLS)** — rules inside the database that check *who you
-  are* on every read/write, so only you can see your data.
-- **Edge Function** — a small program that runs next to the database (the
-  cloud bank connector is one).
+  game progress…); the unit the photocopier syncs (a `user_slices` row).
+- **API / endpoint** — a URL on the Node server the app calls, like
+  `/api/sync`; each one checks your token before doing anything.
+- **JWT / token** — the signed "this is who I am" badge Supabase Auth gives the
+  browser; the Node server checks it on every request.
 - **Ticket** — a help request you file under Settings → Help & support;
   admins answer from the Admin panel.
 
@@ -504,5 +512,6 @@ It keeps your bank "access token" in a hidden file on your own computer
 
 > The **website** turns your transactions into neat cards, the **brain
 > (`store`)** remembers them in your browser's **notebook**, the **lib helpers**
-> do all the math and sorting, the **components** draw the screens, and an
-> **optional tiny server** safely connects to real banks through Plaid.
+> do all the math and sorting, the **components** draw the screens, and — when
+> you sign in — a **Node.js backend** syncs your notebook to a **PostgreSQL**
+> database and safely connects to real banks through Plaid.

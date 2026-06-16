@@ -7,30 +7,34 @@ working, tested business logic and maintaining two codebases.
 
 ## Why the backend already fits
 
-- **supabase-js runs in React Native** (session storage via AsyncStorage), so
-  auth, sync, tickets, and events carry over unchanged.
-- **The Plaid Edge Function is a plain HTTPS API** — the app uses
-  `react-native-plaid-link-sdk` for the Link UI and the same
-  `/functions/v1/plaid` endpoints.
+- **The mobile app calls the same Node `/api` endpoints** — they're a plain
+  HTTPS JSON API, so sync, Plaid, tickets, events, and admin carry over with no
+  server changes. `src/lib/api.ts` is the only piece to re-point (base URL +
+  how it reads the token).
+- **supabase-js runs in React Native** for login (session storage via
+  AsyncStorage); it hands the app a JWT that the Node API already knows how to
+  verify. `react-native-plaid-link-sdk` drives the Link UI against the same
+  `/api/plaid/*` routes.
 - **The sync schema is storage-agnostic**: `user_slices` rows are keyed by the
   same `moneyquiz.*` strings; on mobile, MMKV/AsyncStorage stands in for
   localStorage and the same pull/push logic applies.
-- **Row-level security is in the database**, so a second client adds no new
-  security surface.
+- **Per-user authorization lives in the Node server** (every query scoped to
+  the JWT user), so a second client adds no new security surface.
 
 ## The code-sharing rule (applies NOW)
 
 Keep `src/lib/` free of DOM and localStorage imports. Today the only
 browser-touching lib files are `storage.ts`, `plaid.ts`, `exportData.ts`,
-`cloudSync.ts`, and `track.ts` — everything else (`quiz.ts`, `analysis.ts`,
-`categorize.ts`, `gamification.ts`, `badges.ts`, `giving.ts`, `debt.ts`,
-`merchant.ts`, `parse.ts`, `format.ts`, `yearly.ts`) is pure TypeScript that
-will run as-is on the phone.
+`cloudSync.ts`, `track.ts`, and `api.ts` — everything else (`quiz.ts`,
+`analysis.ts`, `categorize.ts`, `gamification.ts`, `badges.ts`, `giving.ts`,
+`debt.ts`, `merchant.ts`, `parse.ts`, `format.ts`, `yearly.ts`) is pure
+TypeScript that will run as-is on the phone.
 
 ## Build order when Phase 2 starts
 
-1. **Workspace split** — lift `src/lib/` + `src/types.ts` + `src/data/` into a
-   shared package (`packages/core`); web app imports from it; verify tests
+1. **Workspace split** — promote to npm workspaces: lift `src/lib/` +
+   `src/types.ts` + `src/data/` into a shared `packages/core`, with `apps/web`,
+   `apps/mobile`, and `server/` alongside; web imports from core; verify tests
    still pass.
 2. **Expo scaffold** — `npx create-expo-app`, TypeScript template, Expo Router,
    dark/light theme tokens matching the web palette.
@@ -47,8 +51,8 @@ will run as-is on the phone.
 
 ## Deliberate deferrals
 
-- Realtime sync (Supabase Realtime on `user_slices`) — "Sync now" is enough
-  until two-device usage is common.
+- Realtime sync (e.g. a WebSocket/SSE channel from the Node API, or Postgres
+  `LISTEN/NOTIFY`) — "Sync now" is enough until two-device usage is common.
 - Relational `transactions` table — only needed when server-side features
   (cross-device dedupe, server notifications on new transactions) arrive.
 - Android release — after iOS is stable; the codebase will already run there.

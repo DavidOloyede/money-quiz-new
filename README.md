@@ -3,19 +3,22 @@
 Import your bank transactions, see where your money goes, and take a quiz
 generated **from your own data** that teaches you about your spending habits.
 
+**Stack:** a React + TypeScript frontend and a Node.js (Fastify) backend over
+PostgreSQL, with Supabase Auth for login. The backend is **optional** — signed
+out, the whole app runs in the browser with no server at all.
+
 Two ways to get your data in:
 
 - **CSV import** — 100% in your browser. No backend, no account, no bank login;
   transactions are parsed locally and stored only in `localStorage`.
-- **Connect a bank with Plaid** *(optional)* — through the multi-user Supabase
-  backend when configured, or a small local server you control (see below).
+- **Connect a bank with Plaid** *(optional)* — through the Node API, which
+  keeps each user's bank tokens encrypted server-side (see below).
 
-**Accounts are optional.** Signed out, everything stays on your device exactly
-as before. Sign in (email/password or Google) and your data syncs to your
+**Accounts are optional.** Signed out, everything stays on your device. Sign in
+(email/password or Google) and your data syncs through the Node API to your
 account so it follows you across devices — see
-[docs/SETUP-backend.md](docs/SETUP-backend.md) to set up the backend
-(Supabase auth + sync, bank connections, activity logging, support tickets,
-admin panel).
+[docs/SETUP-backend.md](docs/SETUP-backend.md) to set up the backend (accounts,
+sync, bank connections, activity logging, support tickets, admin panel).
 
 Use **Clear all data** anytime to wipe everything (including your account's
 copy when signed in).
@@ -37,8 +40,12 @@ Other commands:
 ```bash
 npm run build     # type-check + production build into dist/
 npm run preview   # serve the production build locally
-npm run server    # start the optional Plaid backend (see "Connect a bank")
+npm run server    # start the Node API (server/) — needs server/.env
+npm run dev:all   # frontend + API together (accounts/sync/bank/admin)
 ```
+
+To run the backend (accounts, sync, bank connections, admin), follow
+[docs/SETUP-backend.md](docs/SETUP-backend.md), then `npm run dev:all`.
 
 ## Using your own bank CSV
 
@@ -90,39 +97,29 @@ shape the importer expects (`Date,Description,Amount`).
 ## Connect a bank with Plaid (optional)
 
 Linking a real bank or card uses [Plaid](https://plaid.com). Plaid's API secret
-can never live in the browser, so a backend does the bank-talking:
-
-- **With the Supabase backend configured** (see
-  [docs/SETUP-backend.md](docs/SETUP-backend.md)), connections go through the
-  multi-user `plaid` Edge Function — sign in first; each user's access tokens
-  are stored encrypted in the database and never reach the browser.
-- **For fully-local development**, the small bundled server
-  (`server/plaidServer.mjs`) still works — dependency-free (plain Node), holds
-  the access token on your machine:
+can never live in the browser, so the **Node API** does the bank-talking: it
+verifies your sign-in, keeps each user's access token **encrypted** in the
+database, and never lets it reach the browser. Sign in first (bank connections
+are tied to your account). Full setup: [docs/SETUP-backend.md](docs/SETUP-backend.md).
 
 ```bash
-npm run server      # starts http://localhost:8787
-npm run dev         # in another terminal
+npm run dev:all     # frontend + API (needs server/.env)
 ```
 
-- **Demo mode (no setup).** With no Plaid keys, the server runs in **mock mode**
-  and serves realistic sample transactions, so you can try the whole
-  *Connect → import → auto-categorize* flow end-to-end. On the Import tab, click
-  **Connect (demo)**.
-- **Real banks.** Copy `.env.example` → `.env`, add your `PLAID_CLIENT_ID` /
-  `PLAID_SECRET` and `PLAID_ENV` (from the [Plaid dashboard](https://dashboard.plaid.com)),
-  then restart the server. The Import tab switches to **Connect with Plaid**,
+- **Demo mode (no setup).** With no Plaid keys in `server/.env`, the API runs in
+  **mock mode** and serves realistic sample transactions, so you can try the
+  whole *Connect → import → auto-categorize* flow end-to-end. On the Import tab,
+  click **Connect (demo)**.
+- **Real banks.** Add `PLAID_CLIENT_ID` / `PLAID_SECRET` / `PLAID_ENV` (from the
+  [Plaid dashboard](https://dashboard.plaid.com)) and a `PLAID_TOKEN_KEY` to
+  `server/.env`, then restart. The Import tab switches to **Connect with Plaid**,
   which opens Plaid Link — you authenticate with your bank inside Plaid, so this
   app never sees your credentials.
 
 Connected accounts appear under **Imported sources** with a **Sync** button
 (re-pull the latest) and a remove button (disconnect + delete its transactions).
 Plaid's categories are mapped onto ours automatically; you can recategorize like
-any other transaction.
-
-> The server is single-user and local — it stores access tokens in
-> `server/.data/` (gitignored) and is not meant to be deployed as a multi-tenant
-> service. CSV import keeps working with the server off.
+any other transaction. CSV import keeps working with the API off.
 
 ## What you get
 
@@ -179,11 +176,12 @@ any other transaction.
 
 ## Tech stack
 
-React + TypeScript (Vite), Tailwind CSS v4, Recharts for charts, and PapaParse
-for CSV parsing. The optional cloud backend is Supabase (Postgres + Auth +
-row-level security + an Edge Function for Plaid) with Sentry for error
-tracking; for fully-local dev there's still a small dependency-free Node
-Plaid server.
+- **Frontend:** React + TypeScript (Vite), Tailwind CSS v4, Recharts, PapaParse.
+- **Backend:** Node.js + Fastify (`server/`), PostgreSQL via Drizzle ORM,
+  Plaid for bank links, Sentry for error tracking.
+- **Auth:** Supabase Auth (Google + email/password); the API verifies its JWTs
+  with `jose`. Login is the only thing Supabase handles — all data lives in our
+  own Postgres behind the Node API.
 
 ## Privacy
 
@@ -191,11 +189,11 @@ Plaid server.
   CSV import is files only; Plaid Link collects your login inside Plaid's own UI,
   never here.
 - **CSV import** is fully local — nothing is sent anywhere while signed out.
-- **Signed in**, your data syncs to *your* row-level-secured account; admins
-  cannot read it (the `user_slices` table has no admin access policy).
-- **Plaid** access tokens are AES-256-GCM encrypted at rest in the backend and
-  never reach the browser (in local-server mode they live in `server/.data/`,
-  gitignored).
+- **Signed in**, your data syncs to *your* account through the Node API, which
+  scopes every query to your user id; there is no admin route that returns
+  another user's `user_slices`, so admins cannot read financial data.
+- **Plaid** access tokens are AES-256-GCM encrypted at rest in the database and
+  never reach the browser.
 - Activity logging records *what you did* (viewed the quiz, imported a file),
   never transaction descriptions, merchants, or amounts — and only for
   signed-in users. Crash reports are scrubbed the same way.

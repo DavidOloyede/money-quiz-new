@@ -1,109 +1,134 @@
-# Backend setup — accounts, sync, Plaid, logging, support
+# Backend setup — Node.js API, Postgres, accounts, Plaid
 
-Everything in the app still works with **zero setup** (local-only mode). This
-guide turns on the cloud: user accounts, cross-device sync, real bank
-connections, activity logging, and support tickets. Budget ~45 minutes.
+The app has two parts: the **React frontend** and a **Node.js (Fastify) API
+server** in [`server/`](../server) that owns all data (sync, Plaid, tickets,
+admin, events) in **PostgreSQL**. Login is handled by **Supabase Auth** (Google
++ email/password); the API just verifies the tokens it issues.
 
-## 1. Create the Supabase project (~5 min)
+Signed out, the app works with **zero setup** (localStorage only). This guide
+turns on accounts, cross-device sync, bank connections, logging, and support
+tickets. Budget ~45 minutes.
 
-1. Go to [supabase.com](https://supabase.com) → New project (free tier is fine).
-   Name it whatever the app ends up being called; pick a US region.
-2. From **Settings → API**, copy:
-   - Project URL → `VITE_SUPABASE_URL`
-   - `anon` `public` key → `VITE_SUPABASE_ANON_KEY`
-3. Copy `.env.example` to `.env` and fill those two in.
-
-## 2. Push the database schema (~5 min)
-
-The schema (tables + row-level security) lives in
-`supabase/migrations/0001_init.sql`. Apply it with the CLI (already a dev
-dependency):
+## 1. Install (~2 min)
 
 ```bash
-npx supabase login                 # opens browser
-npx supabase link                  # pick the project you just created
-npm run db:push                    # applies supabase/migrations/
+npm install            # frontend
+npm install --prefix server   # API server
 ```
 
-> **Admin account:** the migration grants `role = 'admin'` to
-> `davidoloyede00@gmail.com` at signup (placeholder until there's a dedicated
-> app email). To promote anyone later, run in the SQL editor:
-> `update profiles set role = 'admin' where email = '...';`
+## 2. A PostgreSQL database (~5 min)
 
-## 3. Turn on sign-in methods (~10 min)
+Any Postgres works. Easiest is a free **Supabase** project (you'll use it for
+auth in step 3 anyway) — but the API talks to it as plain Postgres.
 
-**Email + password** — Dashboard → Authentication → Sign In / Up → enable
-Email. For quick testing, turn OFF "Confirm email"; turn it back on before
-launch.
+1. [supabase.com](https://supabase.com) → New project (US region, free tier).
+2. Settings → Database → **Connection string** → copy the **Transaction pooler**
+   URI. That's `DATABASE_URL`.
 
-**Google** — two halves:
+## 3. Supabase Auth (~10 min)
 
-1. [Google Cloud Console](https://console.cloud.google.com) → create a
-   project → APIs & Services → OAuth consent screen (External, app name,
-   your email) → Credentials → Create credentials → OAuth client ID →
-   Web application. Authorized redirect URI:
-   `https://<project-ref>.supabase.co/auth/v1/callback`
-2. Supabase Dashboard → Authentication → Providers → Google → paste the
-   client ID + secret, enable.
+Login lives in the browser via supabase-js; the Node API verifies the JWTs.
 
-Then Authentication → URL Configuration → add `http://localhost:5173` to the
-redirect allowlist (and your production URL once deployed).
+1. Settings → API → copy **Project URL** and the **anon public** key.
+2. Authentication → Providers → enable **Email** (turn off "Confirm email" for
+   quick testing; re-enable before launch).
+3. **Google**: in [Google Cloud Console](https://console.cloud.google.com)
+   create an OAuth client (Web), redirect URI
+   `https://<project-ref>.supabase.co/auth/v1/callback`; paste the client
+   id/secret into Supabase → Authentication → Providers → Google.
+4. Authentication → URL Configuration → add `http://localhost:5173` (and your
+   prod URL later) to the redirect allowlist.
 
-## 4. Deploy the Plaid function (~10 min)
+> **JWT verification:** the server verifies tokens via the project JWKS
+> (`SUPABASE_URL`) and/or the legacy HS256 secret (`SUPABASE_JWT_SECRET`,
+> Settings → API → JWT Secret). Setting `SUPABASE_URL` is enough for projects
+> on asymmetric keys; set the secret too if yours is older.
 
-Without Plaid keys it runs in **mock mode** (fake bank, full flow works), so
-you can deploy first and add keys later:
+## 4. Configure the two env files (~5 min)
+
+**Frontend** — copy `.env.example` → `.env`:
+```
+VITE_SUPABASE_URL=https://<ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon key>
+VITE_SENTRY_DSN=            # optional
+```
+
+**Server** — copy `server/.env.example` → `server/.env`:
+```
+DATABASE_URL=<the pooler connection string from step 2>
+SUPABASE_URL=https://<ref>.supabase.co
+SUPABASE_JWT_SECRET=        # only if your project uses the legacy HS256 secret
+ADMIN_EMAIL=davidoloyede00@gmail.com
+PLAID_TOKEN_KEY=            # see step 6 (any 32-byte base64 value to start)
+PORT=8787
+```
+
+## 5. Create the database tables (~2 min)
+
+Drizzle owns the schema (`server/src/db/schema.ts`):
 
 ```bash
-# encryption key for access tokens at rest (required for real mode)
-npx supabase secrets set PLAID_TOKEN_KEY=$(openssl rand -base64 32)
-
-# real-bank mode (sandbox): from dashboard.plaid.com → Team settings → Keys
-npx supabase secrets set PLAID_CLIENT_ID=... PLAID_SECRET=... PLAID_ENV=sandbox
-
-npm run functions:deploy
+npm run db:migrate     # applies server/drizzle/*.sql to DATABASE_URL
+# npm run db:studio    # optional: browse the tables in a GUI
 ```
 
-Plaid sandbox test login inside Plaid Link: `user_good` / `pass_good`.
+## 6. Plaid (~10 min, optional)
 
-## 5. Sentry error tracking (optional, ~5 min)
+Without Plaid keys the API runs in **mock mode** (realistic fake transactions),
+so you can try connect → import for free. For real/sandbox banks, add to
+`server/.env`:
 
-[sentry.io](https://sentry.io) → new React project → copy the DSN into
-`VITE_SENTRY_DSN` in `.env`. Console/fetch breadcrumbs and PII are already
-scrubbed in `src/main.tsx` so transaction data never reaches Sentry.
+```
+PLAID_CLIENT_ID=...        # dashboard.plaid.com → Team settings → Keys
+PLAID_SECRET=...
+PLAID_ENV=sandbox
+PLAID_TOKEN_KEY=$(openssl rand -base64 32)   # encrypts access tokens at rest
+```
 
-## 6. Deploy the web app (~10 min)
+Sandbox Plaid Link login: `user_good` / `pass_good`.
 
-The build is a static site (`npm run build` → `dist/`). Vercel is the easy
-path: import the GitHub repo, framework = Vite, add the three `VITE_*` env
-vars. Then add the production URL to Supabase's auth redirect allowlist
-(step 3) — Google sign-in will loop back to localhost otherwise.
+## 7. Run it
 
-## 7. Verify end-to-end
+```bash
+npm run dev:all        # frontend (5173) + API (8787) together
+# or two terminals: `npm run dev` and `npm run server`
+```
 
-1. `npm run dev` with no `.env` → app works exactly as before (local mode).
-2. With `.env`: create a throwaway account (email/password) → profile row
-   appears in Table Editor; sample data triggers the "save to account?"
-   dialog; accept → `user_slices` rows appear.
-3. Sign in with Google as the admin email → **Admin** appears in the nav.
-4. Second browser, same account → data follows; edit a budget on one,
-   **Account → Sync now** on the other → change arrives.
-5. Import tab → Connect a bank (mock or sandbox) → transactions land;
-   in Table Editor confirm `plaid_items.access_token_enc` is gibberish
-   (encrypted), not a `access-...` plaintext token.
-6. Click around, finish a quiz → events show in Admin → Activity within ~10s.
-7. Settings → Help & support → file a ticket from the throwaway account;
-   answer it from the admin account; reply appears for the user.
-8. Prove the token table is sealed off from browsers:
+The Vite dev server proxies `/api` → the Node server, so the browser uses
+same-origin `/api` paths.
 
-   ```bash
-   curl 'https://<project-ref>.supabase.co/rest/v1/plaid_items?select=*' \
-     -H "apikey: <anon key>" -H "Authorization: Bearer <anon key>"
-   # → []   (deny-all RLS: no client can read it, only the Edge Function)
-   ```
+## 8. Verify end-to-end
+
+1. `npm run dev` alone with no env → app works fully local (regression gate).
+2. `npm run dev:all`; `curl localhost:8787/api/plaid/health` → `{mode,env}`.
+3. Sign up (email/pw) in the Account tab → a row appears in `profiles`
+   (Drizzle Studio / psql); sample data triggers the "save to account?" dialog;
+   accept → `user_slices` rows appear.
+4. Sign in with Google as `davidoloyede00@gmail.com` → **Admin** appears in nav
+   (`GET /api/me` returns role `admin`).
+5. Two browsers, same account: edit a budget in A, **Account → Sync now** in B
+   → the change arrives.
+6. Connect a bank (mock, or Plaid sandbox) → `plaid_items.access_token_enc` is
+   ciphertext, not a plaintext `access-...` token; transactions import.
+7. Click around / finish a quiz → events show in **Admin → Activity** within
+   ~10s.
+8. File a ticket as a normal user; answer it as admin; the user sees the reply.
+   Confirm a normal user can't read another's data: `GET /api/admin/users`
+   with a non-admin token → `403`; `GET /api/tickets/<someone-elses-id>/messages`
+   → `404`.
+
+## 9. Deploy
+
+- **One service (simplest):** `npm run build`, then run the Node server with
+  `SERVE_STATIC=true` — it serves `dist/` and `/api` together (host on Render,
+  Railway, Fly, a VM…). Set the server `.env` vars in the host's dashboard.
+- **Split:** static frontend on Vercel/Netlify + Node API elsewhere; set
+  `VITE_API_URL` to the API origin and the server's `CORS_ORIGINS` to the
+  frontend origin.
+- Add the production URL to Supabase's auth redirect allowlist (step 3).
 
 ## Costs
 
-Supabase free tier (500MB DB, 50k MAU auth), Sentry free tier (5k errors/mo),
-Plaid sandbox free; Plaid production is pay-per-connection (~$0.30–1.50/mo
-per linked account depending on products) — sandbox until launch.
+Supabase free tier (Postgres + 50k MAU auth), Sentry free tier, Plaid sandbox
+free; a small Node host is ~$0–7/mo. Plaid production is pay-per-connection —
+sandbox until launch.

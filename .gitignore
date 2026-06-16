@@ -12,15 +12,11 @@ dist
 dist-ssr
 *.local
 
-# Plaid backend: never commit secrets or stored access tokens
+# Secrets — never commit. Server secrets live in server/.env (see
+# server/.env.example); frontend build-time vars in .env.
 .env
 .env.*
 !.env.example
-server/.data/
-
-# Supabase CLI local state
-supabase/.temp/
-supabase/.env.local
 
 # Editor directories and files
 .vscode/*

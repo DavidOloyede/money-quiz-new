@@ -5,8 +5,11 @@
  * tickets, admin, and activity logging, all against PostgreSQL. Authentication
  * is delegated to Supabase Auth; this server only verifies the JWTs it issues.
  */
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import fastifyStatic from '@fastify/static'
 import { env } from './env'
 import { PlaidError } from './plaid/client'
 import { meRoutes } from './routes/me'
@@ -41,6 +44,19 @@ await app.register(eventRoutes)
 await app.register(plaidRoutes)
 await app.register(ticketRoutes)
 await app.register(adminRoutes)
+
+// Production single-deployable: serve the built frontend (repo-root/dist) and
+// fall back to index.html for the SPA. In dev the Vite server handles this.
+if (env.SERVE_STATIC) {
+  const distDir = join(dirname(fileURLToPath(import.meta.url)), '../../dist')
+  await app.register(fastifyStatic, { root: distDir })
+  app.setNotFoundHandler((req, reply) => {
+    if (req.method === 'GET' && !req.url.startsWith('/api')) {
+      return reply.sendFile('index.html')
+    }
+    return reply.code(404).send({ error: 'not found' })
+  })
+}
 
 try {
   await app.listen({ port: env.PORT, host: '0.0.0.0' })
