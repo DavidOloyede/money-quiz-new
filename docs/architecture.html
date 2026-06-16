@@ -199,14 +199,14 @@
   <div class="hwrap">
     <div class="logo">
       <div class="coin">$</div>
-      <div><b>Money Quiz</b><small>architecture explorer · generated 2026-06-11 — predates the cloud backend (accounts, sync, tickets, admin); see ARCHITECTURE.md for the latest</small></div>
+      <div><b>Money Quiz</b><small>architecture explorer · updated 2026-06-15 for the Node.js backend (accounts, sync, Plaid, tickets, admin)</small></div>
     </div>
     <nav class="tabs" id="tabs">
       <button data-tab="overview" class="on">Overview</button>
       <button data-tab="flow">Data Flow</button>
       <button data-tab="db">Database</button>
       <button data-tab="start">Start Here</button>
-      <button data-tab="drift">Doc Drift<span class="pill">3</span></button>
+      <button data-tab="drift">Changelog<span class="pill">4</span></button>
     </nav>
     <div class="search">
       <input id="q" type="search" placeholder="Search files, components, functions…" autocomplete="off" spellcheck="false" />
@@ -220,9 +220,10 @@
   <!-- ============================== OVERVIEW ============================== -->
   <section class="tab on" id="tab-overview">
     <p class="intro">
-      Money Quiz is a <b>client-side React + TypeScript app</b> (built with Vite) that imports bank transactions,
-      categorizes them, charts them, and quizzes you on your own spending. Everything lives in the browser's
-      <code>localStorage</code>; the only server is an <b>optional</b> tiny Node process for connecting real banks via Plaid.
+      Money Quiz is a <b>React + TypeScript</b> frontend (Vite) with an <b>optional Node.js backend</b> — a
+      <b>Fastify</b> API over <b>PostgreSQL</b> (Drizzle). Signed out, everything lives in the browser's
+      <code>localStorage</code> and no server runs at all. Sign in (Supabase Auth handles login) and the same data syncs
+      through the Node API, which also owns bank connections, support tickets, the admin panel, and activity logging.
       Click any node for a plain-English explanation, its real files, and what it talks to. Arrows point from a module to what it uses.
     </p>
     <div class="legend">
@@ -230,7 +231,7 @@
       <span><i class="sw" style="background:var(--state-bg);border-color:var(--state)"></i>State (the store)</span>
       <span><i class="sw" style="background:var(--logic-bg);border-color:var(--logic)"></i>Logic (pure helpers, <code>src/lib</code>)</span>
       <span><i class="sw" style="background:var(--data-bg);border-color:var(--data)"></i>Data (persistence &amp; bundled data)</span>
-      <span><i class="sw" style="background:var(--ext-bg);border-color:var(--ext)"></i>External (server / internet)</span>
+      <span><i class="sw" style="background:var(--ext-bg);border-color:var(--ext)"></i>Backend &amp; external (Node API · Postgres · internet)</span>
     </div>
     <div class="split">
       <div class="canvas"><svg id="svgMain"></svg></div>
@@ -238,14 +239,17 @@
         <h2>Pick a node</h2>
         <p>Click any box on the map to see what it does, which files it's made of, what it depends on, and what depends on it.</p>
         <h3>The one-minute version</h3>
-        <p><b>Views</b> (Import, Dashboard, Year Sheet, Quiz, Settings) read everything from <b>store.tsx</b>, the single
-        React context that owns the transactions and all remembered edits. The store persists itself to
-        <b>localStorage</b> through <code>storage.ts</code> and delegates every calculation to pure helpers in
-        <code>src/lib</code> — most importantly <b>analysis.ts</b> (totals, trends, recurring detection) and
-        <b>quiz.ts</b> (question generation). Connecting a real bank goes through the optional <b>Plaid server</b>.</p>
+        <p><b>Views</b> (Import, Dashboard, Year Sheet, Quiz, Settings, plus Account &amp; Admin) read everything from
+        <b>store.tsx</b>, the single React context that owns the transactions and all remembered edits. The store
+        persists to <b>localStorage</b> through <code>storage.ts</code> and delegates every calculation to pure helpers
+        in <code>src/lib</code> — most importantly <b>analysis.ts</b> (totals, trends, recurring detection) and
+        <b>quiz.ts</b> (question generation). When you sign in, <b>cloudSync.ts</b> mirrors each localStorage slice to
+        the <b>Node API</b> (<code>api.ts</code> → <code>server/</code>), which stores it in <b>PostgreSQL</b> and also
+        handles Plaid, tickets, admin, and events. Login itself is <b>Supabase Auth</b>.</p>
         <h3>Numbers</h3>
-        <p class="hint">33 components · 18 lib modules (8 with unit tests) · 3 bundled data files · 1 optional server file.
-        Run with <code>npm run dev</code>, test with <code>npm test</code>.</p>
+        <p class="hint">~40 frontend components · 21 lib modules (8 with unit tests) · 3 bundled data files · a Node
+        (Fastify) API in <code>server/</code> with 6 Postgres tables. Frontend: <code>npm run dev</code>; both:
+        <code>npm run dev:all</code>; test: <code>npm test</code>.</p>
       </aside>
     </div>
   </section>
@@ -271,10 +275,11 @@
   <!-- ============================== DATABASE ============================== -->
   <section class="tab" id="tab-db">
     <p class="intro">
-      There is <b>no database server</b> — this is the app's honest data layer. Persistent state is JSON in the browser's
-      <code>localStorage</code> (every key prefixed <code>moneyquiz.</code>, defined in <code>src/lib/storage.ts</code>),
-      plus one small JSON file (<code>server/.data/store.json</code>) that the optional Plaid server keeps on disk.
-      The map below shows the entities and how they reference each other — <b>click a box for column-level detail</b>.
+      There are <b>two data layers</b>. Locally, persistent state is JSON in the browser's <code>localStorage</code>
+      (every key prefixed <code>moneyquiz.</code>, defined in <code>src/lib/storage.ts</code>) — the map below shows
+      those entities and how they reference each other. When you sign in, each localStorage key is mirrored to a row in
+      <b>PostgreSQL</b> via the Node API (the <code>user_slices</code> table), alongside the server-only tables listed
+      under the map (bank tokens, tickets, events). <b>Click a box for column-level detail.</b>
     </p>
     <div class="split">
       <div class="canvas"><svg id="svgDb"></svg></div>
@@ -292,6 +297,7 @@
       </aside>
     </div>
     <h3 style="margin:22px 0 8px;font-size:15px">Every localStorage key (from <code>src/lib/storage.ts</code>)</h3>
+    <p class="hint" style="margin:0 0 8px">Signed in, every key except <code>theme</code> and <code>daily</code> is mirrored to a <code>user_slices</code> row by <code>cloudSync.ts</code> → <code>POST /api/sync</code>. Click <b>PostgreSQL</b> on the map for the server-side tables.</p>
     <table class="kv" id="keysTable">
       <thead><tr><th>Key</th><th>What it holds</th><th>Wiped by “Clear all data”?</th></tr></thead>
       <tbody></tbody>
@@ -310,9 +316,9 @@
   <!-- ============================== DOC DRIFT ============================== -->
   <section class="tab" id="tab-drift">
     <p class="intro">
-      <code>ARCHITECTURE.md</code> was checked claim-by-claim against the code on <b>2026-06-11</b>. It is impressively
-      accurate — every file, component, storage key, and behavioral claim was verified — except for the three drifts
-      below. All three were fixed in <code>ARCHITECTURE.md</code> as part of this documentation pass.
+      This page and <code>ARCHITECTURE.md</code> were re-verified against the code on <b>2026-06-15</b>, after the app
+      grew from a localStorage-only tool into a <b>React/TypeScript frontend + Node.js backend</b>. The big changes from
+      the original design are below; everything else (the store, lib math, quiz engine, localStorage layer) is unchanged.
     </p>
     <div class="drift" id="driftList"></div>
   </section>
@@ -361,9 +367,18 @@ const NODES = [
   { id:'sampledata', layer:'data', x:20,  y:634, w:276, h:56, t:'Bundled data', s:'sample txns · 49 verses · 15 questions' },
   { id:'storage',    layer:'data', x:430, y:634, w:262, h:56, t:'storage.ts — localStorage wrapper', s:'STORAGE_KEYS · loadJSON/saveJSON' },
   { id:'localstore', layer:'data', x:430, y:728, w:262, h:48, t:'Browser localStorage', s:'all keys prefixed moneyquiz.' },
-  // external
-  { id:'plaidserver', layer:'ext', x:1130, y:530, w:246, h:62, t:'Plaid helper server', s:'server/plaidServer.mjs (optional)' },
-  { id:'plaidapi',    layer:'ext', x:1130, y:660, w:246, h:48, t:'Plaid API (plaid.com)', s:'or built-in mock mode' },
+  // accounts & sync (frontend) — active only when signed in
+  { id:'auth',      layer:'state', x:20,  y:812, w:196, h:58, t:'auth.tsx — accounts', s:'session · profile · sign in/out' },
+  { id:'accountui', layer:'ui',    x:236, y:812, w:250, h:58, t:'Account · Admin · Support', s:'sign-in · admin panel · tickets' },
+  { id:'apiclient', layer:'logic', x:506, y:812, w:168, h:58, t:'api.ts', s:'fetch + bearer token' },
+  { id:'cloudsync', layer:'logic', x:692, y:812, w:188, h:58, t:'cloudSync.ts · track.ts', s:'mirror slices · activity events' },
+  // backend & external (outside the browser)
+  { id:'supabaseauth', layer:'ext', x:1160, y:120, w:252, h:58, t:'Supabase Auth', s:'login · Google · JWTs (identity only)' },
+  { id:'server',       layer:'ext', x:1160, y:300, w:252, h:58, t:'Node API — server/ (Fastify)', s:'verifies the JWT · owns the data' },
+  { id:'serverauth',   layer:'ext', x:1160, y:388, w:252, h:54, t:'auth middleware (jose)', s:'requireUser · requireAdmin' },
+  { id:'serverroutes', layer:'ext', x:1160, y:474, w:252, h:54, t:'API routes', s:'sync · events · plaid · tickets · admin' },
+  { id:'postgres',     layer:'ext', x:1160, y:560, w:252, h:58, t:'PostgreSQL (Drizzle)', s:'profiles · user_slices · plaid_items · …' },
+  { id:'plaidapi',     layer:'ext', x:1160, y:648, w:252, h:50, t:'Plaid API (plaid.com)', s:'or built-in mock mode' },
 ];
 
 const EDGES = [
@@ -387,36 +402,51 @@ const EDGES = [
   ['gamelogic','faithlogic'],
   ['faithlogic','analysis'],
   ['exportdata','analysis'],['exportdata','fmt'],['exportdata','catlogic'],
-  ['plaidclient','plaidserver'],['plaidclient','catlogic'],
-  ['plaidserver','plaidapi'],
+  ['plaidclient','apiclient'],['plaidclient','catlogic'],
   ['storage','localstore'],
   ['sampledata','catlogic'],
+  // accounts & sync (active when signed in)
+  ['app','auth'],['app','accountui'],['app','cloudsync'],
+  ['auth','supabaseauth'],['auth','apiclient'],
+  ['accountui','apiclient'],['accountui','auth'],
+  ['cloudsync','apiclient'],['storage','cloudsync'],
+  ['apiclient','server'],
+  // backend internals
+  ['server','serverauth'],['server','serverroutes'],
+  ['serverauth','supabaseauth'],['serverauth','postgres'],
+  ['serverroutes','postgres'],['serverroutes','plaidapi'],
 ];
 
 const DETAILS = {
 entry: {
   title: 'Entry point', layer: 'ui',
   blurb: `<p><code>index.html</code> has a single <code>&lt;div id="root"&gt;</code>; <code>src/main.tsx</code> mounts
-  <code>&lt;App /&gt;</code> into it with React 19's <code>createRoot</code>, wrapped in <code>StrictMode</code>.
-  Vite (with the React and Tailwind v4 plugins, see <code>vite.config.ts</code>) serves it in dev and bundles it for production.
-  There is no router library — "navigation" is a single piece of React state inside App.</p>`,
+  <code>&lt;App /&gt;</code> into it with React 19's <code>createRoot</code>, wrapped in <code>StrictMode</code> and a
+  <code>Sentry.ErrorBoundary</code> (Sentry inits only when <code>VITE_SENTRY_DSN</code> is set, with PII scrubbed). It
+  also imports <code>track.ts</code> to install the global error listeners. Vite (React + Tailwind v4 plugins, and a
+  <code>/api</code> dev proxy, see <code>vite.config.ts</code>) serves dev and bundles production. There is no router —
+  "navigation" is a single piece of React state inside App.</p>`,
   files: [
     ['index.html','HTML shell, favicon, #root'],
-    ['src/main.tsx','createRoot + StrictMode'],
+    ['src/main.tsx','createRoot + StrictMode + Sentry boundary'],
     ['src/index.css','Tailwind entry'],
-    ['vite.config.ts','Vite + Vitest config'],
-    ['package.json','scripts: dev / build / test / server'],
+    ['vite.config.ts','Vite + Vitest config + /api proxy'],
+    ['package.json','scripts: dev · dev:all · build · test · server · db:*'],
   ],
   funcs: [],
 },
 app: {
   title: 'App.tsx — shell & view switching', layer: 'ui',
   blurb: `<p>The boss component. <code>Shell</code> keeps one <code>view</code> state
-  (<code>'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings'</code>) and renders the matching screen inside the
-  sidebar/mobile nav. Dashboard and Year Sheet are <b>lazy-loaded</b> so Recharts stays out of the initial bundle.</p>
-  <p>It also owns two guard dialogs: <code>ConfirmClear</code> ("Clear all data?") and <code>ConfirmLeaveQuiz</code> —
-  QuizView reports "dirty" through a ref while a quiz is mid-flight, and <code>navigate()</code> intercepts the switch.</p>`,
-  files: [['src/App.tsx','Shell, ConfirmClear, ConfirmLeaveQuiz']],
+  (<code>'import' | 'dashboard' | 'yearly' | 'quiz' | 'settings' | 'account' | 'admin'</code>) and renders the matching
+  screen inside the sidebar/mobile nav. Dashboard, Year Sheet, and Admin are <b>lazy-loaded</b>. The tree is wrapped by
+  <code>AuthProvider</code> → <code>SyncGate</code> → <code>StoreProvider</code>, and the store is remounted (via a
+  <code>key</code>) when the signed-in user changes so it re-reads localStorage. Account/Admin nav items appear only
+  when accounts are configured / your role is admin.</p>
+  <p>It also owns two guard dialogs: <code>ConfirmClear</code> ("Clear all data?", which also wipes the cloud copy when
+  signed in) and <code>ConfirmLeaveQuiz</code> — QuizView reports "dirty" through a ref while a quiz is mid-flight, and
+  <code>navigate()</code> intercepts the switch (and logs a <code>nav.view</code> event).</p>`,
+  files: [['src/App.tsx','Shell, AuthProvider/SyncGate wiring, ConfirmClear, ConfirmLeaveQuiz']],
   funcs: [
     ['Shell()','holds view state, theme toggle, navigation guard'],
     ['navigate(v)','blocks nav with "Leave the quiz?" while dirty'],
@@ -425,16 +455,16 @@ app: {
 },
 nav: {
   title: 'Navigation', layer: 'ui',
-  blurb: `<p><code>Sidebar</code> (desktop, left) and <code>MobileTopNav</code> (phones, top) render the same five
-  items: Import, Dashboard, Year Sheet, Quiz, Settings. They also host the light/dark <code>ThemeToggle</code>, the
-  "Clear all data" button, and the XP/streak widget. <code>icons.tsx</code> is the app's hand-rolled SVG icon set
-  (17 icons, no icon library).</p>`,
+  blurb: `<p><code>Sidebar</code> (desktop, left) and <code>MobileTopNav</code> (phones, top) render the core items —
+  Import, Dashboard, Year Sheet, Quiz, Settings — plus <b>Account</b> (when accounts are configured) and <b>Admin</b>
+  (when your role is admin). They also host the light/dark <code>ThemeToggle</code>, the "Clear all data" button, and
+  the XP/streak widget. <code>icons.tsx</code> is the app's hand-rolled SVG icon set (no icon library).</p>`,
   files: [
     ['src/components/Nav.tsx','Sidebar, MobileTopNav, ThemeToggle, View type'],
     ['src/components/icons.tsx','all SVG icons + CoinLogo'],
   ],
   funcs: [
-    ['type View','the 5 screen ids — the closest thing to a route table'],
+    ['type View','the screen ids — the closest thing to a route table'],
     ['Sidebar / MobileTopNav','desktop and mobile chrome'],
   ],
 },
@@ -814,33 +844,35 @@ exportdata: {
 },
 plaidclient: {
   title: 'Plaid client', layer: 'logic',
-  blurb: `<p><code>plaid.ts</code> is the browser-side client for the optional local server (base URL
-  <code>http://localhost:8787</code>, overridable via <code>VITE_PLAID_API</code>): health check, link-token creation,
-  mock connect, token exchange, sync, item list/remove — plus <code>openPlaidLink</code>, which loads Plaid's hosted
-  Link script so bank credentials never touch this app. <code>plaidMap.ts</code> converts Plaid transactions to our
-  model: flips the sign (Plaid: positive = money out), maps Plaid's Personal Finance Category taxonomy onto our
-  category ids, and lets our own keyword pass win for Zelle and Subscriptions.</p>`,
+  blurb: `<p><code>plaid.ts</code> is the browser-side client for the bank connector. It calls the Node API's
+  <code>/api/plaid/*</code> routes through <code>api.ts</code> (so the request carries your bearer token): health check,
+  link-token creation, mock connect, token exchange, sync, item list/remove — plus <code>openPlaidLink</code>, which
+  loads Plaid's hosted Link script so bank credentials never touch this app. Bank connections require sign-in.
+  <code>plaidMap.ts</code> converts Plaid transactions to our model: flips the sign (Plaid: positive = money out), maps
+  Plaid's Personal Finance Category taxonomy onto our category ids, and lets our own keyword pass win for Zelle and
+  Subscriptions.</p>`,
   files: [
-    ['src/lib/plaid.ts','plaidApi.*, openPlaidLink'],
+    ['src/lib/plaid.ts','plaidApi.* → /api/plaid, openPlaidLink'],
     ['src/lib/plaidMap.ts','mapPlaidTransactions, taxonomy map'],
   ],
   funcs: [
-    ['plaidApi.health / createLinkToken / mockConnect / exchange / sync / items / removeItem','HTTP calls'],
+    ['plaidApi.health / createLinkToken / mockConnect / exchange / sync / items / removeItem','call /api/plaid via api.ts'],
     ['openPlaidLink(token, onSuccess, onExit)','loads cdn.plaid.com Link'],
     ['mapPlaidTransactions(txns, sourceId)','Plaid shape → Transaction'],
   ],
 },
 storage: {
   title: 'storage.ts — localStorage wrapper', layer: 'data',
-  blurb: `<p>A tiny typed wrapper around <code>localStorage</code> — nothing here ever leaves the browser.
-  <code>STORAGE_KEYS</code> names every key the app owns (all prefixed <code>moneyquiz.…v1</code>);
-  <code>DATA_KEYS</code> is the subset wiped by "Clear all data" — deliberately excluding the <code>game</code> key so
-  XP/streak/badges survive, and the <code>theme</code> key. <code>loadJSON</code>/<code>saveJSON</code> fail silently
-  (private mode, full storage). <code>newId()</code> makes UUIDs for transactions and sources. See the
-  <b>Database</b> tab for every key.</p>`,
-  files: [['src/lib/storage.ts','STORAGE_KEYS, DATA_KEYS, loadJSON/saveJSON, newId']],
+  blurb: `<p>A tiny typed wrapper around <code>localStorage</code>. <code>STORAGE_KEYS</code> names every key the app
+  owns (all prefixed <code>moneyquiz.…v1</code>); <code>DATA_KEYS</code> is the subset wiped by "Clear all data" —
+  deliberately excluding the <code>game</code> key so XP/streak/badges survive, and the <code>theme</code> key.
+  <code>loadJSON</code>/<code>saveJSON</code> fail silently (private mode, full storage). <code>newId()</code> makes
+  UUIDs. Signed out this is the whole story; when signed in, <code>setSaveListener()</code> lets
+  <code>cloudSync.ts</code> tee every save to your account. See the <b>Database</b> tab for every key.</p>`,
+  files: [['src/lib/storage.ts','STORAGE_KEYS, DATA_KEYS, loadJSON/saveJSON, setSaveListener, newId']],
   funcs: [
     ['loadJSON(key, fallback) / saveJSON(key, value) / removeKey(key)',''],
+    ['setSaveListener(fn)','cloudSync hooks saves here when signed in'],
     ['newId()','crypto.randomUUID with fallback'],
   ],
 },
@@ -870,30 +902,147 @@ sampledata: {
     ['verseForDay(date)','deterministic daily rotation'],
   ],
 },
-plaidserver: {
-  title: 'Plaid helper server (optional)', layer: 'ext',
-  blurb: `<p>A single-file, <b>dependency-free</b> Node HTTP server (<code>npm run server</code>, port 8787). It exists
-  because Plaid's API secret can never live in the browser. Endpoints: <code>GET /api/health</code>,
-  <code>POST /api/plaid/create_link_token</code>, <code>mock_connect</code>, <code>exchange_public_token</code>,
-  <code>sync</code> (cursor-based <code>/transactions/sync</code> loop), <code>GET/DELETE /api/plaid/items</code>.</p>
-  <p>Without <code>PLAID_CLIENT_ID</code>/<code>PLAID_SECRET</code> (see <code>.env.example</code>) it runs in
-  <b>mock mode</b>, serving ~20 realistic fake transactions so the whole connect flow works offline. Access tokens are
-  stored in <code>server/.data/store.json</code> (gitignored). Single-user, local — not a multi-tenant service.</p>`,
+auth: {
+  title: 'auth.tsx — accounts', layer: 'state',
+  blurb: `<p><code>AuthProvider</code> wraps the whole app above the store. It holds the Supabase <b>session</b> and the
+  user's <b>profile</b> (incl. <code>role</code>, loaded from <code>GET /api/me</code>), and exposes
+  <code>signInWithPassword</code>, <code>signUpWithPassword</code>, <code>signInWithGoogle</code>, and
+  <code>signOut</code>. <code>supabase.ts</code> creates the auth-only client — or <code>null</code> when accounts
+  aren't configured, which is how every account feature hides itself and the app stays purely local.
+  <code>SyncGate</code> sits just below: on sign-in it pulls the account's slices, offers the migration dialog, and
+  remounts the store; on sign-out it clears synced data from the device.</p>`,
   files: [
-    ['server/plaidServer.mjs','the whole server'],
-    ['.env.example','PLAID_CLIENT_ID / PLAID_SECRET / PLAID_ENV'],
-    ['server/.data/store.json','runtime token store (gitignored)'],
+    ['src/auth.tsx','AuthProvider, useAuth'],
+    ['src/lib/supabase.ts','auth-only client (null when unconfigured)'],
+    ['src/components/SyncGate.tsx','pull-on-login · remount · migration dialogs'],
   ],
   funcs: [
-    ['handlers map','method+path → async handler'],
-    ['mockTransactions(accountType)','Plaid-shaped fake data'],
-    ['plaid(path, body)','authenticated fetch to *.plaid.com'],
+    ['signInWithPassword / signUpWithPassword / signInWithGoogle / signOut',''],
+    ['SyncGate','login pull, first-sign-in upload, sign-out wipe, "Sync now"'],
   ],
+},
+accountui: {
+  title: 'Account · Admin · Support', layer: 'ui',
+  blurb: `<p>The account-facing screens, all talking to the Node API through <code>api.ts</code>:
+  <b>AccountView</b> (sign in / create account, Google button, profile, sync status, "Sync now"),
+  <b>AdminView</b> (admin only — Users, Activity log, Tickets queue, Metrics, lazy-loaded), and <b>SupportCard</b> in
+  Settings (file a ticket, read replies). The Admin nav item shows only when your profile <code>role === 'admin'</code>;
+  the real boundary is the server's <code>requireAdmin</code>.</p>`,
+  files: [
+    ['src/components/AccountView.tsx','sign in/up · profile · Sync now'],
+    ['src/components/AdminView.tsx','users · activity · tickets · metrics'],
+    ['src/components/SupportCard.tsx','ticket form + threads (in Settings)'],
+  ],
+  funcs: [
+    ['TicketThread (admin flag)','user vs admin message endpoints'],
+  ],
+},
+apiclient: {
+  title: 'api.ts — the API client', layer: 'logic',
+  blurb: `<p>The single phone line to the Node backend. Every data call goes through <code>api.get/post/patch/del</code>,
+  which prefixes <code>VITE_API_URL || '/api'</code> and attaches the current Supabase access token as a
+  <code>Bearer</code> header (read from the <code>auth</code> session). <code>beaconPost()</code> sends a
+  <code>keepalive</code> request for tab-close flushes. In dev the Vite server proxies <code>/api</code> →
+  <code>http://localhost:8787</code>, so the browser uses same-origin paths.</p>`,
+  files: [['src/lib/api.ts','api.get/post/patch/del, beaconPost, ApiError']],
+  funcs: [
+    ['api.get/post/patch/del(path, …)','token-attaching fetch wrapper'],
+    ['beaconPost(path, token, body)','keepalive flush on page hide'],
+  ],
+},
+cloudsync: {
+  title: 'cloudSync.ts · track.ts', layer: 'logic',
+  blurb: `<p><b>cloudSync.ts</b> is the photocopier: it listens to every <code>saveJSON</code> (via
+  <code>storage.ts</code>'s save listener), debounces ~2.5s, and POSTs changed slices to <code>/api/sync</code> — one
+  row per (user, key). It skips no-op saves, does last-write-wins per slice, pulls everything on login, and wipes the
+  account on "Clear all data". <b>track.ts</b> batches small activity events (nav, import, quiz finish, errors) to
+  <code>/api/events</code> for the admin log — never recording descriptions, merchants, or amounts, and nothing when
+  signed out. Both flush on tab-hide via <code>beaconPost</code>.</p>`,
+  files: [
+    ['src/lib/cloudSync.ts','SYNCED_KEYS, debounce, pullAll, LWW'],
+    ['src/lib/track.ts','batched events → /api/events'],
+  ],
+  funcs: [
+    ['start/stop/pullAll/pushAllFromLocal/deleteAllCloud','sync lifecycle'],
+    ['track(name, props)','privacy-safe event (no financial data)'],
+  ],
+},
+supabaseauth: {
+  title: 'Supabase Auth', layer: 'ext',
+  blurb: `<p>The hosted login service — <b>identity only</b>. It handles email/password, the Google OAuth redirect,
+  sessions, and password-reset emails, and hands the browser a signed <b>JWT</b>. It never sees your financial data:
+  that lives in our own Postgres behind the Node API. The Node server verifies these JWTs with <code>jose</code>
+  (project JWKS, or the legacy HS256 secret).</p>`,
+  files: [
+    ['(hosted)','Supabase project — Auth providers'],
+    ['src/lib/supabase.ts','browser auth client'],
+  ],
+  funcs: [],
+},
+server: {
+  title: 'Node API — server/ (Fastify)', layer: 'ext',
+  blurb: `<p>The backend: a <b>Fastify</b> server (run via <code>tsx</code>) that is the single API the app calls once
+  you sign in. It owns all data access to PostgreSQL through <b>Drizzle</b>, runs the Plaid integration, and serves the
+  built frontend in production when <code>SERVE_STATIC=true</code>. Start it with <code>npm run server</code>, or both
+  halves with <code>npm run dev:all</code>.</p>`,
+  files: [
+    ['server/src/index.ts','Fastify bootstrap, CORS, route registration, static'],
+    ['server/src/env.ts','typed env (zod)'],
+    ['server/src/db/client.ts','Drizzle + postgres.js connection'],
+    ['server/package.json','dev/start/db scripts'],
+  ],
+  funcs: [],
+},
+serverauth: {
+  title: 'auth middleware (jose)', layer: 'ext',
+  blurb: `<p>The front door. <code>requireUser</code> verifies the bearer JWT (<code>verify.ts</code>: JWKS first,
+  HS256 fallback), then get-or-creates the caller's <code>profiles</code> row (the <code>ADMIN_EMAIL</code> account is
+  stamped <code>admin</code>) and attaches <code>req.user</code>. <code>requireAdmin</code> adds a role check. Crucially,
+  the user id always comes from the token — never the request body — so one account can't act as another.</p>`,
+  files: [
+    ['server/src/auth/verify.ts','jose JWT verification'],
+    ['server/src/auth/middleware.ts','requireUser, requireAdmin'],
+  ],
+  funcs: [
+    ['requireUser','verify → get-or-create profile → req.user'],
+    ['requireAdmin','requireUser + role === admin'],
+  ],
+},
+serverroutes: {
+  title: 'API routes', layer: 'ext',
+  blurb: `<p>The endpoints, each scoping every query to <code>req.user.id</code>: <code>me</code> (profile),
+  <code>sync</code> (GET/POST/DELETE <code>user_slices</code>), <code>events</code> (batched activity),
+  <code>plaid</code> (connect/sync, per-user encrypted tokens, mock mode), <code>tickets</code> (your tickets +
+  threads), and <code>admin</code> (users, activity, tickets, metrics — behind <code>requireAdmin</code>). There is no
+  route that returns another user's <code>user_slices</code>, so admins can't read financial data.</p>`,
+  files: [
+    ['server/src/routes/{me,sync,events,plaid,tickets,admin}.ts','the endpoints'],
+    ['server/src/plaid/crypto.ts','AES-256-GCM token encryption'],
+    ['server/src/db/serialize.ts','rows → snake_case JSON'],
+  ],
+  funcs: [
+    ['/api/sync','per-user slice upsert (rev bump) / pull / wipe'],
+    ['/api/plaid/*','create_link_token · exchange · sync · items'],
+    ['/api/admin/*','users · events · metrics · tickets'],
+  ],
+},
+postgres: {
+  title: 'PostgreSQL (Drizzle)', layer: 'ext',
+  blurb: `<p>The database the Node server owns. Six tables defined in <code>server/src/db/schema.ts</code>:
+  <code>profiles</code>, <code>user_slices</code> (the synced notebook pages), <code>plaid_items</code> (encrypted bank
+  tokens), <code>activity_events</code>, <code>support_tickets</code>, and <code>ticket_messages</code>. Plain tables —
+  per-user access is enforced in the API routes, not row-level security; <code>user_id</code> equals the Supabase auth
+  id with no DB-level FK to it. Any Postgres works (Supabase-hosted, Neon, …). See the <b>Database</b> tab.</p>`,
+  files: [
+    ['server/src/db/schema.ts','the six tables'],
+    ['server/drizzle/*.sql','generated migrations (db:migrate)'],
+  ],
+  funcs: [],
 },
 plaidapi: {
   title: 'Plaid API', layer: 'ext',
-  blurb: `<p>The real <code>https://{sandbox|production}.plaid.com</code> REST API, reached only from the helper
-  server (never the browser). Bank login happens inside Plaid's hosted Link UI
+  blurb: `<p>The real <code>https://{sandbox|production}.plaid.com</code> REST API, reached only from the Node server
+  (never the browser). Bank login happens inside Plaid's hosted Link UI
   (<code>cdn.plaid.com/link/v2/stable/link-initialize.js</code>), so credentials never touch this codebase. Entirely
   optional: mock mode and CSV import work with no Plaid account at all.</p>`,
   files: [],
@@ -905,13 +1054,16 @@ plaidapi: {
 const EXTRA_FILES = [
   ['README.md', null, 'project guide & feature tour'],
   ['ARCHITECTURE.md', null, 'plain-English architecture doc (verified by this page)'],
+  ['docs/SETUP-backend.md', 'server', 'backend setup: Postgres, auth, Plaid, deploy'],
+  ['docs/ROADMAP-mobile.md', null, 'Phase 2: React Native + Expo (same API)'],
   ['tsconfig.json', 'entry', 'TS project references'],
   ['tsconfig.app.json', 'entry', 'app TS config'],
-  ['tsconfig.node.json', 'entry', 'node-side TS config'],
+  ['vite.config.ts', 'entry', 'Vite + Vitest + /api dev proxy'],
   ['public/coin.svg', 'entry', 'favicon'],
-  ['src/vite-env.d.ts', 'entry', 'Vite type shims'],
-  ['.gitignore', null, 'ignores server/.data, dist, …'],
-  ['.env.example', 'plaidserver', 'Plaid env template'],
+  ['.gitignore', null, 'ignores .env, dist, node_modules'],
+  ['.env.example', 'auth', 'frontend env (Supabase URL/key, Sentry DSN)'],
+  ['server/.env.example', 'server', 'API env (DATABASE_URL, Plaid, JWT, ADMIN_EMAIL)'],
+  ['server/drizzle.config.ts', 'postgres', 'drizzle-kit migration config'],
 ];
 
 /* ================================================================
@@ -1001,6 +1153,41 @@ const FLOWS = [
       updating every screen at once.` },
   ],
 },
+{
+  id: 'sync',
+  label: '🔐 Signing in & syncing across devices',
+  steps: [
+    { t: 'Sign in on the Account tab', nodes: ['accountui','auth','supabaseauth'],
+      b: `<code>AccountView</code> calls <code>signInWithPassword</code> / <code>signInWithGoogle</code> on
+      <code>AuthProvider</code> (<code>auth.tsx</code>), which delegates to <b>Supabase Auth</b>. Supabase verifies the
+      credentials and hands the browser a signed <b>JWT</b>; it's the only thing Supabase does — it never sees your
+      financial data.` },
+    { t: 'The app learns who you are', nodes: ['auth','apiclient','server','serverauth'],
+      b: `<code>AuthProvider</code> fetches <code>GET /api/me</code> through <code>api.ts</code>, which attaches the JWT
+      as a bearer token. On the server, <code>requireUser</code> (<code>auth/middleware.ts</code>) verifies the token
+      with <code>jose</code> and <b>get-or-creates</b> your <code>profiles</code> row — the <code>ADMIN_EMAIL</code>
+      account is stamped <code>admin</code>, which is what reveals the Admin nav item.` },
+    { t: 'Pull the account, or offer to upload', nodes: ['auth','apiclient','serverroutes','postgres'],
+      b: `<code>SyncGate</code> calls <code>GET /api/sync</code>. If the account already has data it's written into
+      localStorage and the store is <b>remounted</b> (via a React <code>key</code>) so every screen re-reads it. If the
+      account is empty but this device has local data, a dialog offers to upload it; if both differ, you can download a
+      backup before the account copy wins.` },
+    { t: 'Edits mirror automatically', nodes: ['store','storage','cloudsync','apiclient'],
+      b: `From now on, every <code>saveJSON</code> in <code>storage.ts</code> is teed to <code>cloudSync.ts</code> via a
+      save listener. It debounces ~2.5s and <code>POST /api/sync</code>s the changed slices (one <code>user_slices</code>
+      row per key, last-write-wins). No-op saves are skipped so the login pull doesn't echo back. A tab-close fires a
+      <code>keepalive</code> beacon so nothing is lost.` },
+    { t: 'The server stores it — scoped to you', nodes: ['serverroutes','postgres'],
+      b: `<code>/api/sync</code> upserts into <code>user_slices</code> with <code>user_id</code> taken from the verified
+      JWT — <b>never</b> the request body — so one account can't write another's data. The same pattern guards
+      <code>/api/plaid</code> (encrypted tokens in <code>plaid_items</code>), <code>/api/tickets</code>, and
+      <code>/api/admin</code>. There is no route that returns someone else's slices, so admins can't read your money.` },
+    { t: 'Sign out leaves the device clean', nodes: ['auth','cloudsync','storage'],
+      b: `Signing out flushes anything pending, then <code>SyncGate</code> clears the synced localStorage keys and
+      remounts the store — your data stays safe in the account, but a shared computer is left empty. Activity events
+      (<code>track.ts</code>) stop too.` },
+  ],
+},
 ];
 
 /* ================================================================
@@ -1018,7 +1205,7 @@ const DB_NODES = [
   { id:'game',         layer:'state', x:30,  y:170, w:230, h:74, t:'GameState', s:'moneyquiz.game.v1 — survives Clear' },
   { id:'quizresult',   layer:'data',  x:30,  y:300, w:230, h:64, t:'QuizResult[]', s:'moneyquiz.quizHistory.v1 (last 50)' },
   { id:'daily',        layer:'data',  x:30,  y:420, w:230, h:64, t:'DailyState', s:'moneyquiz.daily.v1 (today’s question)' },
-  { id:'serverstore',  layer:'ext',   x:420, y:550, w:260, h:74, t:'server/.data/store.json', s:'Plaid items + tokens (on disk, gitignored)' },
+  { id:'postgres',     layer:'ext',   x:420, y:550, w:260, h:74, t:'PostgreSQL (via Node API)', s:'every localStorage key → a user_slices row' },
 ];
 const DB_EDGES = [
   { e:['tx','importsource'], label:'sourceId → id' },
@@ -1029,7 +1216,7 @@ const DB_EDGES = [
   { e:['sigmem','tx'], label:'txSignature(date, desc, amt)' },
   { e:['prefs','catdef'], label:'budgets keyed by category id' },
   { e:['daily','quizresult'], label:'' },
-  { e:['serverstore','tx'], label:'sync → mapPlaidTransactions' },
+  { e:['postgres','tx'], label:'signed in: POST /api/sync mirrors every slice' },
 ];
 
 const DB_DETAILS = {
@@ -1146,16 +1333,16 @@ daily: {
     ['answer','number | null','first answer wins'],
   ],
 },
-serverstore: {
-  title: 'server/.data/store.json', store: 'on disk, next to the server (gitignored)', cleared: 'n/a (delete the file / remove items)',
-  blurb: 'The optional Plaid server’s only persistence: connected items, their access tokens, sync cursors, and a transaction cache. Never leaves your machine.',
+postgres: {
+  title: 'PostgreSQL (via the Node API)', store: 'server-side — server/src/db/schema.ts (Drizzle)', cleared: 'n/a (server-side; "Clear all data" deletes your rows)',
+  blurb: 'When you are signed in, the Node API mirrors your data to Postgres. Every localStorage key becomes one user_slices row (the app reads/writes whole slices). The other tables are server-only. Per-user access is enforced in the API routes (queries scoped to the JWT user), not row-level security.',
   fields: [
-    ['items','Record<itemId, Item>','one per connected bank'],
-    ['Item.institution / accountType','string','display + credit handling'],
-    ['Item.accessToken?','string','real mode only — the secret the browser must never see'],
-    ['Item.mock?','boolean','mock-mode items serve fake data'],
-    ['Item.cursor','string | null','for incremental /transactions/sync'],
-    ['Item.transactions','Record<txId, PlaidTxn>','cache merged on each sync'],
+    ['profiles','id · email · role · created_at','one per account; ADMIN_EMAIL → role=admin on first sign-in'],
+    ['user_slices','(user_id, key) · value jsonb · rev','the synced notebook — one row per localStorage key; no admin read route'],
+    ['plaid_items','access_token_enc · is_mock · cursor · transactions','bank connections; tokens AES-256-GCM encrypted, never sent to the browser'],
+    ['activity_events','session_id · name · props · client_ts','batched analytics (no financial details)'],
+    ['support_tickets','subject · body · category · status','help requests'],
+    ['ticket_messages','ticket_id · author_id · body','the reply thread'],
   ],
 },
 };
@@ -1192,7 +1379,8 @@ const START_STEPS = [
   { t: 'Run it first', f: 'README.md · package.json',
     p: `<code>npm install && npm run dev</code>, click <b>Load sample data</b>, take a quiz, click around the Dashboard
     and Year Sheet. Ten minutes of using the app makes every file below instantly recognizable. (<code>npm test</code>
-    runs the Vitest suite; <code>npm run server</code> starts the optional Plaid backend in mock mode.)`},
+    runs the Vitest suite. To exercise accounts/sync/bank/admin, set up <code>server/.env</code> per
+    <code>docs/SETUP-backend.md</code> and run <code>npm run dev:all</code> — frontend + Node API together.)`},
   { t: 'Learn the vocabulary', f: 'src/types.ts',
     p: `Small and dense: <code>Transaction</code> (signed amounts; which flags are derived vs stored),
     <code>ColumnMapping</code>, <code>ImportSource</code>, <code>GameState</code>. Every other file speaks in these
@@ -1230,27 +1418,42 @@ const START_STEPS = [
   { t: 'The extras', f: 'src/lib/yearly.ts · gamification.ts · badges.ts · giving.ts · debt.ts',
     p: `Each is small, pure, and tested: the Year Sheet grid with projections, XP/levels/streaks, badge rules,
     giving stats, and the paid-off-loan detector. Read whichever the feature you're touching needs.`},
-  { t: 'Only if you touch bank connections', f: 'server/plaidServer.mjs · src/lib/plaid.ts · plaidMap.ts',
-    p: `A dependency-free Node server with a handlers map, mock mode, and a JSON token store; the client wraps it in
-    <code>plaidApi</code>. Run <code>npm run server</code> and click "Connect (demo)" to see the whole loop without a
-    Plaid account.`},
+  { t: 'The accounts layer (frontend)', f: 'src/auth.tsx · src/lib/api.ts · src/lib/cloudSync.ts · src/components/SyncGate.tsx',
+    p: `How signing in turns on the cloud without disturbing the local app: <code>AuthProvider</code> holds the session,
+    <code>api.ts</code> attaches the token to every backend call, <code>cloudSync.ts</code> mirrors localStorage slices,
+    and <code>SyncGate</code> handles the login pull + store remount. <code>track.ts</code> is the privacy-safe activity
+    logger. All no-ops when accounts aren't configured.`},
+  { t: 'The Node backend', f: 'server/src/index.ts · auth/middleware.ts · routes/* · db/schema.ts',
+    p: `The Fastify API. Start at <code>index.ts</code> (route registration), then <code>auth/middleware.ts</code>
+    (<code>requireUser</code>/<code>requireAdmin</code> — the security model), then the <code>routes/</code> (each query
+    scoped to <code>req.user.id</code>), and <code>db/schema.ts</code> (the six Drizzle tables). Setup &amp; deploy:
+    <code>docs/SETUP-backend.md</code>.`},
+  { t: 'Only if you touch bank connections', f: 'server/src/routes/plaid.ts · server/src/plaid/* · src/lib/plaid.ts · plaidMap.ts',
+    p: `The Plaid route resolves the user from the JWT, keeps each person's token AES-256-GCM encrypted in
+    <code>plaid_items</code>, and runs in mock mode when no Plaid keys are set; the client wraps it in
+    <code>plaidApi</code> over <code>api.ts</code>. With <code>npm run dev:all</code> (mock mode), click "Connect (demo)"
+    to see the whole loop without a Plaid account.`},
 ];
 
 /* ================================================================
    DOC DRIFT
    ================================================================ */
 const DRIFT = [
-  { t: 'App.tsx screen list omitted the Year Sheet',
-    doc: '§5 said App.tsx “decides which screen you’re looking at (Import, Dashboard, Quiz, or Settings)”.',
-    code: 'src/App.tsx and Nav.tsx route five screens — Import, Dashboard, Year Sheet (view id “yearly”), Quiz, Settings — and lazy-load Dashboard and YearSheetView to keep Recharts out of the initial bundle.',
+  { t: 'A real Node.js backend now sits in front of the data',
+    doc: 'Originally: a 100% client-side app whose only server was an optional single-user, dependency-free Plaid helper (server/plaidServer.mjs) holding tokens in a local JSON file.',
+    code: 'server/ is now a Fastify API (run via tsx) over PostgreSQL with Drizzle. The browser calls it through src/lib/api.ts for sync, Plaid, tickets, admin, and events; every query is scoped to the JWT user. Honest stack: React/TS frontend + Node.js backend + PostgreSQL.',
   },
-  { t: 'Sample dataset size was off',
-    doc: '§“src/data” said sampleData.ts is “a pretend set of ~65 transactions”.',
-    code: 'SAMPLE_ROWS in src/data/sampleData.ts contains 68 transactions (Apr–Jun 2026). (The file’s own comment and the Import screen copy say “~60” — directionally fine, but the doc now says 68.)',
+  { t: 'Accounts & cross-device sync (Supabase Auth for login only)',
+    doc: 'Originally: no accounts; all data lived only in this browser’s localStorage.',
+    code: 'auth.tsx + SyncGate add optional sign-in (email/password or Google) via Supabase Auth, which only verifies identity and issues a JWT. cloudSync.ts mirrors each localStorage slice to a user_slices row through POST /api/sync; the data layer is unchanged locally and the app still works fully signed out.',
   },
-  { t: 'Category edits are remembered at TWO levels, not one',
-    doc: '§7 said remembered edits include “category edits and renames (aliases) — per merchant, survive re-imports”.',
-    code: 'store.tsx keeps category edits in two maps applied in order: overrides (keyed by normalized exact description via overrideKey — set by setCategory/setCategoryBulk) first, then merchantOverrides (keyed by merchantKey — set by “apply to all from this merchant”). Renames are per merchant. withOverrides() re-applies description-level edits before merchant-level ones on every import.',
+  { t: 'Multi-tenant Plaid + admin, tickets, and activity logging',
+    doc: 'Originally: single-user Plaid mock/real flow; no admin, support, or analytics.',
+    code: '/api/plaid keeps each user’s access token AES-256-GCM encrypted in plaid_items (mock mode when no keys). /api/tickets + /api/admin power in-app support and an admin panel (users, activity, tickets, metrics) behind requireAdmin. track.ts logs privacy-safe activity events (no descriptions/merchants/amounts). Browser crashes go to Sentry, scrubbed.',
+  },
+  { t: 'Earlier doc fixes (from the 2026-06-11 pass) carried forward',
+    doc: 'The first verification pass corrected three small drifts in ARCHITECTURE.md.',
+    code: 'App routes the Year Sheet (lazy-loaded) as a fifth core screen; sampleData.ts has 68 rows; and category edits are remembered at two levels (exact-description overrides applied before merchant-level ones in withOverrides()). All still true.',
   },
 ];
 
@@ -1414,8 +1617,8 @@ function showDetail(id, highlightFile) {
 }
 
 mainDia = renderDiagram('svgMain', NODES, EDGES, {
-  viewBox: '0 0 1400 800',
-  boundary: { x: 1100, y1: 500, y2: 730, label: 'outside the browser' },
+  viewBox: '0 0 1420 900',
+  boundary: { x: 1100, y1: 96, y2: 884, label: 'the backend — outside the browser' },
   onSelect: id => showDetail(id),
 });
 
@@ -1433,8 +1636,8 @@ tabsEl.addEventListener('click', e => { const b = e.target.closest('button'); if
    DATA FLOW TAB
    ================================================================ */
 flowDia = renderDiagram('svgFlow', NODES, EDGES, {
-  viewBox: '0 0 1400 800',
-  boundary: { x: 1100, y1: 500, y2: 730, label: 'outside the browser' },
+  viewBox: '0 0 1420 900',
+  boundary: { x: 1100, y1: 96, y2: 884, label: 'the backend — outside the browser' },
   onSelect: () => {},
 });
 let curFlow = 0, curStep = 0;
@@ -1502,11 +1705,12 @@ document.getElementById('startSteps').innerHTML = START_STEPS.map(s =>
   `<div class="step"><h3>${s.t}</h3><div class="files mono">${s.f}</div><p>${s.p}</p></div>`).join('');
 
 document.getElementById('driftList').innerHTML = DRIFT.map(d =>
-  `<div class="item"><h3>${d.t}<span class="fixed">fixed in ARCHITECTURE.md</span></h3>
-   <div class="twocol"><div><b>The doc said</b>${d.doc}</div><div><b>The code does</b>${d.code}</div></div></div>`).join('') +
-  `<p class="hint" style="margin-top:14px">Everything else in ARCHITECTURE.md checked out: all 33 components, 18 lib
-  modules, every storage key, the refund/transfer rules, the recurring bill-vs-habit logic, the XP table, badge rules,
-  verse/question counts (49 / 15), and the Plaid server behavior were verified against the source on 2026-06-11.</p>`;
+  `<div class="item"><h3>${d.t}<span class="fixed">verified 2026-06-15</span></h3>
+   <div class="twocol"><div><b>Before</b>${d.doc}</div><div><b>Now</b>${d.code}</div></div></div>`).join('') +
+  `<p class="hint" style="margin-top:14px">Unchanged and still verified against the source: the store, the localStorage
+  layer and every key, the refund/transfer rules, recurring bill-vs-habit logic, the XP table and badge rules,
+  verse/question counts (49 / 15), the quiz engine, and the Year Sheet math. Login is handled by Supabase Auth
+  (identity only); all financial data lives in our own Postgres behind the Node API.</p>`;
 
 /* ================================================================
    SEARCH
