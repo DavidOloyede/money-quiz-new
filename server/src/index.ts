@@ -8,9 +8,11 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import { env } from './env'
+import { PlaidError } from './plaid/client'
 import { meRoutes } from './routes/me'
 import { syncRoutes } from './routes/sync'
 import { eventRoutes } from './routes/events'
+import { plaidRoutes } from './routes/plaid'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -19,11 +21,22 @@ await app.register(cors, {
   credentials: true,
 })
 
+// Surface Plaid API failures with their upstream status + code.
+app.setErrorHandler((err, _req, reply) => {
+  if (err instanceof PlaidError) {
+    return reply.code(err.status).send({ error: err.message, plaid: err.plaid })
+  }
+  app.log.error(err)
+  const status = (err as { statusCode?: number }).statusCode ?? 500
+  return reply.code(status >= 400 ? status : 500).send({ error: 'internal error' })
+})
+
 app.get('/api/health', async () => ({ ok: true }))
 
 await app.register(meRoutes)
 await app.register(syncRoutes)
 await app.register(eventRoutes)
+await app.register(plaidRoutes)
 
 try {
   await app.listen({ port: env.PORT, host: '0.0.0.0' })

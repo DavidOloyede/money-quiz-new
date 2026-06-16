@@ -8,6 +8,7 @@ import { CheckIcon, LinkIcon, XIcon } from './icons'
 
 type Status =
   | { kind: 'loading' }
+  | { kind: 'unavailable' }
   | { kind: 'signin' }
   | { kind: 'down' }
   | { kind: 'ready'; health: PlaidHealth }
@@ -24,12 +25,16 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
 
   const signedIn = !!session
   useEffect(() => {
-    if (plaidNeedsSignIn) {
-      if (authLoading) return
-      if (!signedIn) {
-        setStatus({ kind: 'signin' })
-        return
-      }
+    // Bank connections live behind the account API, so they require accounts to
+    // be configured and a signed-in user. CSV import below works regardless.
+    if (!plaidNeedsSignIn) {
+      setStatus({ kind: 'unavailable' })
+      return
+    }
+    if (authLoading) return
+    if (!signedIn) {
+      setStatus({ kind: 'signin' })
+      return
     }
     let alive = true
     setStatus({ kind: 'loading' })
@@ -121,7 +126,13 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
           </p>
 
           {status.kind === 'loading' && (
-            <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">Checking for the Plaid server…</p>
+            <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">Checking the connection service…</p>
+          )}
+
+          {status.kind === 'unavailable' && (
+            <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+              Bank connections aren’t configured in this build. CSV import below works without them.
+            </div>
           )}
 
           {status.kind === 'signin' && (
@@ -143,19 +154,8 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
 
           {status.kind === 'down' && (
             <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
-              {plaidNeedsSignIn ? (
-                <>
-                  The connection service isn’t reachable right now — try again in a moment. CSV
-                  import below works regardless.
-                </>
-              ) : (
-                <>
-                  The connection server isn’t running. Start it with{' '}
-                  <code className="rounded bg-slate-200 dark:bg-slate-700 px-1">npm run server</code>{' '}
-                  (it runs in demo mode with no setup, or add Plaid keys in <code>.env</code>). CSV
-                  import below works without it.
-                </>
-              )}
+              The connection service isn’t reachable right now — try again in a moment. CSV import
+              below works regardless.
             </div>
           )}
 

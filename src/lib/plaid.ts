@@ -1,12 +1,11 @@
 /**
- * Client for the Plaid backend. With Supabase configured it talks to the
- * multi-tenant `plaid` Edge Function (per-user, sign-in required); otherwise
- * it falls back to the local single-user dev server (server/plaidServer.mjs).
- * Either way the browser never sees Plaid secrets or access tokens;
- * transactions still end up in localStorage.
+ * Client for the Plaid backend — our Node API's /api/plaid routes. Bank
+ * connections are per-user and require sign-in; the browser never sees Plaid
+ * secrets or access tokens, and transactions still end up in localStorage.
  */
 import type { AccountType } from '../types'
-import { cloudEnabled, supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from './supabase'
+import { api } from './api'
+import { cloudEnabled } from './supabase'
 
 export interface PlaidHealth {
   mode: 'mock' | 'plaid'
@@ -34,71 +33,24 @@ export interface PlaidTxn {
   personal_finance_category?: { primary?: string; detailed?: string }
 }
 
-const LOCAL_BASE =
-  ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PLAID_API) ||
-  'http://localhost:8787'
-
-/** True when bank connections go through the cloud (and require sign-in). */
+/** True when bank connections are available (accounts configured) and need sign-in. */
 export const plaidNeedsSignIn = cloudEnabled
 
-/** `path` uses the Edge Function shape ('/health', '/sync', '/items/:id'). */
-async function req<T>(path: string, opts: RequestInit = {}, timeoutMs = 8000): Promise<T> {
-  let url: string
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (cloudEnabled && supabase) {
-    const { data } = await supabase.auth.getSession()
-    const token = data.session?.access_token
-    if (!token) throw new Error('Sign in to connect a bank.')
-    url = `${SUPABASE_URL}/functions/v1/plaid${path}`
-    headers.apikey = SUPABASE_ANON_KEY
-    headers.Authorization = `Bearer ${token}`
-  } else {
-    // Local dev server keeps its original route shape.
-    url = LOCAL_BASE + (path === '/health' ? '/api/health' : `/api/plaid${path}`)
-  }
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs)
-  try {
-    const res = await fetch(url, {
-      ...opts,
-      signal: ctrl.signal,
-      headers: { ...headers, ...(opts.headers || {}) },
-    })
-    const json = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error((json as { error?: string }).error || `Request failed (${res.status})`)
-    return json as T
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
 export const plaidApi = {
-  // Cold-started edge functions can take a moment; give health a bit longer.
-  health: () => req<PlaidHealth>('/health', {}, cloudEnabled ? 6000 : 2500),
-  createLinkToken: () =>
-    req<{ link_token: string; mode: string }>('/create_link_token', {
-      method: 'POST',
-      body: '{}',
-    }),
+  health: () => api.get<PlaidHealth>('/plaid/health'),
+  createLinkToken: () => api.post<{ link_token: string; mode: string }>('/plaid/create_link_token'),
   mockConnect: (institution: string, accountType: AccountType) =>
-    req<{ item: PlaidItemSummary }>('/mock_connect', {
-      method: 'POST',
-      body: JSON.stringify({ institution, accountType }),
-    }),
+    api.post<{ item: PlaidItemSummary }>('/plaid/mock_connect', { institution, accountType }),
   exchange: (public_token: string, institution: string, accountType: AccountType) =>
-    req<{ item: PlaidItemSummary }>('/exchange_public_token', {
-      method: 'POST',
-      body: JSON.stringify({ public_token, institution, accountType }),
+    api.post<{ item: PlaidItemSummary }>('/plaid/exchange_public_token', {
+      public_token,
+      institution,
+      accountType,
     }),
   sync: (itemId: string) =>
-    req<{ item: PlaidItemSummary; transactions: PlaidTxn[] }>(
-      '/sync',
-      { method: 'POST', body: JSON.stringify({ itemId }) },
-      20000,
-    ),
-  items: () => req<{ items: PlaidItemSummary[] }>('/items'),
-  removeItem: (id: string) =>
-    req<{ ok: boolean }>(`/items/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+    api.post<{ item: PlaidItemSummary; transactions: PlaidTxn[] }>('/plaid/sync', { itemId }, 20000),
+  items: () => api.get<{ items: PlaidItemSummary[] }>('/plaid/items'),
+  removeItem: (id: string) => api.del<{ ok: boolean }>(`/plaid/items/${encodeURIComponent(id)}`),
 }
 
 interface PlaidLinkMetadata {
