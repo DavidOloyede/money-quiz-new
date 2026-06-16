@@ -15,6 +15,7 @@ import {
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { cloudEnabled, supabase } from './lib/supabase'
+import { api } from './lib/api'
 
 export interface Profile {
   id: string
@@ -88,13 +89,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     let cancelled = false
-    supabase
-      .from('profiles')
-      .select('id, email, display_name, role, created_at')
-      .eq('id', userId)
-      .single()
-      .then(({ data }) => {
-        if (!cancelled) setProfile((data as Profile | null) ?? null)
+    // The Node API resolves (and creates on first sign-in) the profile.
+    api
+      .get<Profile>('/me')
+      .then((p) => {
+        if (!cancelled) setProfile(p)
+      })
+      .catch(() => {
+        if (!cancelled) setProfile(null)
       })
     return () => {
       cancelled = true
