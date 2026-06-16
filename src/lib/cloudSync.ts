@@ -3,16 +3,17 @@
  *
  * The store keeps reading and writing localStorage exactly as before; this
  * module listens to every saveJSON() call (via storage.ts's save listener),
- * debounces, and upserts changed slices to the `user_slices` table — one row
- * per (user, storage key), value stored as opaque JSONB. On login the slices
- * are pulled and written back into localStorage, then the StoreProvider is
- * remounted so the store re-initializes from them.
+ * debounces, and POSTs changed slices to the Node API (`/api/sync`), which
+ * stores one row per (user, storage key). On login the slices are pulled and
+ * written back into localStorage, then the StoreProvider is remounted so the
+ * store re-initializes from them.
  *
  * Conflicts are last-write-wins per slice, which is fine for one person on a
  * couple of devices: slices are independent, so editing budgets on the phone
  * can't clobber transactions edited on the laptop.
  */
-import { supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from './supabase'
+import { api, beaconPost } from './api'
+import { cloudEnabled } from './supabase'
 import { loadJSON, setSaveListener, STORAGE_KEYS } from './storage'
 
 /**
@@ -100,27 +101,23 @@ function onSave(key: string, value: unknown) {
 }
 
 async function flush(): Promise<void> {
-  if (!supabase || !userId || pending.size === 0) return
+  if (!cloudEnabled || !userId || pending.size === 0) return
   const uid = userId
   const batch = [...pending.entries()]
   pending.clear()
   notify({ status: 'pushing' })
-  const rows = batch.map(([key, raw]) => ({
-    user_id: uid,
-    key,
-    value: JSON.parse(raw) as unknown,
-  }))
-  const { error } = await supabase
-    .from('user_slices')
-    .upsert(rows, { onConflict: 'user_id,key' })
-  if (userId !== uid) return // signed out mid-flight; drop the result
-  if (error) {
+  const slices = batch.map(([key, raw]) => ({ key, value: JSON.parse(raw) as unknown }))
+  try {
+    await api.post('/sync', { slices })
+  } catch {
+    if (userId !== uid) return // signed out mid-flight; drop the result
     // Put failed slices back (unless newer edits replaced them) and retry on
     // the next save or page-hide.
     for (const [key, raw] of batch) if (!pending.has(key)) pending.set(key, raw)
     notify({ status: 'error' })
     return
   }
+  if (userId !== uid) return // signed out mid-flight; drop the result
   for (const [key, raw] of batch) lastSynced.set(key, raw)
   notify({ status: 'live', lastSyncAt: new Date().toISOString() })
 }
@@ -132,33 +129,19 @@ export async function flushNow(): Promise<void> {
 }
 
 /**
- * Best-effort flush while the tab is closing. supabase-js can't send
- * keepalive requests, so this talks to PostgREST directly.
+ * Best-effort flush while the tab is closing. An awaited fetch can't run during
+ * unload, so this sends a keepalive beacon with the cached token.
  */
 function flushOnHide() {
   if (!userId || !accessToken || pending.size === 0) return
-  const uid = userId
-  const rows = [...pending.entries()].map(([key, raw]) => ({
-    user_id: uid,
+  const slices = [...pending.entries()].map(([key, raw]) => ({
     key,
     value: JSON.parse(raw) as unknown,
   }))
   for (const [key, raw] of pending) lastSynced.set(key, raw)
   pending.clear()
   notify({})
-  fetch(`${SUPABASE_URL}/rest/v1/user_slices?on_conflict=user_id,key`, {
-    method: 'POST',
-    keepalive: true,
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${accessToken}`,
-      Prefer: 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify(rows),
-  }).catch(() => {
-    // Tab is going away; nothing sensible to do with a failure.
-  })
+  beaconPost('/sync', accessToken, { slices })
 }
 
 function handleHide() {
@@ -199,10 +182,9 @@ export function stop() {
 
 /** Fetch every slice stored for the signed-in user. */
 export async function pullAll(): Promise<SliceRow[]> {
-  if (!supabase) return []
-  const { data, error } = await supabase.from('user_slices').select('key, value')
-  if (error) throw new Error(error.message)
-  return (data as SliceRow[]) ?? []
+  if (!cloudEnabled) return []
+  const { slices } = await api.get<{ slices: SliceRow[] }>('/sync')
+  return slices ?? []
 }
 
 /**
@@ -233,28 +215,25 @@ export function applyToLocal(rows: SliceRow[]): void {
 }
 
 /** Upload this device's slices to the account (first-sign-in migration). */
-export async function pushAllFromLocal(uid: string): Promise<void> {
-  if (!supabase) return
-  const rows: { user_id: string; key: string; value: unknown }[] = []
+export async function pushAllFromLocal(_uid: string): Promise<void> {
+  if (!cloudEnabled) return
+  const slices: SliceRow[] = []
   for (const key of SYNCED_KEYS) {
     const value = loadJSON<unknown>(key, null)
     if (value === null) continue
-    rows.push({ user_id: uid, key, value })
+    slices.push({ key, value })
     lastSynced.set(key, JSON.stringify(value))
   }
-  if (rows.length === 0) return
-  const { error } = await supabase
-    .from('user_slices')
-    .upsert(rows, { onConflict: 'user_id,key' })
-  if (error) throw new Error(error.message)
+  if (slices.length === 0) return
+  await api.post('/sync', { slices })
 }
 
 /** Remove every slice from the account (used by "Clear all data"). */
 export async function deleteAllCloud(): Promise<void> {
-  if (!supabase || !userId) return
+  if (!cloudEnabled || !userId) return
   pending.clear()
   lastSynced.clear()
-  await supabase.from('user_slices').delete().eq('user_id', userId)
+  await api.del('/sync')
 }
 
 /** Serialized snapshot of local slices, for the pre-replace backup download. */

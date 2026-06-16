@@ -1,26 +1,27 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-interface UpsertRow {
-  user_id: string
+interface Slice {
   key: string
   value: unknown
 }
 
-const upserts: UpsertRow[][] = []
+/** Captured POST /sync payloads (each is the batch of slices sent). */
+const posts: Slice[][] = []
+const beacons: Slice[][] = []
 
-vi.mock('./supabase', () => ({
-  SUPABASE_URL: 'http://supabase.test',
-  SUPABASE_ANON_KEY: 'anon-key',
-  cloudEnabled: true,
-  supabase: {
-    from: () => ({
-      upsert: (rows: UpsertRow[]) => {
-        upserts.push(rows)
-        return Promise.resolve({ error: null })
-      },
-      select: () => Promise.resolve({ data: [], error: null }),
-      delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
-    }),
+vi.mock('./supabase', () => ({ cloudEnabled: true }))
+
+vi.mock('./api', () => ({
+  api: {
+    post: (_path: string, body: { slices: Slice[] }) => {
+      posts.push(body.slices)
+      return Promise.resolve({ ok: true })
+    },
+    get: () => Promise.resolve({ slices: [] }),
+    del: () => Promise.resolve({ ok: true }),
+  },
+  beaconPost: (_path: string, _token: string | null, body: { slices: Slice[] }) => {
+    beacons.push(body.slices)
   },
 }))
 
@@ -40,7 +41,8 @@ import { saveJSON, STORAGE_KEYS } from './storage'
 const mem = new Map<string, string>()
 beforeEach(() => {
   mem.clear()
-  upserts.length = 0
+  posts.length = 0
+  beacons.length = 0
   vi.useFakeTimers()
   ;(globalThis as Record<string, unknown>).localStorage = {
     getItem: (k: string) => mem.get(k) ?? null,
@@ -72,51 +74,49 @@ describe('debounced mirroring', () => {
   it('pushes a saved slice after the debounce window', async () => {
     start('user-1', 'token')
     saveJSON(STORAGE_KEYS.budgets, { groceries: 400 })
-    expect(upserts).toHaveLength(0)
+    expect(posts).toHaveLength(0)
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(1)
-    expect(upserts[0]).toEqual([
-      { user_id: 'user-1', key: STORAGE_KEYS.budgets, value: { groceries: 400 } },
-    ])
+    expect(posts).toHaveLength(1)
+    expect(posts[0]).toEqual([{ key: STORAGE_KEYS.budgets, value: { groceries: 400 } }])
   })
 
-  it('coalesces rapid saves of the same slice into one upsert', async () => {
+  it('coalesces rapid saves of the same slice into one push', async () => {
     start('user-1', 'token')
     saveJSON(STORAGE_KEYS.budgets, { groceries: 100 })
     saveJSON(STORAGE_KEYS.budgets, { groceries: 200 })
     saveJSON(STORAGE_KEYS.budgets, { groceries: 300 })
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(1)
-    expect((upserts[0][0].value as { groceries: number }).groceries).toBe(300)
+    expect(posts).toHaveLength(1)
+    expect((posts[0][0].value as { groceries: number }).groceries).toBe(300)
   })
 
   it('skips no-op saves that match what the cloud already has', async () => {
     start('user-1', 'token')
     saveJSON(STORAGE_KEYS.givingGoal, 10)
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(1)
+    expect(posts).toHaveLength(1)
     // the store remount re-saves every slice; identical values must not echo
     saveJSON(STORAGE_KEYS.givingGoal, 10)
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(1)
+    expect(posts).toHaveLength(1)
   })
 
   it('ignores unsynced keys and saves after stop()', async () => {
     start('user-1', 'token')
     saveJSON(STORAGE_KEYS.theme, 'dark')
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(0)
+    expect(posts).toHaveLength(0)
     stop()
     saveJSON(STORAGE_KEYS.budgets, { rent: 1200 })
     await vi.advanceTimersByTimeAsync(3000)
-    expect(upserts).toHaveLength(0)
+    expect(posts).toHaveLength(0)
   })
 
   it('flushNow pushes without waiting for the debounce', async () => {
     start('user-1', 'token')
     saveJSON(STORAGE_KEYS.quizHistory, [{ at: '2026-06-12', correct: 8, total: 10 }])
     await flushNow()
-    expect(upserts).toHaveLength(1)
+    expect(posts).toHaveLength(1)
   })
 })
 
@@ -143,11 +143,10 @@ describe('login pull / first-sign-in push', () => {
     saveJSON(STORAGE_KEYS.transactions, [{ id: 't1' }])
     saveJSON(STORAGE_KEYS.givingGoal, 10)
     await pushAllFromLocal('user-1')
-    expect(upserts).toHaveLength(1)
-    const keys = upserts[0].map((r) => r.key)
+    expect(posts).toHaveLength(1)
+    const keys = posts[0].map((r) => r.key)
     expect(keys).toContain(STORAGE_KEYS.transactions)
     expect(keys).toContain(STORAGE_KEYS.givingGoal)
-    expect(upserts[0].every((r) => r.user_id === 'user-1')).toBe(true)
   })
 
   it('localSnapshotJson captures only present slices', () => {

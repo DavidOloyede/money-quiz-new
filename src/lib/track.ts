@@ -1,14 +1,15 @@
 /**
- * Lightweight product analytics: batched events into the activity_events
- * table, readable from the in-app Admin panel. Signed out (or with Supabase
- * unconfigured) events are dropped — we only ever record activity for people
- * with accounts.
+ * Lightweight product analytics: batched events POSTed to the Node API
+ * (`/api/events`), readable from the in-app Admin panel. Signed out (or with
+ * accounts unconfigured) events are dropped — we only ever record activity for
+ * people with accounts.
  *
  * PRIVACY RULE: event props must never contain transaction descriptions,
  * merchant names, or amounts. Counts, categories of action, and durations
  * are fine; financial data is not.
  */
-import { cloudEnabled, supabase, SUPABASE_ANON_KEY, SUPABASE_URL } from './supabase'
+import { api, beaconPost } from './api'
+import { cloudEnabled, supabase } from './supabase'
 
 interface ActivityEvent {
   session_id: string
@@ -52,17 +53,12 @@ if (supabase) {
 
 function send(events: ActivityEvent[], keepalive: boolean) {
   if (!accessToken || events.length === 0) return
-  fetch(`${SUPABASE_URL}/rest/v1/activity_events`, {
-    method: 'POST',
-    keepalive,
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${accessToken}`,
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify(events),
-  }).catch(() => {
+  if (keepalive) {
+    // Tab is closing: best-effort beacon with the cached token.
+    beaconPost('/events', accessToken, { events })
+    return
+  }
+  api.post('/events', { events }).catch(() => {
     // Re-queue on network failure, newest first wins under the cap.
     queue = [...events, ...queue].slice(0, QUEUE_CAP)
   })
