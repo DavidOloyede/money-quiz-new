@@ -1,10 +1,10 @@
 /**
  * Help & support: signed-in users file tickets and read replies here; admins
- * answer from the Admin panel. RLS keeps every ticket private to its owner.
+ * answer from the Admin panel. The Node API scopes every ticket to its owner.
  */
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth'
-import { supabase } from '../lib/supabase'
+import { api, ApiError } from '../lib/api'
 import { track } from '../lib/track'
 import { LifeBuoyIcon } from './icons'
 
@@ -56,37 +56,37 @@ export function TicketThread({
   ticket,
   selfId,
   otherLabel = 'Support',
+  admin = false,
   onReplied,
 }: {
   ticket: Ticket
   selfId: string
   /** How to label messages from the other side ('Support' for users, 'User' for admins). */
   otherLabel?: string
+  /** Use the admin message endpoints (sees/answers any user's ticket). */
+  admin?: boolean
   onReplied?: () => void
 }) {
   const [messages, setMessages] = useState<TicketMessage[]>([])
   const [reply, setReply] = useState('')
   const [busy, setBusy] = useState(false)
 
+  const base = admin ? `/admin/tickets/${ticket.id}` : `/tickets/${ticket.id}`
+
   const load = useCallback(async () => {
-    if (!supabase) return
-    const { data } = await supabase
-      .from('ticket_messages')
-      .select('*')
-      .eq('ticket_id', ticket.id)
-      .order('created_at')
-    setMessages((data as TicketMessage[]) ?? [])
-  }, [ticket.id])
+    const { messages } = await api.get<{ messages: TicketMessage[] }>(`${base}/messages`)
+    setMessages(messages ?? [])
+  }, [base])
 
   useEffect(() => {
     void load()
   }, [load])
 
   const send = async () => {
-    if (!supabase || !reply.trim()) return
+    if (!reply.trim()) return
     setBusy(true)
     try {
-      await supabase.from('ticket_messages').insert({ ticket_id: ticket.id, body: reply.trim() })
+      await api.post(`${base}/messages`, { body: reply.trim() })
       setReply('')
       await load()
       onReplied?.()
@@ -149,12 +149,9 @@ export function SupportCard() {
   const userId = session?.user.id
 
   const load = useCallback(async () => {
-    if (!supabase || !userId) return
-    const { data } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .order('updated_at', { ascending: false })
-    setTickets((data as Ticket[]) ?? [])
+    if (!userId) return
+    const { tickets } = await api.get<{ tickets: Ticket[] }>('/tickets')
+    setTickets(tickets ?? [])
   }, [userId])
 
   useEffect(() => {
@@ -165,24 +162,17 @@ export function SupportCard() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!supabase) return
     setBusy(true)
     setError(null)
     try {
-      const { error: err } = await supabase.from('support_tickets').insert({
-        subject: subject.trim(),
-        body: body.trim(),
-        category,
-      })
-      if (err) {
-        setError(err.message)
-        return
-      }
+      await api.post('/tickets', { subject: subject.trim(), body: body.trim(), category })
       track('support.ticket_created', { category })
       setSubject('')
       setBody('')
       setShowForm(false)
       await load()
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not submit your ticket.')
     } finally {
       setBusy(false)
     }

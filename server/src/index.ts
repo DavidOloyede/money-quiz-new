@@ -13,6 +13,8 @@ import { meRoutes } from './routes/me'
 import { syncRoutes } from './routes/sync'
 import { eventRoutes } from './routes/events'
 import { plaidRoutes } from './routes/plaid'
+import { ticketRoutes } from './routes/tickets'
+import { adminRoutes } from './routes/admin'
 
 const app = Fastify({ logger: { level: 'info' } })
 
@@ -37,6 +39,8 @@ await app.register(meRoutes)
 await app.register(syncRoutes)
 await app.register(eventRoutes)
 await app.register(plaidRoutes)
+await app.register(ticketRoutes)
+await app.register(adminRoutes)
 
 try {
   await app.listen({ port: env.PORT, host: '0.0.0.0' })

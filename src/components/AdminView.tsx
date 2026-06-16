@@ -1,14 +1,13 @@
 /**
  * Admin panel (role = admin only): metrics, users, activity log, and the
- * support-ticket queue. Everything goes through supabase-js and is enforced
- * by RLS / security-definer checks in the database — the nav gate is just
- * cosmetics, so nothing here is more privileged than the signed-in admin.
- * Admins deliberately cannot read anyone's financial data (user_slices has
- * no admin policy).
+ * support-ticket queue. Everything goes through the Node API's /api/admin
+ * routes, which are gated by requireAdmin — the nav gate is just cosmetics.
+ * There is no admin endpoint for user_slices, so admins never see anyone's
+ * financial data.
  */
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth, type Profile } from '../auth'
-import { supabase } from '../lib/supabase'
+import { api } from '../lib/api'
 import { StatusBadge, TicketThread, type Ticket, type TicketStatus } from './SupportCard'
 
 type Tab = 'metrics' | 'users' | 'activity' | 'tickets'
@@ -39,12 +38,10 @@ const cardCls =
 function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   useEffect(() => {
-    if (!supabase) return
-    void supabase
-      .from('profiles')
-      .select('id, email, display_name, role, created_at')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => setProfiles((data as Profile[]) ?? []))
+    void api
+      .get<{ users: Profile[] }>('/admin/users')
+      .then(({ users }) => setProfiles(users ?? []))
+      .catch(() => setProfiles([]))
   }, [])
   const emailOf = useCallback(
     (id: string) => profiles.find((p) => p.id === id)?.email ?? id.slice(0, 8),
@@ -58,11 +55,10 @@ function MetricsTab() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!supabase) return
-    void supabase.rpc('admin_metrics').then(({ data, error: err }) => {
-      if (err) setError(err.message)
-      else setMetrics(data as Metrics)
-    })
+    void api
+      .get<Metrics>('/admin/metrics')
+      .then(setMetrics)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load metrics'))
   }, [])
 
   if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -144,16 +140,11 @@ function ActivityTab({
 
   const load = useCallback(
     async (nextPage: number, replace: boolean) => {
-      if (!supabase) return
-      let q = supabase
-        .from('activity_events')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(nextPage * PAGE, nextPage * PAGE + PAGE - 1)
-      if (userFilter) q = q.eq('user_id', userFilter)
-      if (nameFilter) q = q.ilike('name', `${nameFilter}%`)
-      const { data } = await q
-      const batch = (data as ActivityRow[]) ?? []
+      const params = new URLSearchParams({ limit: String(PAGE), offset: String(nextPage * PAGE) })
+      if (userFilter) params.set('user', userFilter)
+      if (nameFilter) params.set('name', nameFilter)
+      const { events } = await api.get<{ events: ActivityRow[] }>(`/admin/events?${params}`)
+      const batch = events ?? []
       setDone(batch.length < PAGE)
       setRows((prev) => (replace ? batch : [...prev, ...batch]))
       setPage(nextPage)
@@ -222,12 +213,8 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
   const [openId, setOpenId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
-    if (!supabase) return
-    const { data } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .order('updated_at', { ascending: false })
-    setTickets((data as Ticket[]) ?? [])
+    const { tickets } = await api.get<{ tickets: Ticket[] }>('/admin/tickets')
+    setTickets(tickets ?? [])
   }, [])
 
   useEffect(() => {
@@ -235,8 +222,7 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
   }, [load])
 
   const setStatus = async (id: string, status: TicketStatus) => {
-    if (!supabase) return
-    await supabase.from('support_tickets').update({ status }).eq('id', id)
+    await api.patch(`/admin/tickets/${id}`, { status })
     await load()
   }
 
@@ -272,7 +258,7 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
               </select>
             </div>
             {openId === t.id && (
-              <TicketThread ticket={t} selfId={selfId} otherLabel="User" onReplied={load} />
+              <TicketThread ticket={t} selfId={selfId} otherLabel="User" admin onReplied={load} />
             )}
           </li>
         ))}
