@@ -1,0 +1,44 @@
+{
+  "pkg": "money-quiz",
+  "globalName": "MoneyQuiz",
+  "projectId": "fdddcc8a-5713-4ba5-a334-e361bcdb23f0",
+  "shape": "package",
+  "srcDir": "src",
+  "cssEntry": ".design-sync/app.css",
+  "provider": { "component": "StoreProvider" },
+  "guidelinesGlob": [],
+  "libOverrides": {
+    "bundle.mjs": "app repo, automatic JSX runtime + solution-style root tsconfig: esbuild needs jsx:'automatic' (no cfg knob for it)"
+  },
+  "componentSrcMap": {
+    "StoreProvider": null,
+    "StatCard": "src/components/StatCard.tsx",
+    "EmptyState": "src/components/EmptyState.tsx",
+    "SortHeader": "src/components/SortHeader.tsx",
+    "VerseOfDay": "src/components/VerseOfDay.tsx",
+    "BadgesCard": "src/components/BadgesCard.tsx",
+    "ProgressWidget": "src/components/ProgressWidget.tsx",
+    "ProgressChip": "src/components/ProgressWidget.tsx",
+    "CategoryDonut": "src/components/charts/CategoryDonut.tsx",
+    "MonthlyTrend": "src/components/charts/MonthlyTrend.tsx",
+    "TopMerchantsCard": "src/components/TopMerchantsCard.tsx",
+    "TrendsCard": "src/components/TrendsCard.tsx",
+    "SpendingHabitsCard": "src/components/SpendingHabitsCard.tsx",
+    "DailyQuestionCard": "src/components/DailyQuestionCard.tsx"
+  },
+  "dtsPropsFor": {
+    "StatCard": "  label: string;\n  value: string;\n  sub?: string;\n  /** Tailwind text-color class for the value, e.g. \"text-emerald-600\". */\n  accent?: string;\n  icon?: React.ReactNode;\n  /** When set, the card becomes a button (e.g. to drill into its transactions). */\n  onClick?: () => void;",
+    "EmptyState": "  icon?: React.ReactNode;\n  title: string;\n  message: string;\n  children?: React.ReactNode;",
+    "SortHeader": "  /** The column this header sorts. */\n  sortKey: string;\n  label: string;\n  /** The currently active sort column. */\n  current: string;\n  asc: boolean;\n  onToggle: (key: string) => void;\n  /** 'right' puts the arrow left of the label so a right-aligned column stays flush. */\n  align?: 'left' | 'right';\n  /** false renders static text at the same width, so the header never jumps when sortability changes. */\n  sortable?: boolean;",
+    "BadgesCard": "  /** Earned badge ids -> ISO date earned (from GameState.badges). */\n  badges: Record<string, string>;",
+    "CategoryDonut": "  /** Spending grouped by category, sorted high to low. */\n  data: { category: string; total: number; count: number }[];\n  /** Total spending shown in the donut center. */\n  total: number;\n  onSelect?: (category: string) => void;",
+    "MonthlyTrend": "  /** Per-month spending/income/net, oldest month first. */\n  data: { monthKey: string; spending: number; income: number; net: number }[];\n  /** Called with the \"YYYY-MM\" key when the user clicks a month's bars. */\n  onSelectMonth?: (monthKey: string) => void;",
+    "TopMerchantsCard": "  /** Transactions to rank merchants from (signed amounts; negative = spend). */\n  transactions: { id: string; date: string; description: string; amount: number; category: string }[];",
+    "TrendsCard": "  /** Transactions to compute month-over-month category trends from. */\n  transactions: { id: string; date: string; description: string; amount: number; category: string }[];",
+    "SpendingHabitsCard": "  /** Repeat-habit groups (e.g. from analysis.recurringPayments). */\n  items: {\n    merchant: string;\n    groupKey: string;\n    keys: string[];\n    ids: string[];\n    category: string;\n    count: number;\n    months: number;\n    avgAmount: number;\n    monthlyEstimate: number;\n    [k: string]: unknown;\n  }[];\n  onOpenGroup: (ids: string[]) => void;",
+    "VerseOfDay": "  /* No props — renders the verse for the current day. */",
+    "ProgressWidget": "  /* No props — reads level / XP / streak from the store (StoreProvider). */",
+    "ProgressChip": "  /* No props — compact level/streak chip; reads from the store (StoreProvider). */",
+    "DailyQuestionCard": "  /* No props — reads the day's question and streak from the store (StoreProvider). */"
+  }
+}
