@@ -18,7 +18,7 @@ const schema = z.object({
   SUPABASE_JWT_SECRET: z.string().optional(),
 
   // The seed admin account (granted role=admin on first sign-in).
-  ADMIN_EMAIL: z.string().email().default('davidoloyede00@gmail.com'),
+  ADMIN_EMAIL: z.string().email().default('doloyede00@gmail.com'),
 
   // Plaid (optional — unset ⇒ mock mode with realistic fake data).
   PLAID_CLIENT_ID: z.string().optional(),

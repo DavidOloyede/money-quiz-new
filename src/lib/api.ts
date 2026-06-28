@@ -34,7 +34,7 @@ async function request<T>(path: string, opts: RequestInit & { timeoutMs?: number
       ...rest,
       signal: ctrl.signal,
       headers: {
-        'Content-Type': 'application/json',
+        ...(rest.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...(await authHeader()),
         ...(headers as Record<string, string> | undefined),
       },

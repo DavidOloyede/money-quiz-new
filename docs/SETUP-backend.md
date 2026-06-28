@@ -58,7 +58,7 @@ VITE_SENTRY_DSN=            # optional
 DATABASE_URL=<the pooler connection string from step 2>
 SUPABASE_URL=https://<ref>.supabase.co
 SUPABASE_JWT_SECRET=        # only if your project uses the legacy HS256 secret
-ADMIN_EMAIL=davidoloyede00@gmail.com
+ADMIN_EMAIL=doloyede00@gmail.com
 PLAID_TOKEN_KEY=            # see step 6 (any 32-byte base64 value to start)
 PORT=8787
 ```
@@ -104,7 +104,7 @@ same-origin `/api` paths.
 3. Sign up (email/pw) in the Account tab → a row appears in `profiles`
    (Drizzle Studio / psql); sample data triggers the "save to account?" dialog;
    accept → `user_slices` rows appear.
-4. Sign in with Google as `davidoloyede00@gmail.com` → **Admin** appears in nav
+4. Sign in with Google as `doloyede00@gmail.com` → **Admin** appears in nav
    (`GET /api/me` returns role `admin`).
 5. Two browsers, same account: edit a budget in A, **Account → Sync now** in B
    → the change arrives.
