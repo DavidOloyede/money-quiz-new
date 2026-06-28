@@ -9,8 +9,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth, type Profile } from '../auth'
 import { api } from '../lib/api'
 import { StatusBadge, TicketThread, type Ticket, type TicketStatus } from './SupportCard'
+import { PlaidDebugTab } from './PlaidDebugTab'
 
-type Tab = 'metrics' | 'users' | 'activity' | 'tickets'
+type Tab = 'metrics' | 'users' | 'activity' | 'tickets' | 'plaid'
 
 interface Metrics {
   users: number
@@ -278,6 +279,7 @@ export function AdminView() {
     ['users', 'Users'],
     ['activity', 'Activity'],
     ['tickets', 'Tickets'],
+    ['plaid', 'Categorization'],
   ]
 
   return (
@@ -304,6 +306,7 @@ export function AdminView() {
       {tab === 'users' && <UsersTab profiles={profiles} />}
       {tab === 'activity' && <ActivityTab profiles={profiles} emailOf={emailOf} />}
       {tab === 'tickets' && session && <TicketsTab emailOf={emailOf} selfId={session.user.id} />}
+      {tab === 'plaid' && <PlaidDebugTab />}
     </div>
   )
 }

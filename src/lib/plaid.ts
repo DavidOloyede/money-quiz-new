@@ -33,6 +33,15 @@ export interface PlaidTxn {
   personal_finance_category?: { primary?: string; detailed?: string }
 }
 
+/** An item plus its stored raw transactions, for the categorization debug panel. */
+export interface RawPlaidItem {
+  id: string
+  institution: string
+  accountType: AccountType
+  mock: boolean
+  transactions: PlaidTxn[]
+}
+
 /** True when bank connections are available (accounts configured) and need sign-in. */
 export const plaidNeedsSignIn = cloudEnabled
 
@@ -51,6 +60,8 @@ export const plaidApi = {
     api.post<{ item: PlaidItemSummary; transactions: PlaidTxn[] }>('/plaid/sync', { itemId }, 20000),
   items: () => api.get<{ items: PlaidItemSummary[] }>('/plaid/items'),
   removeItem: (id: string) => api.del<{ ok: boolean }>(`/plaid/items/${encodeURIComponent(id)}`),
+  // Read-only: stored raw transactions per item (no Plaid call). Debug only.
+  raw: () => api.get<{ items: RawPlaidItem[] }>('/plaid/raw'),
 }
 
 interface PlaidLinkMetadata {

@@ -170,6 +170,19 @@ export async function plaidRoutes(app: FastifyInstance): Promise<void> {
       items: (await items.list(req.user!.id)).map(summary),
     }))
 
+    // Read-only dump of the caller's stored transactions, straight from the DB
+    // (no Plaid call, so no API-call cost). Powers the admin categorization
+    // debug panel: raw Plaid fields beside what the app labeled them.
+    scoped.get('/api/plaid/raw', async (req) => ({
+      items: (await items.list(req.user!.id)).map((item) => ({
+        id: item.id,
+        institution: item.institution,
+        accountType: item.accountType,
+        mock: item.isMock,
+        transactions: Object.values((item.transactions ?? {}) as Record<string, PlaidTxn>),
+      })),
+    }))
+
     scoped.delete('/api/plaid/items/:id', async (req) => {
       const id = (req.params as { id: string }).id
       const item = await items.get(req.user!.id, id)
