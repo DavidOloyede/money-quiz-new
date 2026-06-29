@@ -199,7 +199,7 @@
   <div class="hwrap">
     <div class="logo">
       <div class="coin">$</div>
-      <div><b>Money Quiz</b><small>architecture explorer · updated 2026-06-15 for the Node.js backend (accounts, sync, Plaid, tickets, admin)</small></div>
+      <div><b>Money Quiz</b><small>architecture explorer · updated 2026-06-29 for the Node.js backend (accounts, sync, Plaid, tickets, admin)</small></div>
     </div>
     <nav class="tabs" id="tabs">
       <button data-tab="overview" class="on">Overview</button>
@@ -848,7 +848,8 @@ plaidclient: {
   title: 'Plaid client', layer: 'logic',
   blurb: `<p><code>plaid.ts</code> is the browser-side client for the bank connector. It calls the Node API's
   <code>/api/plaid/*</code> routes through <code>api.ts</code> (so the request carries your bearer token): health check,
-  link-token creation, mock connect, token exchange, sync, item list/remove — plus <code>openPlaidLink</code>, which
+  link-token creation, mock connect, token exchange, sync, item list/remove, raw transactions dump (for the Admin
+  Categorization panel) — plus <code>openPlaidLink</code>, which
   loads Plaid's hosted Link script so bank credentials never touch this app. Bank connections require sign-in.
   <code>plaidMap.ts</code> converts Plaid transactions to our model: flips the sign (Plaid: positive = money out), maps
   Plaid's Personal Finance Category taxonomy onto our category ids, and lets our own keyword pass win for Zelle and
@@ -858,7 +859,7 @@ plaidclient: {
     ['src/lib/plaidMap.ts','mapPlaidTransactions, taxonomy map'],
   ],
   funcs: [
-    ['plaidApi.health / createLinkToken / mockConnect / exchange / sync / items / removeItem','call /api/plaid via api.ts'],
+    ['plaidApi.health / createLinkToken / mockConnect / exchange / sync / items / removeItem / raw','call /api/plaid via api.ts'],
     ['openPlaidLink(token, onSuccess, onExit)','loads cdn.plaid.com Link'],
     ['mapPlaidTransactions(txns, sourceId)','Plaid shape → Transaction'],
   ],
@@ -927,12 +928,13 @@ accountui: {
   title: 'Account · Admin · Support', layer: 'ui',
   blurb: `<p>The account-facing screens, all talking to the Node API through <code>api.ts</code>:
   <b>AccountView</b> (sign in / create account, Google button, profile, sync status, "Sync now"),
-  <b>AdminView</b> (admin only — Users, Activity log, Tickets queue, Metrics, lazy-loaded), and <b>SupportCard</b> in
+  <b>AdminView</b> (admin only — Users, Activity log, Tickets queue, Metrics, Categorization debug, lazy-loaded), and <b>SupportCard</b> in
   Settings (file a ticket, read replies). The Admin nav item shows only when your profile <code>role === 'admin'</code>;
   the real boundary is the server's <code>requireAdmin</code>.</p>`,
   files: [
     ['src/components/AccountView.tsx','sign in/up · profile · Sync now'],
-    ['src/components/AdminView.tsx','users · activity · tickets · metrics'],
+    ['src/components/AdminView.tsx','users · activity · tickets · metrics · categorization'],
+    ['src/components/PlaidDebugTab.tsx','raw Plaid txns vs. assigned category'],
     ['src/components/SupportCard.tsx','ticket form + threads (in Settings)'],
   ],
   funcs: [

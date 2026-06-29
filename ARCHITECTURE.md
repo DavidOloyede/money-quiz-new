@@ -237,7 +237,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 - **`SupportCard.tsx`** — File a **support ticket** (bug, question, feature
   request) and read replies, right inside Settings.
 - **`AdminView.tsx`** — The **Admin** panel (only for admin accounts): user
-  list, activity log, the support-ticket queue, and top-line metrics.
+  list, activity log, the support-ticket queue, top-line metrics, and a
+  **Categorization** tab that shows each connected-bank transaction's raw Plaid
+  fields beside the category our code assigned it (for spot-checking).
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a
   number box, a "nothing here yet" message, and all the little drawings/icons).
 
@@ -438,6 +440,8 @@ What lives there (`server/src/`):
     bank token **encrypted** in `plaid_items` (`plaid/crypto.ts`), and never
     lets it reach a browser. No Plaid keys configured → "pretend" (mock) mode
     with fake-but-realistic data, so the connect → import flow works for free.
+    A read-only `raw` route returns your own stored transactions (no Plaid call)
+    for the Admin **Categorization** panel.
   - `tickets` → your support tickets and replies.
   - `admin` → users list, activity log, ticket queue, and metrics — every route
     behind `requireAdmin`.
