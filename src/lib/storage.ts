@@ -1,9 +1,51 @@
 /**
- * Tiny typed wrapper around localStorage. Signed out, everything stays on the
- * user's device. When someone signs in, cloudSync registers a save listener
- * here to mirror slices to their account — localStorage remains what the app
- * actually reads.
+ * Tiny typed key-value store. Signed out, everything stays on the user's
+ * device. When someone signs in, cloudSync registers a save listener here to
+ * mirror slices to their account — local storage remains what the app reads.
+ *
+ * The backing store is swappable (`setStorageBackend`) so the same code runs
+ * on web (localStorage, auto-detected — the web app registers nothing) and
+ * React Native (MMKV). Reads are SYNCHRONOUS by design: store.tsx hydrates
+ * state in useState initializers, so the backend must answer immediately —
+ * MMKV on mobile, never AsyncStorage.
  */
+
+/** The minimal synchronous KV surface a platform must provide. */
+export interface KVBackend {
+  getItem(key: string): string | null
+  setItem(key: string, value: string): void
+  removeItem(key: string): void
+}
+
+let injected: KVBackend | null = null
+let warned = false
+
+/** No-op backend for environments with no storage at all (warns once). */
+const nullBackend: KVBackend = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+}
+
+/** Install a platform storage backend (e.g. MMKV on mobile). Null resets to auto-detect. */
+export function setStorageBackend(backend: KVBackend | null): void {
+  injected = backend
+}
+
+/**
+ * Resolved lazily on every call, not at import time: tests (and the design
+ * previews) install a fake `localStorage` after this module loads, and that
+ * must win.
+ */
+function backend(): KVBackend {
+  if (injected) return injected
+  if (typeof localStorage !== 'undefined') return localStorage
+  if (!warned) {
+    warned = true
+    console.warn('No storage backend available; data will not persist.')
+  }
+  return nullBackend
+}
 
 type SaveListener = (key: string, value: unknown) => void
 
@@ -72,7 +114,7 @@ export const DATA_KEYS: string[] = [
 
 export function loadJSON<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = backend().getItem(key)
     if (raw == null) return fallback
     return JSON.parse(raw) as T
   } catch {
@@ -82,7 +124,7 @@ export function loadJSON<T>(key: string, fallback: T): T {
 
 export function saveJSON(key: string, value: unknown): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value))
+    backend().setItem(key, JSON.stringify(value))
   } catch {
     // Storage may be full or unavailable (private mode); fail silently.
   }
@@ -91,7 +133,36 @@ export function saveJSON(key: string, value: unknown): void {
 
 export function removeKey(key: string): void {
   try {
-    localStorage.removeItem(key)
+    backend().removeItem(key)
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Raw string access that never notifies the save listener. cloudSync uses
+ * these when applying pulled slices, so a login pull can't echo itself back
+ * up as new writes.
+ */
+export function getRaw(key: string): string | null {
+  try {
+    return backend().getItem(key)
+  } catch {
+    return null
+  }
+}
+
+export function setRaw(key: string, value: string): void {
+  try {
+    backend().setItem(key, value)
+  } catch {
+    // quota/private mode: the store will just see whatever loaded
+  }
+}
+
+export function removeRaw(key: string): void {
+  try {
+    backend().removeItem(key)
   } catch {
     // ignore
   }
@@ -100,15 +171,4 @@ export function removeKey(key: string): void {
 /** Wipe every key this app owns. */
 export function clearAllStorage(): void {
   Object.values(STORAGE_KEYS).forEach(removeKey)
-}
-
-export function newId(): string {
-  try {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-      return crypto.randomUUID()
-    }
-  } catch {
-    // fall through
-  }
-  return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 }

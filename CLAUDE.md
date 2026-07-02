@@ -77,17 +77,22 @@ them — the pipeline breaks silently. The contract:
 ## The mobile code-sharing rule (applies to ALL new code, now)
 
 `docs/ROADMAP-mobile.md` is the decided plan (React Native + Expo, iOS first —
-don't re-derive it). Everything in `src/lib/` except the web-coupled files
-listed there must stay free of DOM/localStorage imports so it can move to a
-shared `packages/core`. Known constraints discovered in the July 2026 audit:
+don't re-derive it). The portability seams landed in July 2026; the full rule
+lives in the roadmap's "code-sharing rule" section. The short version:
 
+- Web-only files (never import them from shared code): `supabase.ts`,
+  `track.ts`, `exportData.ts`, `plaidLink.ts`, `configure.ts`. Everything else
+  in `src/lib/` plus `store.tsx` is platform-neutral — keep it free of DOM,
+  `localStorage`, and `import.meta.env` (fatal under Metro).
+- The seams are `setStorageBackend()` (storage.ts), `configureApi()` (api.ts —
+  web wires it in `src/lib/configure.ts`, imported first in `main.tsx`), and
+  `setThemeAdapter()` (themeAdapter.ts). Route new platform needs through a
+  seam like these, not through direct browser APIs.
 - `storage.ts` reads are **synchronous** and `store.tsx` depends on that in
   `useState` initializers → the mobile backend will be MMKV (sync), never
   AsyncStorage. Don't introduce async storage assumptions.
-- Don't import `./storage` from otherwise-pure lib files for convenience
-  helpers; `newId()` and friends belong in pure modules.
-- `import.meta.env` is Vite-only (fatal under Metro) — keep it out of
-  anything bound for core; route config through injectable seams.
+- `newId()` lives in `lib/id.ts`; don't re-couple pure data modules to
+  storage for convenience helpers.
 
 ## Auth / security model (don't weaken it)
 

@@ -258,7 +258,17 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 These files don't draw anything — they're the **brains** that do the math and the
 sorting. Keeping them separate from the screens keeps the code tidy.
 
-- **`storage.ts`** — Talks to the notebook (`localStorage`): save and load.
+- **`storage.ts`** — Talks to the notebook: save and load. The notebook now has
+  **swappable paper**: in the browser it writes to `localStorage` (found
+  automatically — nothing to set up), and the future phone app will hand it a
+  different notebook that answers just as instantly. Either way the rest of the
+  app doesn't know or care which paper it's writing on.
+- **`id.ts`** — Hands out the little **name tags** (unique ids) that each
+  transaction and import gets, so helpers that make data don't need to touch
+  the notebook just for a tag.
+- **`themeAdapter.ts`** — The **light-switch plate**: it knows how to ask the
+  device "do you prefer dark mode?" and how to actually flip the app's colors.
+  The browser version is built in; the phone app will screw in its own plate.
 - **`parse.ts`** — Understands messy **dates** ("04/03/2026", "April 3") and
   **money** ("$1,234.56", "(45.00)") and turns them into clean numbers.
 - **`categorize.ts`** — The **sorter**. It looks at the store name and guesses a
@@ -343,6 +353,10 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
 - **`plaid.ts`** — Talks to the backend's bank connector (`/api/plaid/…`):
   start a connection, sync, disconnect.
+- **`plaidLink.ts`** — Opens **Plaid's own pop-up** in the browser (loading
+  their script from their site) so you type your bank password into Plaid's
+  window, never ours. Browser-only on purpose; the phone app will use Plaid's
+  phone kit instead.
 - **`plaidMap.ts`** — Translates Plaid's data into our Transaction cards and maps
   Plaid's categories onto ours.
 - **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
@@ -352,7 +366,12 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   knows to hide itself. It's used *only* for login; no data goes through it.
 - **`api.ts`** — The **phone line to the Node backend**. Every call to the API
   goes through here; it attaches your signed-in token so the server knows it's
-  you, and points at `/api`.
+  you. The phone line itself doesn't know where the token comes from — at
+  startup each app plugs in its own cord (see `configure.ts`), and with no
+  cord plugged in it simply behaves as signed-out and local-only.
+- **`configure.ts`** — The web app's **cord**: at startup it tells `api.ts`
+  where the backend lives and how to fetch the signed-in token from Supabase.
+  The phone app will have its own version of this file.
 - **`cloudSync.ts`** — The **photocopier**. It watches every save to the
   notebook and, a couple of seconds later, sends the changed pages to the
   backend (`POST /api/sync`). It also pulls everything down at sign-in and
@@ -362,7 +381,7 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   activity log. It never records store names or amounts, and records nothing
   when you're signed out.
 
-And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 70 transactions
+And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
 (including a monthly church tithe and small donations, so the giving features
 have something to show), **`verses.ts`** holds 50 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,

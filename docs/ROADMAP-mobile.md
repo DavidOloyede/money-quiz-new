@@ -9,26 +9,51 @@ working, tested business logic and maintaining two codebases.
 
 - **The mobile app calls the same Node `/api` endpoints** — they're a plain
   HTTPS JSON API, so sync, Plaid, tickets, events, and admin carry over with no
-  server changes. `src/lib/api.ts` is the only piece to re-point (base URL +
-  how it reads the token).
-- **supabase-js runs in React Native** for login (session storage via
-  AsyncStorage); it hands the app a JWT that the Node API already knows how to
+  server changes. `src/lib/api.ts` is platform-neutral: mobile calls
+  `configureApi({ baseUrl, getToken, cloudEnabled })` at startup (web does the
+  same in `src/lib/configure.ts`).
+- **supabase-js runs in React Native** for login (session storage via the same
+  MMKV adapter); it hands the app a JWT that the Node API already knows how to
   verify. `react-native-plaid-link-sdk` drives the Link UI against the same
   `/api/plaid/*` routes.
 - **The sync schema is storage-agnostic**: `user_slices` rows are keyed by the
-  same `moneyquiz.*` strings; on mobile, MMKV/AsyncStorage stands in for
-  localStorage and the same pull/push logic applies.
+  same `moneyquiz.*` strings; on mobile, MMKV stands in for localStorage and
+  the same pull/push logic applies.
 - **Per-user authorization lives in the Node server** (every query scoped to
   the JWT user), so a second client adds no new security surface.
 
-## The code-sharing rule (applies NOW)
+## The code-sharing rule (applies NOW — seams landed July 2026)
 
-Keep `src/lib/` free of DOM and localStorage imports. Today the only
-browser-touching lib files are `storage.ts`, `plaid.ts`, `exportData.ts`,
-`cloudSync.ts`, `track.ts`, and `api.ts` — everything else (`quiz.ts`,
-`analysis.ts`, `categorize.ts`, `gamification.ts`, `badges.ts`, `giving.ts`,
-`debt.ts`, `merchant.ts`, `parse.ts`, `format.ts`, `yearly.ts`) is pure
-TypeScript that will run as-is on the phone.
+Everything in `src/lib/` is platform-neutral **except** these five web-only
+files, which must never be imported from shared code: `supabase.ts` (browser
+auth client), `track.ts` (browser analytics + pagehide wiring), `exportData.ts`
+(download-a-file DOM APIs), `plaidLink.ts` (Plaid's script-tag Link loader),
+and `configure.ts` (Vite env + Supabase wiring for the API client).
+
+How the neutral files stay neutral:
+
+- **`storage.ts`** talks to an injectable `KVBackend`
+  (`getItem`/`setItem`/`removeItem`), auto-detecting `localStorage` when none
+  is registered — the web app registers nothing. Reads are **synchronous** and
+  `store.tsx` depends on that in its `useState` initializers, so the mobile
+  backend is **MMKV (sync), never AsyncStorage**. `setStorageBackend()` is the
+  install point.
+- **`api.ts`** carries no `import.meta.env` (fatal under Metro) and no
+  Supabase import. Platforms wire it via
+  `configureApi({ baseUrl, getToken, cloudEnabled })`; unconfigured it is
+  safely local-only. Cloud checks go through `isCloudEnabled()`.
+- **`store.tsx`** reaches the platform through two seams only: the storage
+  backend above and a `ThemeAdapter` (`systemTheme()`/`apply()` in
+  `themeAdapter.ts`) whose default is the guarded browser behavior — mobile
+  installs an `Appearance`-based one.
+- **`cloudSync.ts`** is shared as-is: it writes pulled slices through
+  storage.ts's raw setters and guards its pagehide/visibility wiring with
+  `typeof document` checks (React Native aliases `window` but has no
+  `document`). Mobile replaces those tab-lifecycle flushes with AppState.
+- **`newId()` lives in `id.ts`**, not storage — pure modules (`quiz.ts`,
+  `importCsv.ts`, `sampleData.ts`) mint ids without touching persistence.
+- `dailyQuestion.ts` imports storage deliberately (it persists the day's
+  question); that's fine now that storage is platform-neutral.
 
 ## Build order when Phase 2 starts
 

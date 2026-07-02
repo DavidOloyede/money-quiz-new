@@ -1,20 +1,19 @@
 /**
- * Cloud mirror of the app's localStorage slices for signed-in users.
+ * Cloud mirror of the app's local storage slices for signed-in users.
  *
- * The store keeps reading and writing localStorage exactly as before; this
+ * The store keeps reading and writing local storage exactly as before; this
  * module listens to every saveJSON() call (via storage.ts's save listener),
  * debounces, and POSTs changed slices to the Node API (`/api/sync`), which
  * stores one row per (user, storage key). On login the slices are pulled and
- * written back into localStorage, then the StoreProvider is remounted so the
+ * written back into local storage, then the StoreProvider is remounted so the
  * store re-initializes from them.
  *
  * Conflicts are last-write-wins per slice, which is fine for one person on a
  * couple of devices: slices are independent, so editing budgets on the phone
  * can't clobber transactions edited on the laptop.
  */
-import { api, beaconPost } from './api'
-import { cloudEnabled } from './supabase'
-import { loadJSON, setSaveListener, STORAGE_KEYS } from './storage'
+import { api, beaconPost, isCloudEnabled } from './api'
+import { loadJSON, removeRaw, setRaw, setSaveListener, STORAGE_KEYS } from './storage'
 
 /**
  * Slices that follow the account (everything "Clear all data" wipes, minus the
@@ -101,7 +100,7 @@ function onSave(key: string, value: unknown) {
 }
 
 async function flush(): Promise<void> {
-  if (!cloudEnabled || !userId || pending.size === 0) return
+  if (!isCloudEnabled() || !userId || pending.size === 0) return
   const uid = userId
   const batch = [...pending.entries()]
   pending.clear()
@@ -153,7 +152,9 @@ export function start(uid: string, token: string) {
   userId = uid
   accessToken = token
   setSaveListener(onSave)
-  if (typeof window !== 'undefined') {
+  // RN polyfills `window` but not `document`; the pagehide/visibility flushes
+  // are browser-tab concepts, so gate both on document existing.
+  if (typeof document !== 'undefined' && typeof window !== 'undefined') {
     window.addEventListener('pagehide', flushOnHide)
     document.addEventListener('visibilitychange', handleHide)
   }
@@ -173,7 +174,7 @@ export function stop() {
   lastSynced.clear()
   if (timer) clearTimeout(timer)
   setSaveListener(null)
-  if (typeof window !== 'undefined') {
+  if (typeof document !== 'undefined' && typeof window !== 'undefined') {
     window.removeEventListener('pagehide', flushOnHide)
     document.removeEventListener('visibilitychange', handleHide)
   }
@@ -182,33 +183,26 @@ export function stop() {
 
 /** Fetch every slice stored for the signed-in user. */
 export async function pullAll(): Promise<SliceRow[]> {
-  if (!cloudEnabled) return []
+  if (!isCloudEnabled()) return []
   const { slices } = await api.get<{ slices: SliceRow[] }>('/sync')
   return slices ?? []
 }
 
 /**
- * Write pulled slices into localStorage (and seed the no-op filter). Slices
+ * Write pulled slices into local storage (and seed the no-op filter). Slices
  * missing from the cloud are removed locally so the device matches the
- * account exactly. The caller remounts the store afterwards.
+ * account exactly. Uses the raw (listener-free) setters so the pull can't
+ * echo itself back up as new writes. The caller remounts the store afterwards.
  */
 export function applyToLocal(rows: SliceRow[]): void {
   const byKey = new Map(rows.map((r) => [r.key, r.value]))
   for (const key of SYNCED_KEYS) {
     if (byKey.has(key)) {
       const raw = JSON.stringify(byKey.get(key))
-      try {
-        localStorage.setItem(key, raw)
-      } catch {
-        // quota/private mode: the store will just see whatever loaded
-      }
+      setRaw(key, raw)
       lastSynced.set(key, raw)
     } else {
-      try {
-        localStorage.removeItem(key)
-      } catch {
-        // ignore
-      }
+      removeRaw(key)
       lastSynced.delete(key)
     }
   }
@@ -216,7 +210,7 @@ export function applyToLocal(rows: SliceRow[]): void {
 
 /** Upload this device's slices to the account (first-sign-in migration). */
 export async function pushAllFromLocal(_uid: string): Promise<void> {
-  if (!cloudEnabled) return
+  if (!isCloudEnabled()) return
   const slices: SliceRow[] = []
   for (const key of SYNCED_KEYS) {
     const value = loadJSON<unknown>(key, null)
@@ -230,7 +224,7 @@ export async function pushAllFromLocal(_uid: string): Promise<void> {
 
 /** Remove every slice from the account (used by "Clear all data"). */
 export async function deleteAllCloud(): Promise<void> {
-  if (!cloudEnabled || !userId) return
+  if (!isCloudEnabled() || !userId) return
   pending.clear()
   lastSynced.clear()
   await api.del('/sync')

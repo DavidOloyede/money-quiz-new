@@ -4,8 +4,7 @@
  * secrets or access tokens, and transactions still end up in localStorage.
  */
 import type { AccountType } from '../types'
-import { api } from './api'
-import { cloudEnabled } from './supabase'
+import { api, isCloudEnabled } from './api'
 
 export interface PlaidHealth {
   mode: 'mock' | 'plaid'
@@ -43,7 +42,9 @@ export interface RawPlaidItem {
 }
 
 /** True when bank connections are available (accounts configured) and need sign-in. */
-export const plaidNeedsSignIn = cloudEnabled
+export function plaidNeedsSignIn(): boolean {
+  return isCloudEnabled()
+}
 
 export const plaidApi = {
   health: () => api.get<PlaidHealth>('/plaid/health'),
@@ -62,37 +63,4 @@ export const plaidApi = {
   removeItem: (id: string) => api.del<{ ok: boolean }>(`/plaid/items/${encodeURIComponent(id)}`),
   // Read-only: stored raw transactions per item (no Plaid call). Debug only.
   raw: () => api.get<{ items: RawPlaidItem[] }>('/plaid/raw'),
-}
-
-interface PlaidLinkMetadata {
-  institution?: { name?: string } | null
-}
-
-/**
- * Load Plaid's hosted Link script from their CDN and open it. Used only in real
- * (non-mock) mode; the user authenticates with their bank inside Plaid's iframe,
- * so credentials never touch this app.
- */
-export function openPlaidLink(
-  token: string,
-  onSuccess: (publicToken: string, metadata: PlaidLinkMetadata) => void,
-  onExit?: (err: unknown) => void,
-) {
-  const w = window as unknown as {
-    Plaid?: { create: (opts: Record<string, unknown>) => { open: () => void } }
-  }
-  const start = () => {
-    const handler = w.Plaid!.create({
-      token,
-      onSuccess: (publicToken: string, metadata: PlaidLinkMetadata) => onSuccess(publicToken, metadata),
-      onExit: (err: unknown) => onExit?.(err),
-    })
-    handler.open()
-  }
-  if (w.Plaid) return start()
-  const s = document.createElement('script')
-  s.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
-  s.onload = start
-  s.onerror = () => onExit?.(new Error('Failed to load Plaid Link'))
-  document.head.appendChild(s)
 }

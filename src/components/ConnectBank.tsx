@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import type { AccountType } from '../types'
 import { useStore } from '../store'
 import { useAuth } from '../auth'
-import { openPlaidLink, plaidApi, plaidNeedsSignIn, type PlaidHealth } from '../lib/plaid'
+import { plaidApi, plaidNeedsSignIn, type PlaidHealth } from '../lib/plaid'
+import { openPlaidLink } from '../lib/plaidLink'
 import { track } from '../lib/track'
 import { CheckIcon, LinkIcon, XIcon } from './icons'
 
@@ -27,7 +28,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
   useEffect(() => {
     // Bank connections live behind the account API, so they require accounts to
     // be configured and a signed-in user. CSV import below works regardless.
-    if (!plaidNeedsSignIn) {
+    if (!plaidNeedsSignIn()) {
       setStatus({ kind: 'unavailable' })
       return
     }

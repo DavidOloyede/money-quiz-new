@@ -2,6 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import * as Sentry from '@sentry/react'
 import './index.css'
+// Wire the API client to the Vite env + Supabase BEFORE anything can call it.
+import './lib/configure'
 // Importing the tracker installs its global error listeners early.
 import './lib/track'
 import App from './App.tsx'

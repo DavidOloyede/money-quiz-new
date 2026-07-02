@@ -43,6 +43,7 @@ import {
   type CategoryConfig,
 } from './lib/categories'
 import { DATA_KEYS, loadJSON, removeKey, saveJSON, STORAGE_KEYS } from './lib/storage'
+import { getThemeAdapter } from './lib/themeAdapter'
 import { loadSampleTransactions } from './data/sampleData'
 
 const SAMPLE_SOURCE_ID = 'sample-data'
@@ -126,10 +127,7 @@ const StoreContext = createContext<StoreValue | null>(null)
 function initialTheme(): ThemeMode {
   const stored = loadJSON<ThemeMode | null>(STORAGE_KEYS.theme, null)
   if (stored === 'light' || stored === 'dark') return stored
-  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-    return 'dark'
-  }
-  return 'light'
+  return getThemeAdapter().systemTheme()
 }
 
 /**
@@ -343,8 +341,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [transactions, quizHistory, sources, paidOffDebts])
   useEffect(() => {
     saveJSON(STORAGE_KEYS.theme, theme)
-    const root = document.documentElement
-    root.classList.toggle('dark', theme === 'dark')
+    getThemeAdapter().apply(theme)
   }, [theme])
 
   /**

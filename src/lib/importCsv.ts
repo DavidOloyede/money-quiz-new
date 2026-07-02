@@ -2,7 +2,7 @@ import type { AccountType, Category, ColumnMapping, CsvRow, Transaction } from '
 import { allCategories } from './categories'
 import { parseAmount, parseDate } from './parse'
 import { categorize } from './categorize'
-import { newId } from './storage'
+import { newId } from './id'
 
 /**
  * Map a free-text category cell from a bank export onto one of our categories.

@@ -23,7 +23,7 @@ import {
   type RecurringKindOverrides,
   type TimeRange,
 } from './analysis'
-import { newId } from './storage'
+import { newId } from './id'
 
 /** One line of supporting evidence (usually a transaction). */
 export interface EvidenceItem {

@@ -9,9 +9,8 @@ interface Slice {
 const posts: Slice[][] = []
 const beacons: Slice[][] = []
 
-vi.mock('./supabase', () => ({ cloudEnabled: true }))
-
 vi.mock('./api', () => ({
+  isCloudEnabled: () => true,
   api: {
     post: (_path: string, body: { slices: Slice[] }) => {
       posts.push(body.slices)
@@ -126,6 +125,13 @@ describe('login pull / first-sign-in push', () => {
     applyToLocal([{ key: STORAGE_KEYS.transactions, value: [{ id: 't1' }] }])
     expect(JSON.parse(mem.get(STORAGE_KEYS.transactions)!)).toEqual([{ id: 't1' }])
     expect(mem.has(STORAGE_KEYS.budgets)).toBe(false)
+  })
+
+  it('applyToLocal never echoes pulled slices back up as pushes', async () => {
+    start('user-1', 'token')
+    applyToLocal([{ key: STORAGE_KEYS.budgets, value: { rent: 900 } }])
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(posts).toHaveLength(0)
   })
 
   it('localDiffersFromCloud is false right after applying the cloud copy', () => {

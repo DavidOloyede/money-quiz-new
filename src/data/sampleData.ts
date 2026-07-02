@@ -1,6 +1,6 @@
 import type { Transaction } from '../types'
 import { categorize } from '../lib/categorize'
-import { newId } from '../lib/storage'
+import { newId } from '../lib/id'
 
 interface RawRow {
   date: string
@@ -9,7 +9,7 @@ interface RawRow {
 }
 
 /**
- * ~60 realistic transactions spanning Apr–Jun 2026 so the whole app can be
+ * 68 realistic transactions spanning Apr–Jun 2026 so the whole app can be
  * tried without uploading anything. Designed to make the dashboard and quiz
  * interesting: a frequent merchant (Starbucks, 9 visits), a clear largest
  * single expense (a laptop), recurring rent/income, month-over-month spending
