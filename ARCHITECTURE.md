@@ -59,6 +59,13 @@ car so a second car can use the same engine**:
   The web's stylesheet tokens (`src/theme.css`) are **generated** from
   `packages/core/theme.ts` by `npm run gen:theme` — change colors there, not
   in the CSS.
+- **`apps/mobile`** — the iPhone app (started July 2026, still being built).
+  It's the second car using the same engine: all the money math, the central
+  brain, and the colors/fonts come from `packages/core`; this folder is just
+  the phone's body around them. On the phone the "notebook" isn't the
+  browser's `localStorage` — it's a phone-native notebook called **MMKV** that
+  the shared brain plugs into. Same pages, same page names, so cloud sync
+  works between the website and the phone.
 - **`server/`** — the Node.js backend, unchanged.
 
 ---

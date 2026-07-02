@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
+    "apps/*",
     "server"
   ],
   "scripts": {
@@ -13,7 +14,7 @@
     "gen:theme": "node scripts/gen-theme.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "lint": "tsc -b && npm --prefix server run lint",
+    "lint": "tsc -b && npm --prefix server run lint && npm --prefix apps/mobile run typecheck",
     "server": "npm --prefix server run dev",
     "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev\" \"npm run server\"",
     "db:generate": "npm --prefix server run db:generate",

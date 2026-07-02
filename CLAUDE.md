@@ -18,9 +18,13 @@ cloud, so a rename orphans every user's synced data.
 npm run dev        # web app only (fully local, no backend needed)
 npm run dev:all    # web + API together (accounts/sync/Plaid/admin)
 npm test           # vitest — the core math & logic suite; keep it green
-npm run lint       # typechecks the app, packages/core (tsc -b), and server/
+npm run lint       # typechecks the app, packages/core (tsc -b), server/, and apps/mobile
 npm run build      # typecheck + production build into dist/
 npm run gen:theme  # regenerate src/theme.css from packages/core/theme.ts
+
+# Mobile (run from apps/mobile; see apps/mobile/AGENTS.md for the rules)
+npm run ios        # build + launch the dev client on the iOS Simulator
+npm start          # Metro only, once the dev client is installed
 ```
 
 **Repo layout (npm workspaces, since July 2026):** the web app lives at the
@@ -33,6 +37,9 @@ design-sync converter depends on their absence), and core's package.json
 must keep **no `exports` map** (deep imports rely on plain file resolution).
 `server/` is a workspace too; root scripts drive it via `npm --prefix
 server`. Backend setup lives in [docs/SETUP-backend.md](docs/SETUP-backend.md).
+The iPhone app is the `apps/mobile` workspace (Expo; its `ios/` folder is
+gitignored — prebuild regenerates it from app.json). Mobile-specific working
+rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
 
 ## Code style & conventions
 
