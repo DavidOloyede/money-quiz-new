@@ -240,6 +240,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   list, activity log, the support-ticket queue, top-line metrics, and a
   **Categorization** tab that shows each connected-bank transaction's raw Plaid
   fields beside the category our code assigned it (for spot-checking).
+- **`PlaidDebugTab.tsx`** — The Categorization tab's actual table: it pulls
+  your stored raw bank transactions (no call to Plaid) and runs them through
+  the *real* sorting code, so what you see is exactly what the app decided
+  and why.
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a
   number box, a "nothing here yet" message, and all the little drawings/icons).
 
@@ -354,11 +358,11 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   activity log. It never records store names or amounts, and records nothing
   when you're signed out.
 
-And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
+And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 70 transactions
 (including a monthly church tithe and small donations, so the giving features
-have something to show), **`verses.ts`** holds ~49 scripture verses about
+have something to show), **`verses.ts`** holds 50 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,
-and **`generalQuestions.ts`** is the bank of 15 general money-literacy
+and **`generalQuestions.ts`** is the bank of 16 general money-literacy
 questions (budgeting rules, emergency funds, debt, a couple on stewardship)
 behind the daily question when no data is connected.
 
@@ -367,8 +371,15 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
 
 ---
 
-## 7. The brain that remembers everything (`store.tsx` and `types.ts`)
+## 7. The brain that remembers everything (`store.tsx`, `auth.tsx`, and `types.ts`)
 
+- **`auth.tsx`** — The **"who's signed in?" brain**. It wraps the whole app
+  (one level *above* the store) and remembers your session and profile, so
+  every screen can ask "am I signed in? am I the admin?". When the app is
+  built without sign-in credentials it simply answers "nobody, ever" and all
+  the account features hide themselves. It sits above the store on purpose:
+  when the signed-in user changes, the store below it is restarted so it
+  re-reads the right notebook.
 - **`types.ts`** — The **shapes** of the data. A Transaction has a date,
   description, amount, and category, plus optional flags: `recurring` (you
   ★-marked it), `counts` (a recurring transfer promoted into your totals).
