@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
+import { AuthProvider } from '@/lib/auth'
 import { palette } from '@/theme'
 
 SplashScreen.preventAutoHideAsync()
@@ -32,10 +33,14 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null
 
+  // Auth sits above the store: screens read the session from anywhere, and when
+  // sync lands (next phase) it can remount the store on the account boundary.
   return (
-    <StoreProvider>
-      <ThemedShell />
-    </StoreProvider>
+    <AuthProvider>
+      <StoreProvider>
+        <ThemedShell />
+      </StoreProvider>
+    </AuthProvider>
   )
 }
 

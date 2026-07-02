@@ -7,6 +7,7 @@
 import { useStore } from '@moneyquiz/core'
 import { api } from '@moneyquiz/core/lib/api'
 import { loadJSON, saveJSON } from '@moneyquiz/core/lib/storage'
+import { Link } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -85,6 +86,23 @@ export default function DebugScreen() {
           >
             “Give us today our daily bread.”
           </Text>
+          <Link href="/account" asChild>
+            <Pressable
+              style={{
+                alignSelf: 'flex-start',
+                marginTop: spacing.md,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+                borderRadius: radii.md,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderColor: colors.borderStrong,
+              }}
+            >
+              <Text style={{ fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text }}>
+                Account →
+              </Text>
+            </Pressable>
+          </Link>
         </View>
 
         <View style={card}>

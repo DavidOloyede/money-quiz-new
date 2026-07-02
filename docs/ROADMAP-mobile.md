@@ -82,8 +82,21 @@ How core stays neutral:
    from app.json). Verified on the iOS Simulator: store hydrates through MMKV,
    a `moneyquiz.*` key survives relaunch, theme flips light/dark, and
    `/api/plaid/health` answers through the configured base URL.
-3. **Auth screens** — sign in / sign up (email + Google via
-   `expo-auth-session`), profile, sign out.
+3. ✅ **Auth screens** (July 2026) — a mobile-own Supabase client
+   (`apps/mobile/src/lib/supabase.ts`) and auth provider (`lib/auth.tsx`). The
+   web's `auth.tsx` stays web: the OAuth *redirect* flow is browser-shaped, so
+   the two apps keep separate providers and share only the `Profile` type (now
+   in `@moneyquiz/core/types`). Sessions persist in the same MMKV store the app
+   data uses, refreshed on `AppState`; `detectSessionInUrl: false`. The Account
+   screen (`app/account.tsx`) does email+password sign in / create account,
+   Google via `expo-auth-session` (PKCE — the returned code is exchanged for a
+   session), plus profile and sign out, themed from the shared tokens.
+   `platform.ts` now feeds the API client the session JWT, so authorized calls
+   work. Verified on the Simulator: email/password sign-in against the local API
+   returns the profile from `GET /api/me` (the server get-or-creates it).
+   Google needs its redirect URL (`mannamoney://auth`) added to the Supabase
+   project's allow-list and the Google provider enabled — a dashboard step, so
+   it's implemented but not yet end-to-end verified.
 4. **Sync** — port `cloudSync` with injected storage; same slice keys.
 5. **Core screens, in order of mobile value**: Daily Question + streak (the
    habit loop), Quiz, Dashboard (cards first, charts via `victory-native`),

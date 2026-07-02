@@ -22,6 +22,16 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
 - The dev API base URL defaults to `http://localhost:8787/api` (Simulator
   reaches the Mac's localhost). Physical devices need
   `EXPO_PUBLIC_API_URL` pointed at the Mac's LAN address.
+- **Accounts** need `EXPO_PUBLIC_SUPABASE_URL` and
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` (same values as the web's `VITE_SUPABASE_*`);
+  put them in `apps/mobile/.env.local` (gitignored). Without them the app runs
+  fully local — every cloud surface hides itself, same as the web. Auth is a
+  mobile-own client + provider (`lib/supabase.ts`, `lib/auth.tsx`) — don't
+  import the web `src/auth.tsx`; they share only the `Profile` type via core.
+  Supabase's session lives in the one shared MMKV store (`lib/mmkv.ts`), and
+  `platform.ts` hands the API client that session's JWT via `getToken`.
+  Google sign-in redirects to `mannamoney://auth`, which must be in the
+  Supabase project's redirect allow-list (a dashboard step).
 - `npx expo install --check` flags react (e.g. 19.2.7 vs the SDK's pinned
   19.2.3). That's deliberate: react is `^19.2.3` here so the whole workspace
   shares ONE hoisted copy with the web app and core. "Fixing" it to the exact

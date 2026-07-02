@@ -8,11 +8,11 @@ import { configureApi } from '@moneyquiz/core/lib/api'
 import { setStorageBackend } from '@moneyquiz/core/lib/storage'
 import { setThemeAdapter } from '@moneyquiz/core/lib/themeAdapter'
 import { Appearance } from 'react-native'
-import { createMMKV } from 'react-native-mmkv'
+import { mmkv } from './mmkv'
+import { cloudEnabled, supabase } from './supabase'
 
 // MMKV, never AsyncStorage: storage.ts reads are synchronous by contract —
 // store.tsx hydrates its useState initializers straight from them.
-const mmkv = createMMKV()
 
 setStorageBackend({
   getItem: (key) => mmkv.getString(key) ?? null,
@@ -34,8 +34,12 @@ configureApi({
   // API (`npm run server`, port 8787). A physical device needs the Mac's LAN
   // address in EXPO_PUBLIC_API_URL instead.
   baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787/api',
-  // Auth arrives with the sign-in screens (next phase); until then the API
-  // client stays signed out and cloud features stay hidden.
-  getToken: async () => null,
-  cloudEnabled: false,
+  // Attach the signed-in user's Supabase JWT to every request; the Node API
+  // verifies it and scopes the query. Null when signed out or unconfigured.
+  getToken: async () => {
+    if (!supabase) return null
+    const { data } = await supabase.auth.getSession()
+    return data.session?.access_token ?? null
+  },
+  cloudEnabled,
 })

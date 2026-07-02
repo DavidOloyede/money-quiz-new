@@ -1,8 +1,13 @@
 /**
- * Account context: who is signed in and how to sign in/out. Sits ABOVE the
- * StoreProvider so the data store can be remounted (re-read from localStorage)
- * when the signed-in user changes. With Supabase unconfigured this renders
- * children with a permanently signed-out context.
+ * Account context for mobile: who is signed in and how to sign in/out. Mounts
+ * above the store so screens can read the session and profile. The web app has
+ * its own auth.tsx — the OAuth redirect flow differs structurally between a
+ * browser and a native app, so the providers stay separate and share only the
+ * Profile type (via @moneyquiz/core). With Supabase unconfigured this renders a
+ * permanently signed-out context and the app runs fully on-device.
+ *
+ * Sync is wired in a later phase; for now signing in just tracks the session
+ * and fetches the profile — the store stays local until sync lands.
  */
 import {
   createContext,
@@ -14,13 +19,20 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { cloudEnabled, supabase } from './lib/supabase'
+import { makeRedirectUri } from 'expo-auth-session'
+import * as WebBrowser from 'expo-web-browser'
 import { api } from '@moneyquiz/core/lib/api'
 import type { Profile } from '@moneyquiz/core/types'
+import { cloudEnabled, supabase } from './supabase'
 
-// Profile is defined in core so the mobile app shares its shape; re-exported
-// here because the web app has always imported it from `../auth`.
-export type { Profile }
+// Finishes any auth session that was pending when the app was backgrounded
+// during the browser redirect.
+WebBrowser.maybeCompleteAuthSession()
+
+// Where Google sends the user back. This exact URL must be in the Supabase
+// project's "Redirect URLs" allow-list; `mannamoney` is the scheme from
+// app.json (a dev build registers it — Expo Go can't run this app anyway).
+const redirectTo = makeRedirectUri({ scheme: 'mannamoney', path: 'auth' })
 
 interface AuthValue {
   /** False when the app was built without Supabase credentials. */
@@ -114,11 +126,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     if (!supabase) return 'Accounts are not configured'
-    const { error } = await supabase.auth.signInWithOAuth({
+    // Native OAuth: get Supabase's provider URL, open it in the system browser,
+    // then exchange the code it redirects back with for a session (PKCE).
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo, skipBrowserRedirect: true },
     })
-    return error ? error.message : null
+    if (error) return error.message
+    if (!data.url) return 'Could not start Google sign-in'
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
+    // User dismissed the browser without finishing — not an error.
+    if (result.type !== 'success') return null
+
+    const code = new URL(result.url).searchParams.get('code')
+    if (!code) return 'Google sign-in returned no session'
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    return exchangeError ? exchangeError.message : null
   }, [])
 
   const signOut = useCallback(async () => {

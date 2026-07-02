@@ -65,7 +65,10 @@ car so a second car can use the same engine**:
   the phone's body around them. On the phone the "notebook" isn't the
   browser's `localStorage` — it's a phone-native notebook called **MMKV** that
   the shared brain plugs into. Same pages, same page names, so cloud sync
-  works between the website and the phone.
+  works between the website and the phone. You can now **sign into your account
+  on the phone** (email + password, or Google) — it uses the same login service
+  and the same account as the website, so the two will share your data once
+  phone sync is switched on.
 - **`server/`** — the Node.js backend, unchanged.
 
 ---
@@ -428,7 +431,10 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
 ## 7. The brain that remembers everything (`store.tsx`, `auth.tsx`, and `types.ts`)
 
 (`store.tsx` and `types.ts` live in the shared `packages/core`; `auth.tsx` is
-web-only and stays in `src/`.)
+web-only and stays in `src/`. The phone has its own matching "who's signed in?"
+brain — logging in over the web and over the phone works differently enough
+that each app keeps its own, but they agree on the **shape** of a profile,
+which lives with the other shapes in `types.ts`.)
 
 - **`auth.tsx`** — The **"who's signed in?" brain**. It wraps the whole app
   (one level *above* the store) and remembers your session and profile, so

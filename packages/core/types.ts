@@ -154,3 +154,18 @@ export type StartingBalances = Record<string, number>
 export type PaidOffDebts = Record<string, string>
 
 export type ThemeMode = 'light' | 'dark'
+
+/**
+ * A signed-in user's account profile, as the Node API returns it from
+ * `GET /api/me` (snake_case wire format). Auth itself is platform-specific —
+ * the web and mobile apps each own their Supabase client and auth provider —
+ * but the profile shape is shared so both consume `/me` (and the admin user
+ * list) with the same type.
+ */
+export interface Profile {
+  id: string
+  email: string
+  display_name: string | null
+  role: 'user' | 'admin'
+  created_at: string
+}
