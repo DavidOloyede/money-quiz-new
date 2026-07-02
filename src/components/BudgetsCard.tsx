@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Budgets, Category, Transaction } from '../types'
-import { budgetStatus } from '../lib/analysis'
-import { allCategories, categoryMeta } from '../lib/categories'
-import { formatCurrency, formatMonth } from '../lib/format'
+import type { Budgets, Category, Transaction } from '@moneyquiz/core/types'
+import { budgetStatus } from '@moneyquiz/core/lib/analysis'
+import { allCategories, categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency, formatMonth } from '@moneyquiz/core/lib/format'
 
 interface Props {
   transactions: Transaction[]

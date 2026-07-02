@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useStore } from '../store'
-import { allCategories } from '../lib/categories'
+import { useStore } from '@moneyquiz/core/store'
+import { allCategories } from '@moneyquiz/core/lib/categories'
 import {
   buildReport,
   downloadText,

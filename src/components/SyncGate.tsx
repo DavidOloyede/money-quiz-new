@@ -31,10 +31,10 @@ import {
   SYNCED_KEYS,
   type SliceRow,
   type SyncStatus,
-} from '../lib/cloudSync'
+} from '@moneyquiz/core/lib/cloudSync'
 import { downloadText } from '../lib/exportData'
-import { loadJSON, removeKey, STORAGE_KEYS } from '../lib/storage'
-import type { Transaction } from '../types'
+import { loadJSON, removeKey, STORAGE_KEYS } from '@moneyquiz/core/lib/storage'
+import type { Transaction } from '@moneyquiz/core/types'
 
 interface SyncValue {
   /** True once this device is mirroring to the signed-in account. */

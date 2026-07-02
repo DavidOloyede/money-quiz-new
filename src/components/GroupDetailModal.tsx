@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
-import type { Category, SubscriptionCadence, SubscriptionMeta } from '../types'
-import { recurringPayments, type RecurringKind } from '../lib/analysis'
-import { useStore } from '../store'
+import type { Category, SubscriptionCadence, SubscriptionMeta } from '@moneyquiz/core/types'
+import { recurringPayments, type RecurringKind } from '@moneyquiz/core/lib/analysis'
+import { useStore } from '@moneyquiz/core/store'
 import {
   allCategories,
   categoryMeta,
   isSubscriptionCategory,
   SUBSCRIPTIONS_CATEGORY,
-} from '../lib/categories'
-import { merchantKey, groupKey, groupLabel, displayDescription } from '../lib/merchant'
-import { formatCurrency, formatDate } from '../lib/format'
+} from '@moneyquiz/core/lib/categories'
+import { merchantKey, groupKey, groupLabel, displayDescription } from '@moneyquiz/core/lib/merchant'
+import { formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'

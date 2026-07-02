@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
-import type { Transaction } from '../types'
+import type { Transaction } from '@moneyquiz/core/types'
 import {
   givingGoalStatus,
   givingStats,
   monthlyGiving,
   TITHE_BENCHMARK_PCT,
-} from '../lib/giving'
-import { formatCurrency, formatMonth, formatPercent } from '../lib/format'
+} from '@moneyquiz/core/lib/giving'
+import { formatCurrency, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
 
 interface Props {
   /** Transactions in the Dashboard's selected range (drives the stats). */

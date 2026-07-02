@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
-import type { AccountType, AmountMode, ColumnMapping, CsvRow } from '../types'
-import { categoryMeta } from '../lib/categories'
+import type { AccountType, AmountMode, ColumnMapping, CsvRow } from '@moneyquiz/core/types'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
 import {
   guessAccountType,
   guessMapping,
   mappingFitsHeaders,
   rowsToTransactions,
-} from '../lib/importCsv'
-import { formatCurrency, formatDate } from '../lib/format'
+} from '@moneyquiz/core/lib/importCsv'
+import { formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 
 interface Props {
   headers: string[]

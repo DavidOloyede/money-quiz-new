@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import type { Category } from '../types'
-import { useStore } from '../store'
-import { merchantKey, groupLabel, sharesName } from '../lib/merchant'
-import { categoryLabel } from '../lib/categories'
-import { formatAbs } from '../lib/format'
+import type { Category } from '@moneyquiz/core/types'
+import { useStore } from '@moneyquiz/core/store'
+import { merchantKey, groupLabel, sharesName } from '@moneyquiz/core/lib/merchant'
+import { categoryLabel } from '@moneyquiz/core/lib/categories'
+import { formatAbs } from '@moneyquiz/core/lib/format'
 import { CheckIcon, XIcon } from './icons'
 
 interface Action {

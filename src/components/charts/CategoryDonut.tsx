@@ -1,8 +1,8 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
-import type { CategoryTotal } from '../../lib/analysis'
-import type { Category } from '../../types'
-import { categoryMeta } from '../../lib/categories'
-import { formatCurrency, formatPercent } from '../../lib/format'
+import type { CategoryTotal } from '@moneyquiz/core/lib/analysis'
+import type { Category } from '@moneyquiz/core/types'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency, formatPercent } from '@moneyquiz/core/lib/format'
 
 interface Props {
   data: CategoryTotal[]

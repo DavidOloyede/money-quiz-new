@@ -1,4 +1,4 @@
-import { verseForDay } from '../data/verses'
+import { verseForDay } from '@moneyquiz/core/data/verses'
 
 /**
  * The daily scripture banner — one verse on money, stewardship, or generosity,

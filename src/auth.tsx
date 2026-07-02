@@ -15,7 +15,7 @@ import {
 } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { cloudEnabled, supabase } from './lib/supabase'
-import { api } from './lib/api'
+import { api } from '@moneyquiz/core/lib/api'
 
 export interface Profile {
   id: string

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import type { PaidOffDebts, Transaction } from '../types'
-import type { Aliases } from '../lib/analysis'
-import { debtRecurring, monthlyDebtTrend, paidOffCandidates } from '../lib/debt'
-import { formatCurrency, formatDate, formatMonth } from '../lib/format'
+import type { PaidOffDebts, Transaction } from '@moneyquiz/core/types'
+import type { Aliases } from '@moneyquiz/core/lib/analysis'
+import { debtRecurring, monthlyDebtTrend, paidOffCandidates } from '@moneyquiz/core/lib/debt'
+import { formatCurrency, formatDate, formatMonth } from '@moneyquiz/core/lib/format'
 
 interface Props {
   transactions: Transaction[]

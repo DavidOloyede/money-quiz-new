@@ -1,13 +1,13 @@
-import type { Transaction } from '../types'
-import { categoryLabel } from './categories'
+import type { Transaction } from '@moneyquiz/core/types'
+import { categoryLabel } from '@moneyquiz/core/lib/categories'
 import {
   headlineStats,
   monthsPresent,
   recurringPayments,
   spendingByCategory,
   topExpenses,
-} from './analysis'
-import { formatCurrency } from './format'
+} from '@moneyquiz/core/lib/analysis'
+import { formatCurrency } from '@moneyquiz/core/lib/format'
 
 /** Trigger a client-side download of text content. */
 export function downloadText(filename: string, text: string, mime = 'text/plain;charset=utf-8') {

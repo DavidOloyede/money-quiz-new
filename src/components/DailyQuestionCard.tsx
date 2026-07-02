@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useStore } from '../store'
-import { answerDaily, dailyQuestionXp, getDailyState } from '../lib/dailyQuestion'
+import { useStore } from '@moneyquiz/core/store'
+import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
 import { CheckIcon, SparkIcon, XIcon } from './icons'
 
 /**

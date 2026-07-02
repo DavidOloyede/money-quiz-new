@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import type { Transaction } from '../types'
-import { useStore } from '../store'
-import { merchantKey, displayDescription, sharesName } from '../lib/merchant'
+import type { Transaction } from '@moneyquiz/core/types'
+import { useStore } from '@moneyquiz/core/store'
+import { merchantKey, displayDescription, sharesName } from '@moneyquiz/core/lib/merchant'
 import { CheckIcon, PencilIcon, XIcon } from './icons'
 
 /**

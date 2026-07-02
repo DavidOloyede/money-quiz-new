@@ -9,7 +9,7 @@
 //
 // Keep this list in sync with `componentSrcMap` in design-sync.config.json.
 
-export { StoreProvider } from '../src/store'
+export { StoreProvider } from '../packages/core/store'
 
 export { StatCard } from '../src/components/StatCard'
 export { EmptyState } from '../src/components/EmptyState'

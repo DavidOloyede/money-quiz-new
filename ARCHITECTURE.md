@@ -40,6 +40,27 @@ database**, plus a sign-in helper:
 > server checks *who you are* on every single request (using the signed token
 > from Supabase) and only ever hands back your own data.
 
+### Where the code lives (since July 2026)
+
+The project is getting a phone app, so the code that both apps share was
+moved into its own package — think of it as **taking the engine out of the
+car so a second car can use the same engine**:
+
+- **`packages/core`** (called `@moneyquiz/core`) — the shared engine: the
+  central brain (`store.tsx`), the data shapes (`types.ts`), all the math
+  and sorting helpers (`lib/`), and the sample data, verses, and question
+  bank (`data/`). Nothing in here may touch browser-only features — that's
+  what keeps it runnable on a phone. The shared design tokens (the exact
+  colors and fonts) live here too, in `theme.ts`.
+- **`src/`** — everything that is web-only: the screens
+  (`components/`), sign-in wiring (`auth.tsx`), and five small helpers that
+  genuinely need a browser (`src/lib/`: the Supabase sign-in client, the
+  activity logger, file downloads, Plaid's pop-up, and the startup wiring).
+  The web's stylesheet tokens (`src/theme.css`) are **generated** from
+  `packages/core/theme.ts` by `npm run gen:theme` — change colors there, not
+  in the CSS.
+- **`server/`** — the Node.js backend, unchanged.
+
 ---
 
 ## 3. Where your data is kept
@@ -253,10 +274,13 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 
 ---
 
-## 6. The "thinking" helpers (the `src/lib` folder)
+## 6. The "thinking" helpers (`packages/core/lib`, plus five web-only files in `src/lib`)
 
-These files don't draw anything — they're the **brains** that do the math and the
-sorting. Keeping them separate from the screens keeps the code tidy.
+These files don't draw anything — they're the **brains** that do the math and
+the sorting. Keeping them separate from the screens keeps the code tidy, and
+almost all of them live in the shared `packages/core` package so the phone
+app can use them unchanged. The five marked **(web-only, in `src/lib`)** are
+the exceptions — they need a real browser.
 
 - **`storage.ts`** — Talks to the notebook: save and load. The notebook now has
   **swappable paper**: in the browser it writes to `localStorage` (found
@@ -353,15 +377,15 @@ sorting. Keeping them separate from the screens keeps the code tidy.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
 - **`plaid.ts`** — Talks to the backend's bank connector (`/api/plaid/…`):
   start a connection, sync, disconnect.
-- **`plaidLink.ts`** — Opens **Plaid's own pop-up** in the browser (loading
+- **`plaidLink.ts`** *(web-only, in `src/lib`)* — Opens **Plaid's own pop-up** in the browser (loading
   their script from their site) so you type your bank password into Plaid's
   window, never ours. Browser-only on purpose; the phone app will use Plaid's
   phone kit instead.
 - **`plaidMap.ts`** — Translates Plaid's data into our Transaction cards and maps
   Plaid's categories onto ours.
-- **`exportData.ts`** — Builds the **download** files (CSV, JSON, and a printable
+- **`exportData.ts`** *(web-only, in `src/lib`)* — Builds the **download** files (CSV, JSON, and a printable
   report).
-- **`supabase.ts`** — Sets up the **sign-in** client (Supabase Auth) — or
+- **`supabase.ts`** *(web-only, in `src/lib`)* — Sets up the **sign-in** client (Supabase Auth) — or
   `null` when accounts aren't configured, which is how every account feature
   knows to hide itself. It's used *only* for login; no data goes through it.
 - **`api.ts`** — The **phone line to the Node backend**. Every call to the API
@@ -369,19 +393,19 @@ sorting. Keeping them separate from the screens keeps the code tidy.
   you. The phone line itself doesn't know where the token comes from — at
   startup each app plugs in its own cord (see `configure.ts`), and with no
   cord plugged in it simply behaves as signed-out and local-only.
-- **`configure.ts`** — The web app's **cord**: at startup it tells `api.ts`
+- **`configure.ts`** *(web-only, in `src/lib`)* — The web app's **cord**: at startup it tells `api.ts`
   where the backend lives and how to fetch the signed-in token from Supabase.
   The phone app will have its own version of this file.
 - **`cloudSync.ts`** — The **photocopier**. It watches every save to the
   notebook and, a couple of seconds later, sends the changed pages to the
   backend (`POST /api/sync`). It also pulls everything down at sign-in and
   skips pages that haven't actually changed.
-- **`track.ts`** — The **activity logger**: small batched events ("viewed the
+- **`track.ts`** *(web-only, in `src/lib`)* — The **activity logger**: small batched events ("viewed the
   quiz", "imported a file — 214 rows") sent to `POST /api/events` for the admin
   activity log. It never records store names or amounts, and records nothing
   when you're signed out.
 
-And in **`src/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
+And in **`packages/core/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
 (including a monthly church tithe and small donations, so the giving features
 have something to show), **`verses.ts`** holds 50 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,
@@ -395,6 +419,9 @@ The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
 ---
 
 ## 7. The brain that remembers everything (`store.tsx`, `auth.tsx`, and `types.ts`)
+
+(`store.tsx` and `types.ts` live in the shared `packages/core`; `auth.tsx` is
+web-only and stays in `src/`.)
 
 - **`auth.tsx`** — The **"who's signed in?" brain**. It wraps the whole app
   (one level *above* the store) and remembers your session and profile, so
@@ -503,12 +530,14 @@ the financial details scrubbed out.
   web.
 - **Tailwind CSS** — the styling shortcuts (colors, spacing) that make it look
   nice, including dark mode. The app's look is the **Manna Money theme**,
-  defined in one place (`src/index.css`): warm paper colors named **linen**,
+  defined in one place (`packages/core/theme.ts`, which generates the web's
+  `src/theme.css` via `npm run gen:theme` — so the phone app gets the exact
+  same colors): warm paper colors named **linen**,
   a deep green named **forest**, and a gold named **honey**, plus two fonts
   the app ships itself (no font service watches you download them) —
   **Fraunces**, the bookish serif in headings, verses, and big numbers, and
   **Inter** for everything else. Category colors (the donut, the little
-  chips) live in `src/lib/categories.ts` and were checked by a program —
+  chips) live in `packages/core/lib/categories.ts` and were checked by a program —
   not by eye — so they stay tellable-apart for colorblind readers and
   readable in both light and dark mode.
 - **Recharts** — draws the pie and bar charts.

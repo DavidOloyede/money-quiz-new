@@ -1,6 +1,6 @@
-import type { RecurringPayment } from '../lib/analysis'
-import { categoryMeta } from '../lib/categories'
-import { formatCurrency } from '../lib/format'
+import type { RecurringPayment } from '@moneyquiz/core/lib/analysis'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency } from '@moneyquiz/core/lib/format'
 
 interface Props {
   /** Repeat-habit groups, precomputed by Dashboard's shared recurringPayments pass. */

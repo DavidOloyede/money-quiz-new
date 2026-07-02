@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { ImportSource } from '../types'
+import type { ImportSource } from '@moneyquiz/core/types'
 import { LinkIcon, RefreshIcon, TrashIcon, UploadIcon } from './icons'
 
 interface Props {

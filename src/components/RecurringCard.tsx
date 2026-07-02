@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import type { SubscriptionMeta } from '../types'
-import { chargesInMonth, upcomingCharges, type Charge, type RecurringPayment } from '../lib/analysis'
-import { categoryMeta } from '../lib/categories'
-import { formatCurrency, formatCurrencyShort, formatDate } from '../lib/format'
-import { useStore } from '../store'
+import type { SubscriptionMeta } from '@moneyquiz/core/types'
+import { chargesInMonth, upcomingCharges, type Charge, type RecurringPayment } from '@moneyquiz/core/lib/analysis'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency, formatCurrencyShort, formatDate } from '@moneyquiz/core/lib/format'
+import { useStore } from '@moneyquiz/core/store'
 import { StarIcon, XIcon } from './icons'
 
 interface Props {

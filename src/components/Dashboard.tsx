@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useStore } from '../store'
+import { useStore } from '@moneyquiz/core/store'
 import {
   currentMonthKey,
   excludedSummary,
@@ -13,9 +13,9 @@ import {
   spendingByCategory,
   topExpenses,
   type TimeRange,
-} from '../lib/analysis'
-import { categoryLabel, categoryMeta } from '../lib/categories'
-import { formatCurrency, formatDate, formatMonth, formatPercent } from '../lib/format'
+} from '@moneyquiz/core/lib/analysis'
+import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency, formatDate, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal, type DetailTarget } from './CategoryDetailModal'

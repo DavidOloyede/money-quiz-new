@@ -1,6 +1,6 @@
-import { useStore } from '../store'
-import { levelProgress } from '../lib/gamification'
-import { BADGES } from '../lib/badges'
+import { useStore } from '@moneyquiz/core/store'
+import { levelProgress } from '@moneyquiz/core/lib/gamification'
+import { BADGES } from '@moneyquiz/core/lib/badges'
 
 /**
  * The level / XP / daily-streak readout. The sidebar shows the full widget;

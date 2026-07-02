@@ -1,4 +1,4 @@
-import type { ThemeMode } from '../types'
+import type { ThemeMode } from '@moneyquiz/core/types'
 import { ProgressChip, ProgressWidget } from './ProgressWidget'
 import {
   ChartIcon,

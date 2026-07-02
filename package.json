@@ -3,9 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "gen:theme": "node scripts/gen-theme.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "tsc -b && npm --prefix server run lint",
@@ -16,6 +20,7 @@
     "db:studio": "npm --prefix server run db:studio"
   },
   "dependencies": {
+    "@moneyquiz/core": "*",
     "@sentry/react": "^10.57.0",
     "@supabase/supabase-js": "^2.108.1",
     "papaparse": "^5.4.1",

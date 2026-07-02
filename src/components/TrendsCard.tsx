@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import type { Transaction } from '../types'
-import { spendingTrends } from '../lib/analysis'
-import { categoryMeta } from '../lib/categories'
-import { formatCurrency, formatMonth, formatPercent } from '../lib/format'
+import type { Transaction } from '@moneyquiz/core/types'
+import { spendingTrends } from '@moneyquiz/core/lib/analysis'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
+import { formatCurrency, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
 
 interface Props {
   transactions: Transaction[]

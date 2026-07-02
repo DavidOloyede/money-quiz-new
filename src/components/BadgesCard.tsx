@@ -1,5 +1,5 @@
-import { BADGES } from '../lib/badges'
-import { formatDate } from '../lib/format'
+import { BADGES } from '@moneyquiz/core/lib/badges'
+import { formatDate } from '@moneyquiz/core/lib/format'
 
 interface Props {
   /** Earned badge ids -> ISO date earned (from GameState.badges). */

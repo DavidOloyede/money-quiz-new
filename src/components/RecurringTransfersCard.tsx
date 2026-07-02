@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import type { Transaction } from '../types'
-import { recurringTransfers } from '../lib/analysis'
-import { formatCurrency } from '../lib/format'
-import { useStore } from '../store'
+import type { Transaction } from '@moneyquiz/core/types'
+import { recurringTransfers } from '@moneyquiz/core/lib/analysis'
+import { formatCurrency } from '@moneyquiz/core/lib/format'
+import { useStore } from '@moneyquiz/core/store'
 
 interface Props {
   transactions: Transaction[]

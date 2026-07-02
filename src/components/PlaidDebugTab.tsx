@@ -7,13 +7,13 @@
  * categorization is smart rather than hand-keyed.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { Category, Transaction } from '../types'
-import { plaidApi, type RawPlaidItem, type PlaidTxn } from '../lib/plaid'
-import { mapPlaidTransactions } from '../lib/plaidMap'
-import { overrideKey } from '../lib/categorize'
-import { categoryMeta } from '../lib/categories'
-import { countsTowardTotals, isRealIncome, isRefund } from '../lib/analysis'
-import { useStore } from '../store'
+import type { Category, Transaction } from '@moneyquiz/core/types'
+import { plaidApi, type RawPlaidItem, type PlaidTxn } from '@moneyquiz/core/lib/plaid'
+import { mapPlaidTransactions } from '@moneyquiz/core/lib/plaidMap'
+import { overrideKey } from '@moneyquiz/core/lib/categorize'
+import { categoryMeta } from '@moneyquiz/core/lib/categories'
+import { countsTowardTotals, isRealIncome, isRefund } from '@moneyquiz/core/lib/analysis'
+import { useStore } from '@moneyquiz/core/store'
 
 const cardCls =
   'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5'

@@ -17,14 +17,22 @@ cloud, so a rename orphans every user's synced data.
 ```bash
 npm run dev        # web app only (fully local, no backend needed)
 npm run dev:all    # web + API together (accounts/sync/Plaid/admin)
-npm test           # vitest — the lib/ math & logic suite; keep it green
-npm run lint       # typechecks BOTH the app (tsc -b) and server/
+npm test           # vitest — the core math & logic suite; keep it green
+npm run lint       # typechecks the app, packages/core (tsc -b), and server/
 npm run build      # typecheck + production build into dist/
+npm run gen:theme  # regenerate src/theme.css from packages/core/theme.ts
 ```
 
-The server is a separate package in `server/` (no workspaces yet); root
-scripts drive it via `npm --prefix server`. Backend setup lives in
-[docs/SETUP-backend.md](docs/SETUP-backend.md).
+**Repo layout (npm workspaces, since July 2026):** the web app lives at the
+repo **root** (`src/` — deliberately not `apps/web`; moving `src/` breaks the
+design-sync artifacts and the server's static path). Shared platform-neutral
+code is `packages/core` (`@moneyquiz/core`: store, types, lib/, data/,
+theme.ts), consumed via deep imports like `@moneyquiz/core/lib/analysis`.
+The root package.json must **never** gain `types`/`main`/`exports` (the
+design-sync converter depends on their absence), and core's package.json
+must keep **no `exports` map** (deep imports rely on plain file resolution).
+`server/` is a workspace too; root scripts drive it via `npm --prefix
+server`. Backend setup lives in [docs/SETUP-backend.md](docs/SETUP-backend.md).
 
 ## Code style & conventions
 
@@ -36,16 +44,18 @@ scripts drive it via `npm --prefix server`. Backend setup lives in
   existing quiz takeaways, badge names, and empty states for the register.
   Not generic fintech ("Maximize your portfolio"), not sermonizing.
 - Styling is **Tailwind CSS v4 only** (no CSS-in-JS, no other frameworks —
-  flag it to David before introducing anything). Theme tokens live in the
-  `@theme` block in `src/index.css`; use tokens/utilities, not hardcoded hex
-  in components. Dark mode is class-based (`.dark` on `<html>`, toggled by
-  the store).
+  flag it to David before introducing anything). Theme tokens live in
+  `packages/core/theme.ts`; `src/theme.css` is **generated** from it
+  (`npm run gen:theme`) — edit theme.ts, never theme.css. Use
+  tokens/utilities, not hardcoded hex in components. Dark mode is
+  class-based (`.dark` on `<html>`, toggled by the store).
 
 ## Testing conventions
 
-- Tests live next to the code (`src/**/*.test.ts`, Vitest). Coverage is
-  deliberately concentrated on `src/lib/` — the math/sorting brains — so the
-  numbers can't silently break. Components are verified by running the app.
+- Tests live next to the code (`packages/core/**/*.test.ts`, Vitest).
+  Coverage is deliberately concentrated on core's lib/ — the math/sorting
+  brains — so the numbers can't silently break. Components are verified by
+  running the app.
 - When you touch a lib file, extend its test file in the same change.
 - Run `npm test` at every meaningful checkpoint; run `npm run build` before
   calling a workstream done. There are currently **no server tests** — if you
@@ -80,18 +90,20 @@ them — the pipeline breaks silently. The contract:
 don't re-derive it). The portability seams landed in July 2026; the full rule
 lives in the roadmap's "code-sharing rule" section. The short version:
 
-- Web-only files (never import them from shared code): `supabase.ts`,
-  `track.ts`, `exportData.ts`, `plaidLink.ts`, `configure.ts`. Everything else
-  in `src/lib/` plus `store.tsx` is platform-neutral — keep it free of DOM,
-  `localStorage`, and `import.meta.env` (fatal under Metro).
-- The seams are `setStorageBackend()` (storage.ts), `configureApi()` (api.ts —
-  web wires it in `src/lib/configure.ts`, imported first in `main.tsx`), and
-  `setThemeAdapter()` (themeAdapter.ts). Route new platform needs through a
-  seam like these, not through direct browser APIs.
+- Shared code lives in `packages/core` and must stay free of DOM,
+  `localStorage`, and `import.meta.env` (fatal under Metro). The five
+  web-only lib files stay in `src/lib/` and must never be imported from
+  core: `supabase.ts`, `track.ts`, `exportData.ts`, `plaidLink.ts`,
+  `configure.ts`.
+- The seams are `setStorageBackend()` (core `lib/storage.ts`),
+  `configureApi()` (core `lib/api.ts` — web wires it in
+  `src/lib/configure.ts`, imported first in `main.tsx`), and
+  `setThemeAdapter()` (core `lib/themeAdapter.ts`). Route new platform needs
+  through a seam like these, not through direct browser APIs.
 - `storage.ts` reads are **synchronous** and `store.tsx` depends on that in
   `useState` initializers → the mobile backend will be MMKV (sync), never
   AsyncStorage. Don't introduce async storage assumptions.
-- `newId()` lives in `lib/id.ts`; don't re-couple pure data modules to
+- `newId()` lives in core `lib/id.ts`; don't re-couple pure data modules to
   storage for convenience helpers.
 
 ## Auth / security model (don't weaken it)

@@ -7,7 +7,7 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth, type Profile } from '../auth'
-import { api } from '../lib/api'
+import { api } from '@moneyquiz/core/lib/api'
 import { StatusBadge, TicketThread, type Ticket, type TicketStatus } from './SupportCard'
 import { PlaidDebugTab } from './PlaidDebugTab'
 

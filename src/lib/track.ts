@@ -8,7 +8,7 @@
  * merchant names, or amounts. Counts, categories of action, and durations
  * are fine; financial data is not.
  */
-import { api, beaconPost } from './api'
+import { api, beaconPost } from '@moneyquiz/core/lib/api'
 import { cloudEnabled, supabase } from './supabase'
 
 interface ActivityEvent {

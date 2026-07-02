@@ -4,7 +4,7 @@
  */
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth'
-import { api, ApiError } from '../lib/api'
+import { api, ApiError } from '@moneyquiz/core/lib/api'
 import { track } from '../lib/track'
 import { LifeBuoyIcon } from './icons'
 

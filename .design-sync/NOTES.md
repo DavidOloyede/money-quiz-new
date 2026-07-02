@@ -18,6 +18,11 @@ and infra are intentionally excluded.
   would `export *` every `src/*.tsx` including `main.tsx`, whose top-level
   `createRoot().render()` runs inside the bundle IIFE and breaks everything.
   **Keep `entry.tsx` and `componentSrcMap` in sync** when adding components.
+  Since the July 2026 workspace split, `StoreProvider` is re-exported from
+  `../packages/core/store` (the store moved to `@moneyquiz/core`); the
+  components' own `@moneyquiz/core/...` imports resolve through the root
+  `node_modules` workspace symlink, which esbuild follows to real source —
+  no config change was needed beyond that one entry line.
 - **`bundle.mjs` fork** (`.design-sync/overrides/bundle.mjs`) adds esbuild
   `jsx:'automatic'`. The components use the automatic JSX runtime (no
   `import React`), but root `tsconfig.json` is solution-style (references, no

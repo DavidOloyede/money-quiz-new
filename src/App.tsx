@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { StoreProvider, useStore } from './store'
+import { StoreProvider, useStore } from '@moneyquiz/core/store'
 import { AuthProvider, useAuth } from './auth'
 import { SyncGate, useSync } from './components/SyncGate'
 import { track } from './lib/track'

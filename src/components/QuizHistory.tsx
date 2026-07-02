@@ -1,4 +1,4 @@
-import type { QuizResult } from '../types'
+import type { QuizResult } from '@moneyquiz/core/types'
 
 function dayStreak(history: QuizResult[]): number {
   if (history.length === 0) return 0

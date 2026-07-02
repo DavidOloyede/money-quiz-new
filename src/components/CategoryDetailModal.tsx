@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import type { Category, Transaction } from '../types'
-import { useStore } from '../store'
-import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '../lib/categories'
+import type { Category, Transaction } from '@moneyquiz/core/types'
+import { useStore } from '@moneyquiz/core/store'
+import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '@moneyquiz/core/lib/categories'
 import {
   countsTowardTotals,
   isCountedExpense,
@@ -10,9 +10,9 @@ import {
   monthKey,
   totalIncome,
   totalSpending,
-} from '../lib/analysis'
-import { displayDescription } from '../lib/merchant'
-import { formatCurrency, formatDate, formatMonth } from '../lib/format'
+} from '@moneyquiz/core/lib/analysis'
+import { displayDescription } from '@moneyquiz/core/lib/merchant'
+import { formatCurrency, formatDate, formatMonth } from '@moneyquiz/core/lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'

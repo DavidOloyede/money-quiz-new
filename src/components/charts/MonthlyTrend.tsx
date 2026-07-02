@@ -8,8 +8,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import type { MonthlyPoint } from '../../lib/analysis'
-import { formatCurrency, formatCurrencyShort, formatMonth } from '../../lib/format'
+import type { MonthlyPoint } from '@moneyquiz/core/lib/analysis'
+import { formatCurrency, formatCurrencyShort, formatMonth } from '@moneyquiz/core/lib/format'
 
 interface Props {
   data: MonthlyPoint[]

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useStore } from '../store'
-import { groupKey, groupLabel } from '../lib/merchant'
+import { useStore } from '@moneyquiz/core/store'
+import { groupKey, groupLabel } from '@moneyquiz/core/lib/merchant'
 import { CheckIcon, XIcon } from './icons'
 
 /**
