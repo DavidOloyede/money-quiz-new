@@ -29,14 +29,14 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Budgets</h3>
-        <span className="text-xs text-slate-400 dark:text-slate-500">{formatMonth(monthKey)}</span>
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Budgets</h3>
+        <span className="text-xs text-linen-400 dark:text-linen-500">{formatMonth(monthKey)}</span>
       </div>
 
       {status.length === 0 ? (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-sm text-linen-500 dark:text-linen-400">
           Set a monthly budget for a category to track it here.
         </p>
       ) : (
@@ -46,17 +46,17 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
             return (
               <li key={s.category}>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                  <span className="flex items-center gap-1.5 text-linen-700 dark:text-linen-200">
                     <span aria-hidden>{categoryMeta(s.category).emoji}</span>
                     {categoryMeta(s.category).label}
                   </span>
-                  <span className={`tabular-nums ${s.over ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <span className={`tabular-nums ${s.over ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-linen-500 dark:text-linen-400'}`}>
                     {formatCurrency(s.spent)} / {formatCurrency(s.budget)}
                   </span>
                 </div>
-                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-linen-100 dark:bg-linen-800">
                   <div
-                    className={`h-full rounded-full ${s.over ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                    className={`h-full rounded-full ${s.over ? 'bg-rose-500' : 'bg-forest-500'}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -72,11 +72,11 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
       )}
 
       {unbudgeted.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-linen-100 dark:border-linen-800 pt-3">
           <select
             value={addCat}
             onChange={(e) => setAddCat(e.target.value)}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+            className="rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
           >
             <option value="">Add a budget…</option>
             {unbudgeted.map((d) => (
@@ -90,12 +90,12 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
             value={addAmt}
             onChange={(e) => setAddAmt(e.target.value)}
             placeholder="$ / month"
-            className="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+            className="w-28 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
           />
           <button
             onClick={add}
             disabled={!addCat || !(parseFloat(addAmt) > 0)}
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+            className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
           >
             Add
           </button>

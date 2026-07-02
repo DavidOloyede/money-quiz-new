@@ -82,7 +82,7 @@ export function YearSheetView({ onNavigate }: Props) {
   if (!hasData) {
     return (
       <Shell>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
           <EmptyState
             icon={<TableIcon className="w-7 h-7" />}
             title="No data for a year sheet yet"
@@ -90,13 +90,13 @@ export function YearSheetView({ onNavigate }: Props) {
           >
             <button
               onClick={loadSample}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
             >
               Load sample data
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
             >
               Go to Import
             </button>
@@ -117,7 +117,7 @@ export function YearSheetView({ onNavigate }: Props) {
     <Shell
       action={
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <label className="flex items-center gap-2 text-sm text-linen-500 dark:text-linen-400">
             Starting balance
             <input
               inputMode="decimal"
@@ -126,18 +126,18 @@ export function YearSheetView({ onNavigate }: Props) {
               onChange={(e) => setBalDraft(e.target.value)}
               onBlur={commitBalance}
               onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-              className="w-28 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-right text-sm tabular-nums text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-28 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-right text-sm tabular-nums text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none focus:ring-2 focus:ring-forest-500"
             />
           </label>
-          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5">
+          <div className="inline-flex rounded-lg border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-0.5">
             {(years.length > 0 ? years : [currentYear]).map((y) => (
               <button
                 key={y}
                 onClick={() => setYear(y)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   year === y
-                    ? 'bg-emerald-600 text-white'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-forest-600 text-white'
+                    : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
                 }`}
               >
                 {y}
@@ -148,12 +148,12 @@ export function YearSheetView({ onNavigate }: Props) {
       }
     >
       {sheet.hasProjections && (
-        <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mb-3 text-xs text-linen-500 dark:text-linen-400">
           Months after{' '}
           <span className="font-medium">
             {sheet.lastActualMonth >= 0 ? MONTHS[sheet.lastActualMonth] : 'the start of the year'}
           </span>{' '}
-          are <span className="italic text-amber-600 dark:text-amber-400">projected</span> — your
+          are <span className="italic text-honey-600 dark:text-honey-400">projected</span> — your
           monthly budget for the category when one is set, otherwise the average of the months so
           far.
         </p>
@@ -172,30 +172,30 @@ export function YearSheetView({ onNavigate }: Props) {
       <div
         ref={mainRef}
         onScroll={syncFromMain}
-        className="max-h-[75vh] overflow-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+        className="max-h-[75vh] overflow-auto rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900"
       >
         <table className="w-full min-w-[1080px] border-separate border-spacing-0 text-xs">
           <thead>
             <tr>
-              <th className="sticky left-0 top-0 z-30 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-3 text-left font-semibold text-slate-500 dark:text-slate-400 w-44">
+              <th className="sticky left-0 top-0 z-30 h-9 border-b border-linen-200 dark:border-linen-700 bg-linen-100 dark:bg-linen-800 px-3 text-left font-semibold text-linen-500 dark:text-linen-400 w-44">
                 {year}
               </th>
               {MONTHS.map((m, i) => (
                 <th
                   key={m}
-                  className={`sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-semibold ${
+                  className={`sticky top-0 z-20 h-9 border-b border-linen-200 dark:border-linen-700 bg-linen-100 dark:bg-linen-800 px-2 text-right font-semibold ${
                     i === sheet.lastActualMonth && year === currentYear
-                      ? 'text-emerald-600 dark:text-emerald-400'
-                      : 'text-slate-500 dark:text-slate-400'
+                      ? 'text-forest-600 dark:text-forest-400'
+                      : 'text-linen-500 dark:text-linen-400'
                   }`}
                 >
                   {m}
                 </th>
               ))}
-              <th className="sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-bold text-slate-600 dark:text-slate-300">
+              <th className="sticky top-0 z-20 h-9 border-b border-linen-200 dark:border-linen-700 bg-linen-100 dark:bg-linen-800 px-2 text-right font-bold text-linen-600 dark:text-linen-300">
                 TOTAL
               </th>
-              <th className="sticky top-0 z-20 h-9 border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2 text-right font-semibold text-slate-500 dark:text-slate-400">
+              <th className="sticky top-0 z-20 h-9 border-b border-linen-200 dark:border-linen-700 bg-linen-100 dark:bg-linen-800 px-2 text-right font-semibold text-linen-500 dark:text-linen-400">
                 AVG
               </th>
             </tr>
@@ -229,7 +229,7 @@ export function YearSheetView({ onNavigate }: Props) {
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
+      <p className="mt-3 text-xs text-linen-400 dark:text-linen-500">
         Set monthly budgets on the Dashboard to drive the projections; the starting balance is
         saved per year. Click any filled-in number to see the transactions behind it.
       </p>
@@ -274,8 +274,8 @@ function SectionRows({
 function SectionHeader({ title, tone }: { title: string; tone: 'income' | 'expense' }) {
   const bg =
     tone === 'income'
-      ? 'bg-emerald-700 dark:bg-emerald-800'
-      : 'bg-sky-800 dark:bg-sky-900'
+      ? 'bg-forest-700 dark:bg-forest-800'
+      : 'bg-linen-600 dark:bg-linen-700'
   return (
     <tr>
       <td className={`sticky left-0 z-10 px-3 py-1.5 text-[11px] font-bold tracking-wide text-white ${bg}`}>
@@ -306,11 +306,11 @@ function Cell({
       title={clickable ? 'View the transactions behind this number' : undefined}
       className={`px-2 py-1.5 text-right tabular-nums ${extra} ${
         cell.projected
-          ? 'italic text-amber-600/90 dark:text-amber-400/80'
-          : accent ?? 'text-slate-700 dark:text-slate-200'
+          ? 'italic text-honey-600/90 dark:text-honey-400/80'
+          : accent ?? 'text-linen-700 dark:text-linen-200'
       } ${
         clickable
-          ? 'cursor-pointer underline-offset-2 hover:bg-emerald-50 hover:underline dark:hover:bg-emerald-500/10'
+          ? 'cursor-pointer underline-offset-2 hover:bg-forest-50 hover:underline dark:hover:bg-forest-500/10'
           : ''
       }`}
     >
@@ -319,7 +319,7 @@ function Cell({
   )
 }
 
-const ROW_BORDER = 'border-t border-slate-100 dark:border-slate-800'
+const ROW_BORDER = 'border-t border-linen-100 dark:border-linen-800'
 
 function DataRow({
   label,
@@ -335,17 +335,17 @@ function DataRow({
   onDrill?: (monthIndex: number) => void
 }) {
   return (
-    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-      <td className={`sticky left-0 z-10 bg-white dark:bg-slate-900 px-3 py-1.5 font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap ${ROW_BORDER}`}>
+    <tr className="hover:bg-linen-50 dark:hover:bg-linen-800/50">
+      <td className={`sticky left-0 z-10 bg-cream dark:bg-linen-900 px-3 py-1.5 font-medium text-linen-600 dark:text-linen-300 whitespace-nowrap ${ROW_BORDER}`}>
         {label}
       </td>
       {cells.map((c, i) => (
         <Cell key={i} cell={c} extra={ROW_BORDER} onClick={onDrill && (() => onDrill(i))} />
       ))}
-      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-slate-800 dark:text-slate-100 ${ROW_BORDER}`}>
+      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-linen-800 dark:text-linen-100 ${ROW_BORDER}`}>
         {cellText(total)}
       </td>
-      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${ROW_BORDER}`}>
+      <td className={`px-2 py-1.5 text-right tabular-nums text-linen-400 dark:text-linen-500 ${ROW_BORDER}`}>
         {cellText(avg)}
       </td>
     </tr>
@@ -361,20 +361,20 @@ function TotalRow({
   label: string
   tone: 'income' | 'expense'
 }) {
-  const bg = tone === 'income' ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-slate-50 dark:bg-slate-800/60'
-  const border = 'border-t border-slate-200 dark:border-slate-700'
+  const bg = tone === 'income' ? 'bg-forest-50 dark:bg-forest-500/10' : 'bg-linen-50 dark:bg-linen-800/60'
+  const border = 'border-t border-linen-200 dark:border-linen-700'
   return (
     <tr className={bg}>
-      <td className={`sticky left-0 z-10 px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap ${tone === 'income' ? 'bg-emerald-50 dark:bg-emerald-950' : 'bg-slate-50 dark:bg-slate-800'} ${border}`}>
+      <td className={`sticky left-0 z-10 px-3 py-1.5 font-semibold text-linen-700 dark:text-linen-200 whitespace-nowrap ${tone === 'income' ? 'bg-forest-50 dark:bg-forest-950' : 'bg-linen-50 dark:bg-linen-800'} ${border}`}>
         {label}
       </td>
       {section.totals.map((c, i) => (
-        <Cell key={i} cell={c} accent="font-medium text-slate-700 dark:text-slate-200" extra={border} />
+        <Cell key={i} cell={c} accent="font-medium text-linen-700 dark:text-linen-200" extra={border} />
       ))}
-      <td className={`px-2 py-1.5 text-right font-bold tabular-nums text-slate-800 dark:text-slate-100 ${border}`}>
+      <td className={`px-2 py-1.5 text-right font-bold tabular-nums text-linen-800 dark:text-linen-100 ${border}`}>
         {cellText(section.total)}
       </td>
-      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-slate-500 dark:text-slate-400 ${border}`}>
+      <td className={`px-2 py-1.5 text-right font-semibold tabular-nums text-linen-500 dark:text-linen-400 ${border}`}>
         {cellText(section.avg)}
       </td>
     </tr>
@@ -383,7 +383,7 @@ function TotalRow({
 
 /** A cell in the frozen summary block: sticky at a fixed offset, opaque bg. */
 function frozenCls(stickyTop: string, bg: string, firstCol = false): string {
-  return `sticky ${stickyTop} ${firstCol ? 'left-0 z-30' : 'z-20'} h-8 ${bg} border-b border-slate-100 dark:border-slate-800`
+  return `sticky ${stickyTop} ${firstCol ? 'left-0 z-30' : 'z-20'} h-8 ${bg} border-b border-linen-100 dark:border-linen-800`
 }
 
 function SummaryRow({
@@ -398,11 +398,11 @@ function SummaryRow({
   stickyTop: string
 }) {
   const total = cells.reduce((a, c) => a + c.value, 0)
-  const accent = positive ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'
-  const bg = 'bg-white dark:bg-slate-900'
+  const accent = positive ? 'text-forest-700 dark:text-forest-400' : 'text-linen-700 dark:text-linen-200'
+  const bg = 'bg-cream dark:bg-linen-900'
   return (
     <tr>
-      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200 ${frozenCls(stickyTop, bg, true)}`}>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-linen-700 dark:text-linen-200 ${frozenCls(stickyTop, bg, true)}`}>
         {label}
       </td>
       {cells.map((c, i) => (
@@ -411,7 +411,7 @@ function SummaryRow({
       <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${accent} ${frozenCls(stickyTop, bg)}`}>
         {cellText(total)}
       </td>
-      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${frozenCls(stickyTop, bg)}`}>
+      <td className={`px-2 py-1.5 text-right tabular-nums text-linen-400 dark:text-linen-500 ${frozenCls(stickyTop, bg)}`}>
         {cellText(total / 12)}
       </td>
     </tr>
@@ -424,11 +424,11 @@ function NetRow({ label, cells, stickyTop }: { label: string; cells: SheetCell[]
   // Frozen rows overlay scrolling content, so the tints must be opaque.
   const color = (n: number) =>
     n >= 0
-      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+      ? 'bg-forest-50 text-forest-700 dark:bg-forest-950 dark:text-forest-400'
       : 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-400'
   return (
     <tr>
-      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-slate-700 dark:text-slate-200 ${frozenCls(stickyTop, 'bg-white dark:bg-slate-900', true)}`}>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-linen-700 dark:text-linen-200 ${frozenCls(stickyTop, 'bg-cream dark:bg-linen-900', true)}`}>
         {label}
       </td>
       {cells.map((c, i) => (
@@ -444,7 +444,7 @@ function NetRow({ label, cells, stickyTop }: { label: string; cells: SheetCell[]
       <td className={`px-2 py-1.5 text-right font-bold tabular-nums ${frozenCls(stickyTop, color(total))}`}>
         {cellText(total, false)}
       </td>
-      <td className={`px-2 py-1.5 text-right tabular-nums text-slate-400 dark:text-slate-500 ${frozenCls(stickyTop, 'bg-white dark:bg-slate-900')}`}>
+      <td className={`px-2 py-1.5 text-right tabular-nums text-linen-400 dark:text-linen-500 ${frozenCls(stickyTop, 'bg-cream dark:bg-linen-900')}`}>
         {cellText(total / 12, false)}
       </td>
     </tr>
@@ -462,12 +462,12 @@ function BalanceRow({
   stickyTop: string
 }) {
   const color = (n: number) =>
-    n >= 0 ? 'text-slate-700 dark:text-slate-200' : 'text-rose-600 dark:text-rose-400 font-semibold'
-  const bg = 'bg-amber-50 dark:bg-slate-900'
-  const bottom = 'border-b-2 border-slate-200 dark:border-slate-700'
+    n >= 0 ? 'text-linen-700 dark:text-linen-200' : 'text-rose-600 dark:text-rose-400 font-semibold'
+  const bg = 'bg-honey-50 dark:bg-linen-900'
+  const bottom = 'border-b-2 border-linen-200 dark:border-linen-700'
   return (
     <tr>
-      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-amber-800 dark:text-amber-300 ${frozenCls(stickyTop, bg, true)} ${bottom}`}>
+      <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-honey-800 dark:text-honey-300 ${frozenCls(stickyTop, bg, true)} ${bottom}`}>
         {label}
       </td>
       {balances.map((b, i) => (
@@ -487,7 +487,7 @@ function Shell({ action, children }: { action?: React.ReactNode; children: React
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Year Sheet</h2>
+        <h2 className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Year Sheet</h2>
         {action}
       </div>
       {children}

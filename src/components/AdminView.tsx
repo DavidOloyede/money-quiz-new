@@ -34,7 +34,7 @@ interface ActivityRow {
 const PAGE = 100
 
 const cardCls =
-  'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5'
+  'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5'
 
 function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -63,7 +63,7 @@ function MetricsTab() {
   }, [])
 
   if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-  if (!metrics) return <p className="text-sm text-slate-400">Loading…</p>
+  if (!metrics) return <p className="text-sm text-linen-400">Loading…</p>
 
   const items: [string, number][] = [
     ['Users', metrics.users],
@@ -76,8 +76,8 @@ function MetricsTab() {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {items.map(([label, value]) => (
         <div key={label} className={cardCls}>
-          <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</div>
-          <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">{label}</div>
+          <div className="font-display text-[26px] font-semibold text-linen-800 dark:text-linen-100">{value}</div>
+          <div className="mt-1 text-xs text-linen-500 dark:text-linen-400">{label}</div>
         </div>
       ))}
     </div>
@@ -89,33 +89,33 @@ function UsersTab({ profiles }: { profiles: Profile[] }) {
     <div className={cardCls}>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-left text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <tr className="text-left text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
             <th className="pb-2">Email</th>
             <th className="pb-2">Role</th>
             <th className="pb-2">Joined</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+        <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
           {profiles.map((p) => (
             <tr key={p.id}>
-              <td className="py-2 text-slate-700 dark:text-slate-200">{p.email}</td>
+              <td className="py-2 text-linen-700 dark:text-linen-200">{p.email}</td>
               <td className="py-2">
                 {p.role === 'admin' ? (
                   <span className="rounded-full bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-700 dark:text-violet-300">
                     admin
                   </span>
                 ) : (
-                  <span className="text-slate-400 dark:text-slate-500">user</span>
+                  <span className="text-linen-400 dark:text-linen-500">user</span>
                 )}
               </td>
-              <td className="py-2 text-slate-500 dark:text-slate-400">
+              <td className="py-2 text-linen-500 dark:text-linen-400">
                 {new Date(p.created_at).toLocaleDateString()}
               </td>
             </tr>
           ))}
           {profiles.length === 0 && (
             <tr>
-              <td colSpan={3} className="py-3 text-slate-400">
+              <td colSpan={3} className="py-3 text-linen-400">
                 No users yet.
               </td>
             </tr>
@@ -158,7 +158,7 @@ function ActivityTab({
   }, [load])
 
   const selectCls =
-    'rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none'
+    'rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none'
 
   return (
     <div className={cardCls}>
@@ -178,27 +178,27 @@ function ActivityTab({
           className={selectCls}
         />
       </div>
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+      <ul className="divide-y divide-linen-100 dark:divide-linen-800 text-sm">
         {rows.map((r) => (
           <li key={r.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-1.5">
-            <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
+            <span className="font-mono text-xs text-linen-400 dark:text-linen-500">
               {new Date(r.created_at).toLocaleString()}
             </span>
-            <span className="font-medium text-slate-700 dark:text-slate-200">{r.name}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">{emailOf(r.user_id)}</span>
+            <span className="font-medium text-linen-700 dark:text-linen-200">{r.name}</span>
+            <span className="text-xs text-linen-500 dark:text-linen-400">{emailOf(r.user_id)}</span>
             {Object.keys(r.props).length > 0 && (
-              <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
+              <span className="font-mono text-xs text-linen-400 dark:text-linen-500">
                 {JSON.stringify(r.props)}
               </span>
             )}
           </li>
         ))}
-        {rows.length === 0 && <li className="py-3 text-slate-400">No events match.</li>}
+        {rows.length === 0 && <li className="py-3 text-linen-400">No events match.</li>}
       </ul>
       {!done && rows.length > 0 && (
         <button
           onClick={() => void load(page + 1, false)}
-          className="mt-3 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          className="mt-3 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
         >
           Load more
         </button>
@@ -229,19 +229,19 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
 
   return (
     <div className={cardCls}>
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+      <ul className="divide-y divide-linen-100 dark:divide-linen-800">
         {tickets.map((t) => (
           <li key={t.id} className="py-2">
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setOpenId(openId === t.id ? null : t.id)}
-                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-slate-700 dark:text-slate-200"
+                className="min-w-0 flex-1 truncate text-left text-sm font-medium text-linen-700 dark:text-linen-200"
               >
                 {t.subject}
               </button>
-              <span className="text-xs text-slate-400 dark:text-slate-500">{emailOf(t.user_id)}</span>
+              <span className="text-xs text-linen-400 dark:text-linen-500">{emailOf(t.user_id)}</span>
               {t.category && (
-                <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                <span className="rounded-full bg-linen-100 dark:bg-linen-800 px-2 py-0.5 text-[10px] font-medium text-linen-500 dark:text-linen-400">
                   {t.category}
                 </span>
               )}
@@ -249,7 +249,7 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
               <select
                 value={t.status}
                 onChange={(e) => void setStatus(t.id, e.target.value as TicketStatus)}
-                className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-1.5 py-1 text-xs text-slate-700 dark:text-slate-200 focus:outline-none"
+                className="rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-1.5 py-1 text-xs text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
               >
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
@@ -263,7 +263,7 @@ function TicketsTab({ emailOf, selfId }: { emailOf: (id: string) => string; self
             )}
           </li>
         ))}
-        {tickets.length === 0 && <li className="py-3 text-sm text-slate-400">No tickets yet.</li>}
+        {tickets.length === 0 && <li className="py-3 text-sm text-linen-400">No tickets yet.</li>}
       </ul>
     </div>
   )
@@ -284,17 +284,17 @@ export function AdminView() {
 
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-slate-100">Admin</h2>
+      <h2 className="mb-4 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Admin</h2>
 
-      <div className="mb-4 inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+      <div className="mb-4 inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
         {tabs.map(([id, label]) => (
           <button
             key={id}
             onClick={() => setTab(id)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               tab === id
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-forest-600 text-white'
+                : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
             }`}
           >
             {label}

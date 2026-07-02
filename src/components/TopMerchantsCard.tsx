@@ -14,31 +14,31 @@ export function TopMerchantsCard({ transactions }: Props) {
   const max = merchants[0].total
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <h3 className="font-semibold text-slate-800 dark:text-slate-100">Top merchants</h3>
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+      <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Top merchants</h3>
       <ul className="mt-3 space-y-2.5">
         {merchants.map((m, i) => (
           <li key={m.merchant} className="flex items-center gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-linen-100 dark:bg-linen-800 text-xs font-semibold text-linen-500 dark:text-linen-400">
               {i + 1}
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
                   {m.merchant}
                 </span>
-                <span className="shrink-0 tabular-nums text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <span className="shrink-0 tabular-nums text-sm font-semibold text-linen-700 dark:text-linen-200">
                   {formatCurrency(m.total)}
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-linen-100 dark:bg-linen-800">
                   <div
-                    className="h-full rounded-full bg-emerald-500"
+                    className="h-full rounded-full bg-forest-500"
                     style={{ width: `${max > 0 ? (m.total / max) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="text-xs text-slate-400 dark:text-slate-500">{m.count}×</span>
+                <span className="text-xs text-linen-400 dark:text-linen-500">{m.count}×</span>
               </div>
             </div>
           </li>

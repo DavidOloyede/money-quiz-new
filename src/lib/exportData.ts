@@ -53,7 +53,7 @@ export function buildReport(transactions: Transaction[]): string {
   const top = topExpenses(transactions, 5)
   const months = monthsPresent(transactions)
   const L: string[] = []
-  L.push('Money Quiz — Summary report')
+  L.push('Manna Money — Summary report')
   L.push('='.repeat(32))
   L.push(`Generated: ${new Date().toLocaleString()}`)
   if (months.length) L.push(`Period:    ${months[0]} to ${months[months.length - 1]}`)
@@ -83,8 +83,8 @@ export function printReport(text: string) {
   if (!w) return
   const escaped = text.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string)
   w.document.write(
-    `<!doctype html><title>Money Quiz report</title>` +
-      `<pre style="font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;padding:32px;color:#0f172a">${escaped}</pre>`,
+    `<!doctype html><title>Manna Money report</title>` +
+      `<pre style="font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;padding:32px;color:#2b241b">${escaped}</pre>`,
   )
   w.document.close()
   w.focus()

@@ -39,8 +39,8 @@ export function useRenameSimilar() {
 
   const node = pending ? (
     <div className="fixed inset-x-0 bottom-4 z-[70] flex justify-center px-4">
-      <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-lg">
-        <div className="min-w-0 flex-1 text-sm text-slate-600 dark:text-slate-300">
+      <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-3 shadow-lg">
+        <div className="min-w-0 flex-1 text-sm text-linen-600 dark:text-linen-300">
           Also rename <span className="font-semibold">{pending.count}</span> similarly-named charge
           {pending.count === 1 ? '' : 's'} to <span className="font-semibold">“{pending.name}”</span>?
         </div>
@@ -49,13 +49,13 @@ export function useRenameSimilar() {
             setAlias(pending.ids, pending.name)
             setPending(null)
           }}
-          className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
         >
           <CheckIcon className="h-4 w-4" /> Rename all
         </button>
         <button
           onClick={() => setPending(null)}
-          className="shrink-0 rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-800"
           aria-label="Dismiss"
         >
           <XIcon className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function EditableDescription({
             setEditing(true)
           }}
           title="Rename"
-          className="shrink-0 text-slate-300 opacity-0 transition-opacity hover:text-slate-500 group-hover:opacity-100 dark:text-slate-600"
+          className="shrink-0 text-linen-300 opacity-0 transition-opacity hover:text-linen-500 group-hover:opacity-100 dark:text-linen-600"
         >
           <PencilIcon className="h-3.5 w-3.5" />
         </button>
@@ -113,7 +113,7 @@ export function EditableDescription({
         if (e.key === 'Enter') save()
         else if (e.key === 'Escape') setEditing(false)
       }}
-      className="w-full rounded-md border border-emerald-400 bg-white dark:bg-slate-800 px-1.5 py-0.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+      className="w-full rounded-md border border-forest-400 bg-cream dark:bg-linen-800 px-1.5 py-0.5 text-sm text-linen-700 dark:text-linen-200 focus:outline-none focus:ring-1 focus:ring-forest-500"
       aria-label="Rename description"
     />
   )

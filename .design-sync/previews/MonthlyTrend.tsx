@@ -22,8 +22,8 @@ const data = [
 // fixed-width wrapper so recharts' ResponsiveContainer has a box to measure.
 export function Default() {
   return (
-    <div style={{ width: 560 }} className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-1 font-semibold text-slate-800">Income vs spending</h3>
+    <div style={{ width: 560 }} className="rounded-xl border border-linen-200 bg-cream p-5">
+      <h3 className="mb-1 font-semibold text-linen-800">Income vs spending</h3>
       <MonthlyTrend data={data} />
     </div>
   )

@@ -34,15 +34,15 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 dark:border-slate-800 p-4">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Imported sources</h3>
-        <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+      <div className="flex flex-wrap items-center gap-3 border-b border-linen-100 dark:border-linen-800 p-4">
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Imported sources</h3>
+        <span className="rounded-full bg-linen-100 dark:bg-linen-800 px-2 py-0.5 text-xs font-medium text-linen-500 dark:text-linen-400">
           {sources.length} source{sources.length === 1 ? '' : 's'} · {totalTx} transactions
         </span>
       </div>
 
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+      <ul className="divide-y divide-linen-100 dark:divide-linen-800">
         {sources.map((s) => {
           const isPlaid = s.kind === 'plaid'
           return (
@@ -50,19 +50,19 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
                   isPlaid
-                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                    ? 'bg-forest-50 dark:bg-forest-500/10 text-forest-600'
+                    : 'bg-linen-100 dark:bg-linen-800 text-linen-500 dark:text-linen-400'
                 }`}
               >
                 {isPlaid ? <LinkIcon className="h-4 w-4" /> : <UploadIcon className="h-4 w-4" />}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
                     {s.fileName}
                   </span>
                   {isPlaid && (
-                    <span className="shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+                    <span className="shrink-0 rounded-full bg-forest-50 dark:bg-forest-500/10 px-2 py-0.5 text-[10px] font-medium text-forest-700 dark:text-forest-300">
                       Connected
                     </span>
                   )}
@@ -70,13 +70,13 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
                     className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                       s.accountType === 'credit'
                         ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        : 'bg-linen-100 dark:bg-linen-800 text-linen-600 dark:text-linen-300'
                     }`}
                   >
                     {s.accountType === 'credit' ? 'Credit card' : 'Bank'}
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 dark:text-slate-500">
+                <div className="text-xs text-linen-400 dark:text-linen-500">
                   {s.count} transaction{s.count === 1 ? '' : 's'}
                   {s.dropped > 0 && ` · ${s.dropped} payment${s.dropped === 1 ? '' : 's'} removed`}
                   {formatWhen(s.importedAt) && ` · ${formatWhen(s.importedAt)}`}
@@ -86,7 +86,7 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
                 <button
                   onClick={() => sync(s.id)}
                   disabled={syncing === s.id}
-                  className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-600 px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                  className="flex shrink-0 items-center gap-1 rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 transition-colors hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-50"
                   title="Refresh transactions"
                 >
                   <RefreshIcon className={`h-3.5 w-3.5 ${syncing === s.id ? 'animate-spin' : ''}`} />
@@ -95,7 +95,7 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
               )}
               <button
                 onClick={() => onRemove(s.id)}
-                className="shrink-0 rounded-lg p-2 text-slate-400 dark:text-slate-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600"
+                className="shrink-0 rounded-lg p-2 text-linen-400 dark:text-linen-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600"
                 aria-label={`Remove ${s.fileName}`}
                 title={isPlaid ? 'Disconnect and remove its transactions' : 'Remove this file and its transactions'}
               >

@@ -66,7 +66,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
         <div className="mb-4">
           <DailyQuestionCard />
         </div>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+        <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
           <EmptyState
             icon={<QuizIcon className="h-7 w-7" />}
             title="Your quiz is waiting for data"
@@ -74,13 +74,13 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
           >
             <button
               onClick={loadSample}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
             >
               Load sample data
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
             >
               Go to Import
             </button>
@@ -96,27 +96,27 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
         <div className="mb-4">
           <DailyQuestionCard />
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/40 dark:to-slate-900 p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+        <div className="rounded-2xl border border-linen-200 dark:border-linen-700 bg-gradient-to-br from-forest-50 to-cream dark:from-forest-950/40 dark:to-linen-900 p-8 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-forest-600 text-white">
             <QuizIcon className="h-8 w-8" />
           </div>
-          <h3 className="mt-5 text-xl font-bold text-slate-800 dark:text-slate-100">
+          <h3 className="mt-5 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">
             How well do you know your money?
           </h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          <p className="mx-auto mt-2 max-w-md text-sm text-linen-500 dark:text-linen-400">
             We&apos;ll generate up to 10 multiple-choice questions from your own transactions.
             Each one teaches you something about your habits — and a fresh mix appears every time
             you play.
           </p>
           {tooSparse && (
-            <p className="mx-auto mt-4 max-w-md rounded-lg bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+            <p className="mx-auto mt-4 max-w-md rounded-lg bg-honey-50 dark:bg-honey-500/10 p-3 text-sm text-honey-700 dark:text-honey-300">
               There isn&apos;t quite enough data to build a good quiz yet. Try importing more
               transactions or loading the sample data.
             </p>
           )}
           <button
             onClick={start}
-            className="mt-6 rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="mt-6 rounded-lg bg-forest-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-forest-700"
           >
             Start quiz
           </button>
@@ -181,33 +181,33 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
     <Shell>
       <div className="mx-auto max-w-2xl">
         <div className="mb-4">
-          <div className="mb-1 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+          <div className="mb-1 flex items-center justify-between text-xs font-medium text-linen-500 dark:text-linen-400">
             <span>
               Question {index + 1} of {questions.length}
             </span>
             <span>{score(questions, answers)} correct so far</span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-linen-200">
             <div
-              className="h-full rounded-full bg-emerald-500 transition-all"
+              className="h-full rounded-full bg-forest-500 transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{q.prompt}</h3>
+        <div className="rounded-2xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
+          <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">{q.prompt}</h3>
 
           <div className="mt-4 space-y-2.5">
             {q.options.map((opt, i) => {
               const isCorrect = i === q.correctIndex
               const isChosen = i === selected
               let cls =
-                'border-slate-200 dark:border-slate-700 hover:border-emerald-400 hover:bg-emerald-50/40 text-slate-700 dark:text-slate-200'
+                'border-linen-200 dark:border-linen-700 hover:border-forest-400 hover:bg-forest-50/40 text-linen-700 dark:text-linen-200'
               if (answered) {
-                if (isCorrect) cls = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                if (isCorrect) cls = 'border-forest-500 bg-forest-50 dark:bg-forest-500/10 text-forest-800 dark:text-forest-300'
                 else if (isChosen) cls = 'border-rose-400 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-                else cls = 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
+                else cls = 'border-linen-200 dark:border-linen-700 text-linen-400 dark:text-linen-500'
               }
               return (
                 <button
@@ -219,7 +219,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
                   }`}
                 >
                   <span>{opt}</span>
-                  {answered && isCorrect && <CheckIcon className="h-5 w-5 text-emerald-600" />}
+                  {answered && isCorrect && <CheckIcon className="h-5 w-5 text-forest-600" />}
                   {answered && isChosen && !isCorrect && (
                     <XIcon className="h-5 w-5 text-rose-500" />
                   )}
@@ -233,7 +233,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
               <div
                 className={`rounded-xl p-4 text-sm ${
                   selected === q.correctIndex
-                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                    ? 'bg-forest-50 dark:bg-forest-500/10 text-forest-800 dark:text-forest-300'
                     : 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300'
                 }`}
               >
@@ -242,14 +242,14 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
                 </div>
                 <div className="mt-0.5">{q.answerDetail}</div>
               </div>
-              <div className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-sm text-slate-600 dark:text-slate-300">
-                <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <div className="flex items-start gap-2 rounded-xl bg-linen-50 dark:bg-linen-800/50 p-4 text-sm text-linen-600 dark:text-linen-300">
+                <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-honey-500" />
                 <span>{q.takeaway}</span>
               </div>
               <div className="flex justify-end">
                 <button
                   onClick={goNext}
-                  className="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  className="rounded-lg bg-forest-600 px-5 py-2 text-sm font-semibold text-white hover:bg-forest-700"
                 >
                   {isLast ? 'See results' : 'Next question'}
                 </button>
@@ -261,7 +261,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
         {/* The receipts: transactions behind the answer, shown once answered */}
         {answered && q.evidence && q.evidence.length > 0 && (
           <div className="mt-4">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-linen-400 dark:text-linen-500">
               The numbers behind this answer
             </div>
             <div className={`grid gap-3 ${q.evidence.length > 1 ? 'sm:grid-cols-2' : ''}`}>
@@ -278,23 +278,23 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
 
 function EvidenceList({ card }: { card: EvidenceCard }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-      <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+      <div className="border-b border-linen-100 dark:border-linen-800 px-4 py-2 text-xs font-semibold text-linen-600 dark:text-linen-300">
         {card.title}
       </div>
-      <ul className="max-h-56 divide-y divide-slate-100 dark:divide-slate-800 overflow-y-auto px-4">
+      <ul className="max-h-56 divide-y divide-linen-100 dark:divide-linen-800 overflow-y-auto px-4">
         {card.items.map((it, i) => (
           <li key={i} className="flex items-baseline justify-between gap-3 py-1.5 text-xs">
-            <span className="min-w-0 truncate text-slate-700 dark:text-slate-200">
+            <span className="min-w-0 truncate text-linen-700 dark:text-linen-200">
               {it.label}
               {it.detail && (
-                <span className="ml-1.5 text-slate-400 dark:text-slate-500">{it.detail}</span>
+                <span className="ml-1.5 text-linen-400 dark:text-linen-500">{it.detail}</span>
               )}
             </span>
             {it.amount !== undefined && (
               <span
                 className={`shrink-0 tabular-nums font-medium ${
-                  it.amount > 0 ? 'text-emerald-600' : 'text-slate-600 dark:text-slate-300'
+                  it.amount > 0 ? 'text-forest-600' : 'text-linen-600 dark:text-linen-300'
                 }`}
               >
                 {formatCurrency(it.amount)}
@@ -348,30 +348,30 @@ function Results({
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center">
-        <div className="text-sm font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+      <div className="rounded-2xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-8 text-center">
+        <div className="text-sm font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
           Your score
         </div>
-        <div className="mt-1 text-5xl font-bold text-slate-800 dark:text-slate-100">
+        <div className="mt-1 text-5xl font-bold text-linen-800 dark:text-linen-100">
           {correct}
-          <span className="text-2xl text-slate-400 dark:text-slate-500"> / {total}</span>
+          <span className="text-2xl text-linen-400 dark:text-linen-500"> / {total}</span>
         </div>
-        <div className="mt-1 text-sm font-medium text-emerald-600">{pct}%</div>
-        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+        <div className="mt-1 text-sm font-medium text-forest-600">{pct}%</div>
+        <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-honey-50 dark:bg-honey-500/10 px-3 py-1 text-xs font-semibold text-honey-700 dark:text-honey-300">
           +{quizXp(correct, total)} XP earned
           {correct === total && ' · perfect bonus!'}
         </div>
-        <p className="mx-auto mt-3 max-w-sm text-sm text-slate-500 dark:text-slate-400">{verdict}</p>
+        <p className="mx-auto mt-3 max-w-sm text-sm text-linen-500 dark:text-linen-400">{verdict}</p>
         <div className="mt-6 flex justify-center gap-3">
           <button
             onClick={onRetake}
-            className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+            className="rounded-lg bg-forest-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-forest-700"
           >
             Retake with new questions
           </button>
           <button
             onClick={onReview}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
           >
             Review answers
           </button>
@@ -381,12 +381,12 @@ function Results({
       {quizHistory.length > 0 && <QuizHistory history={quizHistory} />}
 
       {insights.length > 0 && (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100">What this quiz revealed</h3>
+        <div className="rounded-2xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
+          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">What this quiz revealed</h3>
           <ul className="mt-3 space-y-2">
             {insights.map((text, i) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+              <li key={i} className="flex items-start gap-2 text-sm text-linen-600 dark:text-linen-300">
+                <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-honey-500" />
                 <span>{text}</span>
               </li>
             ))}
@@ -394,8 +394,8 @@ function Results({
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Question review</h3>
+      <div className="rounded-2xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Question review</h3>
         <ul className="mt-3 space-y-3">
           {questions.map((q, i) => {
             const right = answers[i] === q.correctIndex
@@ -403,14 +403,14 @@ function Results({
               <li key={q.id} className="flex items-start gap-3 text-sm">
                 <span
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                    right ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
+                    right ? 'bg-forest-100 text-forest-600' : 'bg-rose-100 text-rose-600'
                   }`}
                 >
                   {right ? <CheckIcon className="h-3.5 w-3.5" /> : <XIcon className="h-3.5 w-3.5" />}
                 </span>
                 <div>
-                  <div className="font-medium text-slate-700 dark:text-slate-200">{q.prompt}</div>
-                  <div className="text-slate-500 dark:text-slate-400">{q.answerDetail}</div>
+                  <div className="font-medium text-linen-700 dark:text-linen-200">{q.prompt}</div>
+                  <div className="text-linen-500 dark:text-linen-400">{q.answerDetail}</div>
                 </div>
               </li>
             )
@@ -424,7 +424,7 @@ function Results({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-slate-100">Quiz</h2>
+      <h2 className="mb-4 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Quiz</h2>
       {children}
     </div>
   )

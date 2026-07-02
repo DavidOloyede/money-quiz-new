@@ -10,16 +10,16 @@ const bank = (
 // pair of call-to-action buttons passed as children.
 export function NoData() {
   return (
-    <div className="max-w-xl rounded-xl border border-slate-200 bg-white">
+    <div className="max-w-xl rounded-xl border border-linen-200 bg-cream">
       <EmptyState
         icon={bank}
         title="No transactions yet"
         message="Connect a bank or import a CSV and we'll break down your spending by category, surface recurring bills, and track your giving."
       >
-        <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+        <button className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700">
           Connect a bank
         </button>
-        <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+        <button className="rounded-lg border border-linen-300 px-4 py-2 text-sm font-medium text-linen-700 hover:bg-linen-50">
           Import a CSV
         </button>
       </EmptyState>
@@ -30,7 +30,7 @@ export function NoData() {
 // The minimal form — no icon, no actions — for an empty section inside a card.
 export function Minimal() {
   return (
-    <div className="max-w-md rounded-xl border border-slate-200 bg-white">
+    <div className="max-w-md rounded-xl border border-linen-200 bg-cream">
       <EmptyState
         title="No subscriptions found"
         message="We didn't spot any recurring charges yet. They'll show up here once a merchant bills you on a regular cadence."

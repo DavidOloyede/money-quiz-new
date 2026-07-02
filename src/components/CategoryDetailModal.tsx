@@ -126,7 +126,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const header = cell
     ? {
         emoji: cell.category === 'refunds' ? '↩️' : categoryMeta(cell.category).emoji,
-        color: cell.category === 'refunds' ? '#10b981' : categoryMeta(cell.category).color,
+        color: cell.category === 'refunds' ? '#2f8749' : categoryMeta(cell.category).color,
         title: cell.category === 'refunds' ? 'Refunds & Cashback' : categoryLabel(cell.category),
         note: ` · ${formatCurrency(items.reduce((s, t) => s + Math.abs(t.amount), 0))} ${
           cell.direction === 'in' ? 'in' : 'out'
@@ -135,7 +135,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
     : month
     ? {
         emoji: '📅',
-        color: '#0ea5e9',
+        color: '#3796bc',
         title: formatMonth(month),
         note: ` · ${formatCurrency(totalIncome(items))} in · ${formatCurrency(
           totalSpending(items),
@@ -144,7 +144,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
     : flow
       ? {
           emoji: flow === 'income' ? '💰' : '🧾',
-          color: flow === 'income' ? '#10b981' : '#f43f5e',
+          color: flow === 'income' ? '#2f8749' : '#ad720d',
           title: flow === 'income' ? 'Income' : 'Spending',
           note: ` · ${formatCurrency(total)} ${flow === 'income' ? 'in' : 'out'} · ${
             flow === 'income' ? 'refunds & ' : 'refunds credited; '
@@ -163,14 +163,14 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   return (
     <>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-xl"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 p-5">
+        <div className="flex items-start justify-between gap-3 border-b border-linen-100 dark:border-linen-800 p-5">
           <div className="flex items-center gap-3">
             <span
               className="flex h-10 w-10 items-center justify-center rounded-xl text-lg"
@@ -180,8 +180,8 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
               {header.emoji}
             </span>
             <div>
-              <h3 className="font-semibold text-slate-800 dark:text-slate-100">{header.title}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">{header.title}</h3>
+              <p className="text-xs text-linen-500 dark:text-linen-400">
                 {items.length} transaction{items.length === 1 ? '' : 's'} {scopeLabel}
                 {header.note}
               </p>
@@ -189,7 +189,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-slate-600"
+            className="rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-700/60 hover:text-linen-600"
             aria-label="Close"
           >
             <XIcon className="h-5 w-5" />
@@ -198,7 +198,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
 
         <div className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
               <tr>
                 <th className="px-5 py-2.5 font-medium">
                   <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
@@ -214,17 +214,17 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
               {sorted.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                  <td className="whitespace-nowrap px-5 py-2.5 text-slate-500 dark:text-slate-400">
+                <tr key={t.id} className="hover:bg-linen-50/60 dark:hover:bg-linen-800/40">
+                  <td className="whitespace-nowrap px-5 py-2.5 text-linen-500 dark:text-linen-400">
                     {formatDate(t.date)}
                   </td>
                   <td className="px-3 py-2.5">
                     <select
                       value={t.category}
                       onChange={(e) => change(t.id, e.target.value as Category)}
-                      className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-1.5 py-1 text-sm text-slate-700 dark:text-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="rounded-md border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 px-1.5 py-1 text-sm text-linen-700 dark:text-linen-200 hover:border-linen-300 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none focus:ring-1 focus:ring-forest-500"
                       aria-label={`Category for ${t.description}`}
                     >
                       {allCategories().map((d) => (
@@ -236,12 +236,12 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                   </td>
                   <td
                     className={`whitespace-nowrap px-3 py-2.5 text-right font-medium tabular-nums ${
-                      t.amount < 0 ? 'text-slate-700 dark:text-slate-200' : 'text-emerald-600'
+                      t.amount < 0 ? 'text-linen-700 dark:text-linen-200' : 'text-forest-600'
                     }`}
                   >
                     {formatCurrency(t.amount)}
                   </td>
-                  <td className="px-5 py-2.5 text-slate-700 dark:text-slate-200">
+                  <td className="px-5 py-2.5 text-linen-700 dark:text-linen-200">
                     <span className="flex items-center gap-1.5">
                       <button
                         onClick={() => toggleRecurring(t.id)}
@@ -249,8 +249,8 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                         aria-pressed={!!t.recurring}
                         className={`shrink-0 rounded p-0.5 transition-colors ${
                           t.recurring
-                            ? 'text-amber-500 hover:text-amber-600'
-                            : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                            ? 'text-honey-500 hover:text-honey-600'
+                            : 'text-linen-300 hover:text-honey-400 dark:text-linen-600'
                         }`}
                       >
                         <StarIcon className="h-4 w-4" filled={!!t.recurring} />
@@ -262,7 +262,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
               ))}
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-slate-400 dark:text-slate-500">
+                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-linen-400 dark:text-linen-500">
                     Nothing left in this category — you moved it all somewhere else.
                   </td>
                 </tr>
@@ -271,7 +271,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
           </table>
         </div>
 
-        <div className="border-t border-slate-100 dark:border-slate-800 p-4 text-center text-xs text-slate-400 dark:text-slate-500">
+        <div className="border-t border-linen-100 dark:border-linen-800 p-4 text-center text-xs text-linen-400 dark:text-linen-500">
           Tip: change a transaction&apos;s category above and it&apos;s remembered for future
           imports of the same merchant.
         </div>

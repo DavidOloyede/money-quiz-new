@@ -1,7 +1,11 @@
-# Money Quiz — Personal Finance Insight
+# Manna Money — Steward Your Daily Bread
+
+*(formerly Money Quiz)*
 
 Import your bank transactions, see where your money goes, and take a quiz
-generated **from your own data** that teaches you about your spending habits.
+generated **from your own data** that teaches you about your spending habits —
+faith-informed budgeting with tithing & giving tracking, a daily scripture
+verse, and gamified streaks.
 
 **Stack:** a React + TypeScript frontend and a Node.js (Fastify) backend over
 PostgreSQL, with Supabase Auth for login. The backend is **optional** — signed
@@ -32,7 +36,7 @@ npm run dev
 
 Then open the URL Vite prints (default http://localhost:5173).
 
-No data yet? Click **Load sample data** to try the whole app instantly with ~60
+No data yet? Click **Load sample data** to try the whole app instantly with ~70
 realistic transactions spanning a few months.
 
 Other commands:
@@ -197,6 +201,7 @@ any other transaction. CSV import keeps working with the API off.
 - Activity logging records *what you did* (viewed the quiz, imported a file),
   never transaction descriptions, merchants, or amounts — and only for
   signed-in users. Crash reports are scrubbed the same way.
-- App data is persisted in `localStorage` under keys prefixed `moneyquiz.`,
-  and **Clear all data** removes all of it — from your account too when
-  signed in.
+- App data is persisted in `localStorage` under keys prefixed `moneyquiz.`
+  (the app's original working name — the keys stay stable on purpose so
+  existing data and cloud sync are never orphaned), and **Clear all data**
+  removes all of it — from your account too when signed in.

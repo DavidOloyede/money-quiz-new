@@ -26,16 +26,16 @@ interface TooltipProps {
 function TrendTooltip({ active, label, payload }: TooltipProps) {
   if (!active || !payload || payload.length === 0) return null
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 shadow-sm text-sm">
-      <div className="font-medium text-slate-800 dark:text-slate-100">{formatMonth(String(label))}</div>
+    <div className="rounded-lg border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 px-3 py-2 shadow-sm text-sm">
+      <div className="font-medium text-linen-800 dark:text-linen-100">{formatMonth(String(label))}</div>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+        <div key={p.name} className="flex items-center gap-2 text-linen-500 dark:text-linen-400">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm"
             style={{ background: p.color }}
           />
           <span className="capitalize">{p.name}</span>
-          <span className="ml-auto font-medium text-slate-700 dark:text-slate-200">
+          <span className="ml-auto font-medium text-linen-700 dark:text-linen-200">
             {formatCurrency(p.value ?? 0)}
           </span>
         </div>
@@ -55,28 +55,30 @@ export function MonthlyTrend({ data, onSelectMonth }: Props) {
             if (onSelectMonth && state?.activeLabel) onSelectMonth(String(state.activeLabel))
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+          {/* Chart chrome reads from --chart-* vars (index.css) so it follows dark mode. */}
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
           <XAxis
             dataKey="monthKey"
             tickFormatter={formatMonth}
-            tick={{ fontSize: 12, fill: '#64748b' }}
+            tick={{ fontSize: 12, fill: 'var(--chart-tick)' }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             tickFormatter={formatCurrencyShort}
-            tick={{ fontSize: 12, fill: '#64748b' }}
+            tick={{ fontSize: 12, fill: 'var(--chart-tick)' }}
             axisLine={false}
             tickLine={false}
             width={56}
           />
-          <Tooltip content={<TrendTooltip />} cursor={{ fill: '#f1f5f9' }} />
+          <Tooltip content={<TrendTooltip />} cursor={{ fill: 'var(--chart-cursor)' }} />
           <Legend
             wrapperStyle={{ fontSize: 12 }}
-            formatter={(v) => <span className="capitalize text-slate-600 dark:text-slate-300">{v}</span>}
+            formatter={(v) => <span className="capitalize text-linen-600 dark:text-linen-300">{v}</span>}
           />
-          <Bar dataKey="income" name="income" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={48} />
-          <Bar dataKey="spending" name="spending" fill="#fb7185" radius={[4, 4, 0, 0]} maxBarSize={48} />
+          {/* Income = forest, spending = honey: the CVD-validated series pair (ΔE 23.6). */}
+          <Bar dataKey="income" name="income" fill="#2f8749" radius={[4, 4, 0, 0]} maxBarSize={48} />
+          <Bar dataKey="spending" name="spending" fill="#ad720d" radius={[4, 4, 0, 0]} maxBarSize={48} />
         </BarChart>
       </ResponsiveContainer>
     </div>

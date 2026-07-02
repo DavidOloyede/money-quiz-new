@@ -32,10 +32,10 @@ export interface TicketMessage {
 export const TICKET_CATEGORIES = ['Bug', 'Question', 'Feature request', 'Bank connection', 'Other']
 
 const STATUS_STYLE: Record<TicketStatus, string> = {
-  open: 'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  open: 'bg-honey-50 dark:bg-honey-500/10 text-honey-700 dark:text-honey-300',
   in_progress: 'bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  resolved: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-  closed: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+  resolved: 'bg-forest-50 dark:bg-forest-500/10 text-forest-700 dark:text-forest-300',
+  closed: 'bg-linen-100 dark:bg-linen-800 text-linen-500 dark:text-linen-400',
 }
 
 export function StatusBadge({ status }: { status: TicketStatus }) {
@@ -49,7 +49,7 @@ export function StatusBadge({ status }: { status: TicketStatus }) {
 }
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none'
+  'w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-2 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none'
 
 /** Message thread + reply box, shared with the admin panel. */
 export function TicketThread({
@@ -97,7 +97,7 @@ export function TicketThread({
 
   return (
     <div className="mt-3 space-y-2">
-      <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300 whitespace-pre-wrap">
+      <div className="rounded-lg bg-linen-50 dark:bg-linen-800/60 p-3 text-sm text-linen-600 dark:text-linen-300 whitespace-pre-wrap">
         {ticket.body}
       </div>
       {messages.map((m) => (
@@ -105,11 +105,11 @@ export function TicketThread({
           key={m.id}
           className={`rounded-lg p-3 text-sm whitespace-pre-wrap ${
             m.author_id === selfId
-              ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-100'
-              : 'bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300'
+              ? 'bg-forest-50 dark:bg-forest-500/10 text-forest-900 dark:text-forest-100'
+              : 'bg-linen-50 dark:bg-linen-800/60 text-linen-600 dark:text-linen-300'
           }`}
         >
-          <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <div className="mb-1 text-[10px] font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
             {m.author_id === selfId ? 'You' : otherLabel} ·{' '}
             {new Date(m.created_at).toLocaleString()}
           </div>
@@ -126,7 +126,7 @@ export function TicketThread({
         <button
           onClick={() => void send()}
           disabled={busy || !reply.trim()}
-          className="shrink-0 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+          className="shrink-0 rounded-lg bg-forest-600 px-3 py-2 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
         >
           Reply
         </button>
@@ -179,17 +179,17 @@ export function SupportCard() {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex items-center gap-2">
-        <LifeBuoyIcon className="h-5 w-5 text-emerald-600" />
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Help &amp; support</h3>
+        <LifeBuoyIcon className="h-5 w-5 text-forest-600" />
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Help &amp; support</h3>
       </div>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
         Found a bug or need a hand? Send us a ticket and we&apos;ll reply right here.
       </p>
 
       {!session ? (
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-sm text-linen-500 dark:text-linen-400">
           Sign in from the <span className="font-medium">Account</span> tab to submit a ticket.
         </p>
       ) : (
@@ -197,7 +197,7 @@ export function SupportCard() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="mt-3 rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
             >
               New ticket
             </button>
@@ -216,7 +216,7 @@ export function SupportCard() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="shrink-0 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-2 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+                  className="shrink-0 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-2 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
                 >
                   {TICKET_CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -238,14 +238,14 @@ export function SupportCard() {
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  className="rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={busy || !subject.trim() || !body.trim()}
-                  className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-40"
+                  className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
                 >
                   {busy ? 'Sending…' : 'Send ticket'}
                 </button>
@@ -254,18 +254,18 @@ export function SupportCard() {
           )}
 
           {tickets.length > 0 && (
-            <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
+            <ul className="mt-4 divide-y divide-linen-100 dark:divide-linen-800">
               {tickets.map((t) => (
                 <li key={t.id} className="py-2">
                   <button
                     onClick={() => setOpenId(openId === t.id ? null : t.id)}
                     className="flex w-full items-center gap-2 text-left"
                   >
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-linen-700 dark:text-linen-200">
                       {t.subject}
                     </span>
                     <StatusBadge status={t.status} />
-                    <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
+                    <span className="shrink-0 text-xs text-linen-400 dark:text-linen-500">
                       {new Date(t.updated_at).toLocaleDateString()}
                     </span>
                   </button>

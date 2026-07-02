@@ -26,8 +26,8 @@ const total = data.reduce((s, d) => s + d.total, 0)
 // definite box to measure.
 export function Default() {
   return (
-    <div style={{ width: 380 }} className="rounded-xl border border-slate-200 bg-white p-5">
-      <h3 className="mb-1 font-semibold text-slate-800">Spending by category</h3>
+    <div style={{ width: 380 }} className="rounded-xl border border-linen-200 bg-cream p-5">
+      <h3 className="mb-1 font-semibold text-linen-800">Spending by category</h3>
       <CategoryDonut data={data} total={total} />
     </div>
   )

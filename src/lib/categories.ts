@@ -44,35 +44,46 @@ export function isSubscriptionCategory(id: Category): boolean {
   return id === SUBSCRIPTIONS_CATEGORY
 }
 
+/*
+ * Category colors are the Manna Money warm palette. The eight most common
+ * spending categories (groceries…subscriptions) were chosen together and
+ * machine-checked as a set: every color sits in a lightness band that works
+ * on both the cream and the dark surfaces, and the worst colorblind
+ * (protan/deutan) pair clears the documented floor — with the emoji + label
+ * that always accompany a category color as the backup channel. The three
+ * grays (fees, transfers, other) are deliberately muted: they mark money the
+ * app de-emphasizes. If you reshuffle these, re-run the palette validator
+ * rather than eyeballing.
+ */
 export const BUILTIN_CATEGORIES: CategoryDef[] = [
-  { id: 'groceries', label: 'Groceries', color: '#10b981', emoji: '🛒', kind: 'spending', builtin: true },
-  { id: 'dining', label: 'Dining', color: '#f59e0b', emoji: '🍽️', kind: 'spending', builtin: true },
-  { id: 'transport', label: 'Transport', color: '#3b82f6', emoji: '🚗', kind: 'spending', builtin: true },
-  { id: 'utilities', label: 'Utilities', color: '#6366f1', emoji: '💡', kind: 'spending', builtin: true },
-  { id: 'rent', label: 'Rent / Mortgage', color: '#ef4444', emoji: '🏠', kind: 'spending', builtin: true },
-  { id: 'home', label: 'Home & HOA', color: '#f97316', emoji: '🏡', kind: 'spending', builtin: true },
-  { id: 'insurance', label: 'Insurance', color: '#0d9488', emoji: '🛡️', kind: 'spending', builtin: true },
-  { id: 'loans', label: 'Loans & Debt', color: '#b45309', emoji: '🏦', kind: 'spending', builtin: true },
-  { id: 'shopping', label: 'Shopping', color: '#ec4899', emoji: '🛍️', kind: 'spending', builtin: true },
-  { id: 'personal', label: 'Personal Care', color: '#d946ef', emoji: '💇', kind: 'spending', builtin: true },
-  { id: 'entertainment', label: 'Entertainment', color: '#8b5cf6', emoji: '🎬', kind: 'spending', builtin: true },
-  { id: 'subscriptions', label: 'Subscriptions', color: '#a855f7', emoji: '💳', kind: 'spending', builtin: true },
-  { id: 'education', label: 'Education', color: '#2563eb', emoji: '🎓', kind: 'spending', builtin: true },
-  { id: 'health', label: 'Health', color: '#14b8a6', emoji: '➕', kind: 'spending', builtin: true },
-  { id: 'pets', label: 'Pets', color: '#a16207', emoji: '🐾', kind: 'spending', builtin: true },
-  { id: 'charity', label: 'Charity & Gifts', color: '#e11d48', emoji: '🎁', kind: 'spending', builtin: true },
-  { id: 'tithes', label: 'Tithes & Offerings', color: '#9333ea', emoji: '🙏', kind: 'spending', builtin: true },
-  { id: 'fees', label: 'Fees & Taxes', color: '#78716c', emoji: '🧾', kind: 'spending', builtin: true },
-  { id: 'zelle', label: 'Zelle', color: '#0ea5e9', emoji: '💸', kind: 'excluded', builtin: true },
-  { id: 'income', label: 'Income', color: '#22c55e', emoji: '💰', kind: 'income', builtin: true },
-  { id: 'transfers', label: 'Transfers', color: '#64748b', emoji: '🔁', kind: 'excluded', builtin: true },
-  { id: 'other', label: 'Other', color: '#94a3b8', emoji: '📦', kind: 'spending', builtin: true },
+  { id: 'groceries', label: 'Groceries', color: '#2e7d33', emoji: '🛒', kind: 'spending', builtin: true },
+  { id: 'dining', label: 'Dining', color: '#c98420', emoji: '🍽️', kind: 'spending', builtin: true },
+  { id: 'transport', label: 'Transport', color: '#3f7fd6', emoji: '🚗', kind: 'spending', builtin: true },
+  { id: 'utilities', label: 'Utilities', color: '#5a50c8', emoji: '💡', kind: 'spending', builtin: true },
+  { id: 'rent', label: 'Rent / Mortgage', color: '#d95a50', emoji: '🏠', kind: 'spending', builtin: true },
+  { id: 'home', label: 'Home & HOA', color: '#9b6b35', emoji: '🏡', kind: 'spending', builtin: true },
+  { id: 'insurance', label: 'Insurance', color: '#2e6b75', emoji: '🛡️', kind: 'spending', builtin: true },
+  { id: 'loans', label: 'Loans & Debt', color: '#8a621b', emoji: '🏦', kind: 'spending', builtin: true },
+  { id: 'shopping', label: 'Shopping', color: '#d26594', emoji: '🛍️', kind: 'spending', builtin: true },
+  { id: 'personal', label: 'Personal Care', color: '#b466c4', emoji: '💇', kind: 'spending', builtin: true },
+  { id: 'entertainment', label: 'Entertainment', color: '#12948a', emoji: '🎬', kind: 'spending', builtin: true },
+  { id: 'subscriptions', label: 'Subscriptions', color: '#a93f8c', emoji: '💳', kind: 'spending', builtin: true },
+  { id: 'education', label: 'Education', color: '#33549f', emoji: '🎓', kind: 'spending', builtin: true },
+  { id: 'health', label: 'Health', color: '#33a57c', emoji: '➕', kind: 'spending', builtin: true },
+  { id: 'pets', label: 'Pets', color: '#b08028', emoji: '🐾', kind: 'spending', builtin: true },
+  { id: 'charity', label: 'Charity & Gifts', color: '#c2506b', emoji: '🎁', kind: 'spending', builtin: true },
+  { id: 'tithes', label: 'Tithes & Offerings', color: '#7b3fbf', emoji: '🙏', kind: 'spending', builtin: true },
+  { id: 'fees', label: 'Fees & Taxes', color: '#857b6b', emoji: '🧾', kind: 'spending', builtin: true },
+  { id: 'zelle', label: 'Zelle', color: '#3796bc', emoji: '💸', kind: 'excluded', builtin: true },
+  { id: 'income', label: 'Income', color: '#2f8749', emoji: '💰', kind: 'income', builtin: true },
+  { id: 'transfers', label: 'Transfers', color: '#98917f', emoji: '🔁', kind: 'excluded', builtin: true },
+  { id: 'other', label: 'Other', color: '#a79e8c', emoji: '📦', kind: 'spending', builtin: true },
 ]
 
 const FALLBACK = (id: string): CategoryDef => ({
   id,
   label: id ? id.charAt(0).toUpperCase() + id.slice(1) : 'Other',
-  color: '#94a3b8',
+  color: '#a79e8c',
   emoji: '🏷️',
   kind: 'spending',
   builtin: false,

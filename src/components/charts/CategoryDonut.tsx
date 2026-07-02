@@ -21,11 +21,11 @@ function DonutTooltip({ active, payload, total }: TooltipProps) {
   const d = payload[0].payload
   const pct = total > 0 ? (d.total / total) * 100 : 0
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 shadow-sm text-sm">
-      <div className="font-medium text-slate-800 dark:text-slate-100">
+    <div className="rounded-lg border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 px-3 py-2 shadow-sm text-sm">
+      <div className="font-medium text-linen-800 dark:text-linen-100">
         {categoryMeta(d.category).emoji} {categoryMeta(d.category).label}
       </div>
-      <div className="text-slate-500 dark:text-slate-400">
+      <div className="text-linen-500 dark:text-linen-400">
         {formatCurrency(d.total)} · {formatPercent(pct)}
       </div>
     </div>
@@ -56,8 +56,10 @@ export function CategoryDonut({ data, total, onSelect }: Props) {
         </PieChart>
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">Spending</span>
-        <span className="text-xl font-bold text-slate-800 dark:text-slate-100">{formatCurrency(total)}</span>
+        <span className="text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">Spending</span>
+        <span className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">
+          {formatCurrency(total)}
+        </span>
       </div>
     </div>
   )

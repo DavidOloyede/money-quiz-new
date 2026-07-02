@@ -65,8 +65,8 @@ export function useApplyToSimilar() {
 
   const node = pending ? (
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
-      <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-lg">
-        <div className="min-w-0 flex-1 text-sm text-slate-600 dark:text-slate-300">
+      <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-3 shadow-lg">
+        <div className="min-w-0 flex-1 text-sm text-linen-600 dark:text-linen-300">
           Also set <span className="font-semibold">{categoryLabel(pending.category)}</span> on{' '}
           {pending.primary.label}?
         </div>
@@ -76,7 +76,7 @@ export function useApplyToSimilar() {
               pending.secondary!.apply()
               setPending(null)
             }}
-            className="shrink-0 rounded-lg border border-slate-300 dark:border-slate-600 px-2.5 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="shrink-0 rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800"
           >
             {pending.secondary.label}
           </button>
@@ -86,13 +86,13 @@ export function useApplyToSimilar() {
             pending.primary.apply()
             setPending(null)
           }}
-          className="flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
         >
           <CheckIcon className="h-4 w-4" /> Apply
         </button>
         <button
           onClick={() => setPending(null)}
-          className="shrink-0 rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-800"
           aria-label="Dismiss"
         >
           <XIcon className="h-4 w-4" />

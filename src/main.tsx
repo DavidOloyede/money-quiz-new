@@ -26,15 +26,15 @@ if (SENTRY_DSN) {
 
 function CrashScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-linen-50 p-6 text-center">
       <div>
-        <h1 className="text-lg font-semibold text-slate-800">Something went wrong.</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-lg font-semibold text-linen-800">Something went wrong.</h1>
+        <p className="mt-1 text-sm text-linen-500">
           Your data is safe. Reload the page to keep going.
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+          className="mt-4 rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
         >
           Reload
         </button>

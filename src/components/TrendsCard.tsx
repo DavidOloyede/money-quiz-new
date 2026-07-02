@@ -14,10 +14,10 @@ export function TrendsCard({ transactions }: Props) {
   const month = trends[0].monthKey
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Trends &amp; anomalies</h3>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Trends &amp; anomalies</h3>
+        <span className="text-xs text-linen-400 dark:text-linen-500">
           {formatMonth(month)} vs prior months
         </span>
       </div>
@@ -30,21 +30,21 @@ export function TrendsCard({ transactions }: Props) {
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
                   up
                     ? 'bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                    : 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                    : 'bg-forest-100 dark:bg-forest-500/15 text-forest-600 dark:text-forest-400'
                 }`}
                 aria-hidden
               >
                 {up ? '▲' : '▼'}
               </span>
-              <span className="flex-1 text-slate-700 dark:text-slate-200">
+              <span className="flex-1 text-linen-700 dark:text-linen-200">
                 <span className="font-medium">
                   {categoryMeta(t.category).emoji} {categoryMeta(t.category).label}
                 </span>{' '}
                 {up ? 'up' : 'down'} {formatPercent(Math.abs(t.deltaPct))}
               </span>
-              <span className="tabular-nums text-slate-500 dark:text-slate-400">
+              <span className="tabular-nums text-linen-500 dark:text-linen-400">
                 {formatCurrency(t.current)}{' '}
-                <span className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-xs text-linen-400 dark:text-linen-500">
                   vs {formatCurrency(t.baseline)}
                 </span>
               </span>

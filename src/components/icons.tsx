@@ -190,22 +190,22 @@ export function PencilIcon({ className }: IconProps) {
   )
 }
 
-export function CoinLogo({ className }: IconProps) {
+/** The Manna Money mark: manna falling into an open bowl — provision received. */
+export function MannaLogo({ className }: IconProps) {
   return (
     <svg className={className ?? 'w-8 h-8'} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="14" fill="#059669" />
-      <circle cx="16" cy="16" r="10.5" fill="#34d399" />
-      <text
-        x="16"
-        y="21.5"
-        fontSize="15"
-        fontWeight="700"
-        textAnchor="middle"
-        fill="#064e3b"
-        fontFamily="ui-sans-serif, system-ui, sans-serif"
-      >
-        $
-      </text>
+      <rect width="32" height="32" rx="9" fill="#1c5a32" />
+      <circle cx="10.6" cy="8.4" r="1.6" fill="#f5dfa3" />
+      <circle cx="16" cy="6.6" r="1.6" fill="#eecb6b" />
+      <circle cx="21.4" cy="8.4" r="1.6" fill="#f5dfa3" />
+      <circle cx="16" cy="12.6" r="2.1" fill="#e5b13c" />
+      <path
+        d="M7.5 16.5c0 5.1 3.8 8.6 8.5 8.6s8.5-3.5 8.5-8.6"
+        stroke="#e5b13c"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path d="M12.5 28.6h7" stroke="#e5b13c" strokeWidth="2.4" strokeLinecap="round" />
     </svg>
   )
 }

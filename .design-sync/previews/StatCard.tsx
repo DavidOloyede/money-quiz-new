@@ -12,7 +12,7 @@ const coins = (
 export function Overview() {
   return (
     <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-3">
-      <StatCard label="Net this month" value="+$1,284" sub="Income − spending" accent="text-emerald-600" />
+      <StatCard label="Net this month" value="+$1,284" sub="Income − spending" accent="text-forest-600" />
       <StatCard label="Spending" value="$3,512" sub="142 transactions" />
       <StatCard label="Income" value="$4,796" sub="3 deposits" icon={coins} />
     </div>
@@ -23,7 +23,7 @@ export function Overview() {
 export function Accents() {
   return (
     <div className="grid max-w-md grid-cols-2 gap-3">
-      <StatCard label="Savings rate" value="27%" sub="Up from 21%" accent="text-emerald-600" />
+      <StatCard label="Savings rate" value="27%" sub="Up from 21%" accent="text-forest-600" />
       <StatCard label="Over budget" value="−$148" sub="Dining + shopping" accent="text-rose-600" />
     </div>
   )
@@ -37,7 +37,7 @@ export function Clickable() {
         label="Groceries"
         value="$612.40"
         sub="Tap to see the charges"
-        accent="text-slate-800"
+        accent="text-linen-800"
         onClick={() => {}}
       />
     </div>

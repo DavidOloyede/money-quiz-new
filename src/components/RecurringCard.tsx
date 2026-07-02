@@ -91,20 +91,20 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Recurring &amp; subscriptions</h3>
-        <span className="text-xs text-slate-400 dark:text-slate-500">
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Recurring &amp; subscriptions</h3>
+        <span className="text-xs text-linen-400 dark:text-linen-500">
           ~{formatCurrency(total)}/mo · {shown.length}
         </span>
       </div>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
         Your expected bills and subscriptions on a calendar. Pick a day to see what&apos;s due, or open
         any row below to rename it, set its category, or edit its billing date.
       </p>
 
       {subs.length > 0 && (
-        <div className="mt-3 inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+        <div className="mt-3 inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
           {(['all', 'subs'] as View[]).map((v) => (
             <button
               key={v}
@@ -112,8 +112,8 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
               aria-pressed={view === v}
               className={`rounded-md px-2.5 py-1 text-sm transition-colors ${
                 view === v
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'bg-forest-600 text-white'
+                  : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
               }`}
             >
               {v === 'all' ? 'All' : 'Subscriptions'}
@@ -125,14 +125,14 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
       {/* Calendar (wider) + upcoming list, side by side. */}
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <div className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">{monthLabel}</div>
+          <div className="mb-2 text-sm font-medium text-linen-700 dark:text-linen-200">{monthLabel}</div>
           <MiniCalendar monthDate={now} charges={monthCharges} today={now.getDate()} onSelectDay={openDay} />
         </div>
 
         <div className="min-w-0 lg:col-span-2">
-          <div className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-200">Upcoming charges</div>
+          <div className="mb-2 text-sm font-medium text-linen-700 dark:text-linen-200">Upcoming charges</div>
           {upcoming.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-500 dark:text-slate-400">
+            <p className="rounded-lg border border-dashed border-linen-200 dark:border-linen-700 p-4 text-sm text-linen-500 dark:text-linen-400">
               No charges scheduled. Set a billing day on a recurring item to see it here.
             </p>
           ) : (
@@ -147,7 +147,7 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
               {upcoming.length > UPCOMING_LIMIT && (
                 <button
                   onClick={() => setPopup({ title: 'Upcoming charges', charges: upcoming })}
-                  className="mt-2 w-full rounded-lg border border-slate-200 dark:border-slate-700 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="mt-2 w-full rounded-lg border border-linen-200 dark:border-linen-700 py-1.5 text-sm font-medium text-linen-600 hover:bg-linen-50 dark:text-linen-300 dark:hover:bg-linen-800"
                 >
                   Show all {upcoming.length}
                 </button>
@@ -158,18 +158,18 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
       </div>
 
       {/* Full list — every recurring group, still tappable to edit dates. */}
-      <div className="mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
-        <div className="text-sm font-medium text-slate-700 dark:text-slate-200">
+      <div className="mt-5 border-t border-linen-100 dark:border-linen-800 pt-4">
+        <div className="text-sm font-medium text-linen-700 dark:text-linen-200">
           All {view === 'subs' ? 'subscriptions' : 'recurring & subscriptions'}
         </div>
         {shown.length === 0 ? (
-          <p className="mt-3 rounded-lg border border-dashed border-slate-200 dark:border-slate-700 p-4 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-3 rounded-lg border border-dashed border-linen-200 dark:border-linen-700 p-4 text-sm text-linen-500 dark:text-linen-400">
             No subscriptions yet. Set a charge&apos;s category to{' '}
             <span className="font-medium">Subscriptions</span> to track it here, with its cadence and
             charge date.
           </p>
         ) : (
-          <ul className="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="mt-2 divide-y divide-linen-100 dark:divide-linen-800">
             {shown.slice(0, 10).map((r) => {
               const meta = r.keys.map((k) => subscriptionMeta[k]).find(Boolean)
               const day = r.keys.map((k) => subscriptionMeta[k]?.billingDay).find(Boolean)
@@ -178,7 +178,7 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                 <li key={r.groupKey}>
                   <button
                     onClick={() => onOpenGroup(r.ids)}
-                    className="flex w-full items-center gap-3 rounded-lg py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                    className="flex w-full items-center gap-3 rounded-lg py-2 text-left hover:bg-linen-50 dark:hover:bg-linen-800/60"
                   >
                     <span
                       role="button"
@@ -196,8 +196,8 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                       title={r.isRecurringFlagged ? 'Unflag recurring' : 'Flag as recurring'}
                       className={`shrink-0 rounded-md p-1 transition-colors ${
                         r.isRecurringFlagged
-                          ? 'text-amber-500 hover:text-amber-600'
-                          : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                          ? 'text-honey-500 hover:text-honey-600'
+                          : 'text-linen-300 hover:text-honey-400 dark:text-linen-600'
                       }`}
                     >
                       <StarIcon className="h-4 w-4" filled={r.isRecurringFlagged} />
@@ -208,8 +208,8 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                         <span
                           className={`truncate text-sm font-medium ${
                             ended
-                              ? 'text-slate-400 line-through dark:text-slate-500'
-                              : 'text-slate-700 dark:text-slate-200'
+                              ? 'text-linen-400 line-through dark:text-linen-500'
+                              : 'text-linen-700 dark:text-linen-200'
                           }`}
                         >
                           {r.merchant}
@@ -220,7 +220,7 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-400 dark:text-slate-500">
+                      <div className="text-xs text-linen-400 dark:text-linen-500">
                         {r.isSubscription ? (
                           cadenceLine(r, meta)
                         ) : (
@@ -237,9 +237,9 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                         )}
                       </div>
                     </div>
-                    <div className="text-right tabular-nums text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <div className="text-right tabular-nums text-sm font-semibold text-linen-700 dark:text-linen-200">
                       {formatCurrency(r.monthlyEstimate)}
-                      <span className="text-xs font-normal text-slate-400 dark:text-slate-500">/mo</span>
+                      <span className="text-xs font-normal text-linen-400 dark:text-linen-500">/mo</span>
                     </div>
                   </button>
                 </li>
@@ -284,7 +284,7 @@ function MiniCalendar({
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium uppercase text-slate-400 dark:text-slate-500">
+      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-medium uppercase text-linen-400 dark:text-linen-500">
         {WEEKDAYS.map((w, i) => (
           <div key={i}>{w}</div>
         ))}
@@ -311,14 +311,14 @@ function MiniCalendar({
               }
               className={`relative flex h-12 flex-col items-center justify-center rounded-lg text-sm transition-colors ${
                 has
-                  ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20'
-                  : 'text-slate-400 dark:text-slate-600'
-              } ${isToday ? 'ring-1 ring-emerald-500' : ''}`}
+                  ? 'bg-forest-50 text-forest-700 hover:bg-forest-100 dark:bg-forest-500/10 dark:text-forest-300 dark:hover:bg-forest-500/20'
+                  : 'text-linen-400 dark:text-linen-600'
+              } ${isToday ? 'ring-1 ring-forest-500' : ''}`}
             >
-              <span className={isToday && !has ? 'font-semibold text-slate-700 dark:text-slate-200' : ''}>{d}</span>
+              <span className={isToday && !has ? 'font-semibold text-linen-700 dark:text-linen-200' : ''}>{d}</span>
               {has && (
-                <span className="mt-0.5 inline-flex items-center gap-0.5 text-[10px] font-semibold leading-none text-emerald-600 dark:text-emerald-400">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                <span className="mt-0.5 inline-flex items-center gap-0.5 text-[10px] font-semibold leading-none text-forest-600 dark:text-forest-400">
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-forest-500" />
                   <span className="whitespace-nowrap">{dayLabel}</span>
                 </span>
               )}
@@ -335,25 +335,25 @@ function ChargeRow({ charge: c, onOpen }: { charge: Charge; onOpen: (ids: string
   return (
     <button
       onClick={() => onOpen(c.ids)}
-      className="flex w-full items-center gap-3 rounded-lg p-1.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60"
+      className="flex w-full items-center gap-3 rounded-lg p-1.5 text-left hover:bg-linen-50 dark:hover:bg-linen-800/60"
     >
       <DateBadge date={c.date} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <span aria-hidden>{categoryMeta(c.category).emoji}</span>
-          <span className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">{c.merchant}</span>
+          <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">{c.merchant}</span>
           {c.isSubscription && (
             <span className="shrink-0 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
               sub
             </span>
           )}
         </div>
-        <div className="text-xs text-slate-400 dark:text-slate-500">
+        <div className="text-xs text-linen-400 dark:text-linen-500">
           {c.cadence === 'annual' ? 'Annual renewal' : 'Monthly'}
           {!c.fixed && ' · estimate'}
         </div>
       </div>
-      <span className="shrink-0 tabular-nums text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <span className="shrink-0 tabular-nums text-sm font-semibold text-linen-700 dark:text-linen-200">
         {!c.fixed && '~'}
         {formatCurrency(c.amount)}
       </span>
@@ -374,17 +374,17 @@ function ChargePopup({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-xl"
+        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-4">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h3>
+        <div className="flex items-center justify-between border-b border-linen-100 dark:border-linen-800 p-4">
+          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-slate-600"
+            className="rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-700/60 hover:text-linen-600"
           >
             <XIcon className="h-5 w-5" />
           </button>
@@ -406,11 +406,11 @@ function DateBadge({ date }: { date: string }) {
   const month = MONTHS[Number(date.slice(5, 7)) - 1]
   const day = Number(date.slice(8, 10))
   return (
-    <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+    <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-linen-100 dark:bg-linen-800">
       <span className="text-[10px] font-semibold uppercase leading-none text-rose-500 dark:text-rose-400">
         {month}
       </span>
-      <span className="text-sm font-semibold leading-tight text-slate-700 dark:text-slate-200">{day}</span>
+      <span className="text-sm font-semibold leading-tight text-linen-700 dark:text-linen-200">{day}</span>
     </span>
   )
 }

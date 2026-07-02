@@ -31,7 +31,7 @@ function GoogleMark({ className }: { className?: string }) {
 }
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none'
+  'w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-2 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none'
 
 function SignInCard() {
   const { signUpWithPassword, signInWithPassword, signInWithGoogle } = useAuth()
@@ -65,8 +65,8 @@ function SignInCard() {
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-      <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+    <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+      <div className="inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
         {(
           [
             { id: 'signin', label: 'Sign in' },
@@ -82,8 +82,8 @@ function SignInCard() {
             }}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               mode === opt.id
-                ? 'bg-emerald-600 text-white'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                ? 'bg-forest-600 text-white'
+                : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
             }`}
           >
             {opt.label}
@@ -91,7 +91,7 @@ function SignInCard() {
         ))}
       </div>
 
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mt-2 text-sm text-linen-500 dark:text-linen-400">
         {mode === 'signin'
           ? 'Welcome back. Your data syncs to this device when you sign in.'
           : 'An account keeps your data backed up and lets you use it on any device.'}
@@ -118,20 +118,20 @@ function SignInCard() {
           className={inputCls}
         />
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        {info && <p className="text-sm text-emerald-700 dark:text-emerald-300">{info}</p>}
+        {info && <p className="text-sm text-forest-700 dark:text-forest-300">{info}</p>}
         <button
           type="submit"
           disabled={busy}
-          className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="w-full rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-50"
         >
           {busy ? 'Working…' : mode === 'signup' ? 'Create account' : 'Sign in'}
         </button>
       </form>
 
-      <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
-        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+      <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wide text-linen-400 dark:text-linen-500">
+        <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
         or
-        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
       </div>
 
       <button
@@ -139,7 +139,7 @@ function SignInCard() {
           setError(null)
           void signInWithGoogle().then((err) => err && setError(err))
         }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
       >
         <GoogleMark className="h-4 w-4" />
         Continue with Google
@@ -168,14 +168,14 @@ function ProfileCard() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+      <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-forest-50 dark:bg-forest-500/10 text-forest-700 dark:text-forest-300">
             <UserIcon className="h-6 w-6" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="truncate font-semibold text-slate-800 dark:text-slate-100">
+              <span className="truncate font-semibold text-linen-800 dark:text-linen-100">
                 {email}
               </span>
               {isAdmin && (
@@ -185,21 +185,21 @@ function ProfileCard() {
               )}
             </div>
             {since && (
-              <div className="text-xs text-slate-400 dark:text-slate-500">Member since {since}</div>
+              <div className="text-xs text-linen-400 dark:text-linen-500">Member since {since}</div>
             )}
           </div>
         </div>
         <button
           onClick={() => void signOut()}
-          className="mt-4 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          className="mt-4 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
         >
           Sign out
         </button>
       </section>
 
-      <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Sync</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Sync</h3>
+        <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
           Changes save to your account automatically. {syncLabel}.
         </p>
         <button
@@ -208,7 +208,7 @@ function ProfileCard() {
             void sync.resync().finally(() => setResyncing(false))
           }}
           disabled={!sync.active || resyncing}
-          className="mt-3 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40"
+          className="mt-3 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-40"
         >
           {resyncing ? 'Syncing…' : 'Sync now'}
         </button>
@@ -222,13 +222,13 @@ export function AccountView() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <h2 className="mb-4 text-xl font-bold text-slate-800 dark:text-slate-100">Account</h2>
+      <h2 className="mb-4 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Account</h2>
       {!enabled ? (
-        <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 text-sm text-slate-500 dark:text-slate-400">
+        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5 text-sm text-linen-500 dark:text-linen-400">
           Accounts aren&apos;t configured in this build. The app runs fully on this device.
         </section>
       ) : loading ? (
-        <section className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 text-sm text-slate-400 dark:text-slate-500">
+        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5 text-sm text-linen-400 dark:text-linen-500">
           Loading…
         </section>
       ) : session ? (

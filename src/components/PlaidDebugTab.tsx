@@ -16,7 +16,7 @@ import { countsTowardTotals, isRealIncome, isRefund } from '../lib/analysis'
 import { useStore } from '../store'
 
 const cardCls =
-  'rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5'
+  'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5'
 
 /** One transaction with both sides resolved through the real code path. */
 interface Row {
@@ -99,17 +99,17 @@ export function PlaidDebugTab() {
   const suspectCount = rows.filter((r) => r.suspect).length
 
   if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-  if (!items) return <p className="text-sm text-slate-400">Loading…</p>
+  if (!items) return <p className="text-sm text-linen-400">Loading…</p>
 
   if (rows.length === 0) {
     return (
       <div className={cardCls}>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-linen-500 dark:text-linen-400">
           No connected accounts with transactions yet. Connect a bank and sync, then reload.
         </p>
         <button
           onClick={() => void load()}
-          className="mt-3 rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+          className="mt-3 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
         >
           Reload
         </button>
@@ -121,18 +121,18 @@ export function PlaidDebugTab() {
     <div className="space-y-4">
       <div className={cardCls}>
         <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          <span className="text-sm font-medium text-linen-700 dark:text-linen-200">
             {rows.length} transactions
           </span>
           {suspectCount > 0 && (
-            <Badge tone="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">
+            <Badge tone="bg-honey-50 dark:bg-honey-500/10 text-honey-700 dark:text-honey-300">
               ⚠ {suspectCount} to review
             </Badge>
           )}
           <button
             onClick={() => void load()}
             disabled={loading}
-            className="ml-auto rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+            className="ml-auto rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-50"
           >
             {loading ? 'Reloading…' : 'Reload'}
           </button>
@@ -143,7 +143,7 @@ export function PlaidDebugTab() {
             return (
               <Badge
                 key={cat}
-                tone="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                tone="bg-linen-100 dark:bg-linen-800 text-linen-600 dark:text-linen-300"
               >
                 {m.emoji} {m.label} · {n}
               </Badge>
@@ -155,7 +155,7 @@ export function PlaidDebugTab() {
       <div className={`${cardCls} overflow-x-auto`}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+            <tr className="text-left text-[10px] font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
               <th className="pb-2 pr-3">Date</th>
               <th className="pb-2 pr-3">Raw name / merchant</th>
               <th className="pb-2 pr-3 text-right">Plaid amt</th>
@@ -165,7 +165,7 @@ export function PlaidDebugTab() {
               <th className="pb-2">Flags</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
             {rows.map((r) => {
               const m = categoryMeta(r.mapped.category)
               const income = isRealIncome(r.mapped)
@@ -174,37 +174,37 @@ export function PlaidDebugTab() {
               return (
                 <tr
                   key={r.raw.transaction_id}
-                  className={r.suspect ? 'bg-amber-50/50 dark:bg-amber-500/5' : undefined}
+                  className={r.suspect ? 'bg-honey-50/50 dark:bg-honey-500/5' : undefined}
                 >
-                  <td className="py-1.5 pr-3 font-mono text-xs text-slate-400 dark:text-slate-500">
+                  <td className="py-1.5 pr-3 font-mono text-xs text-linen-400 dark:text-linen-500">
                     {r.raw.date}
                   </td>
-                  <td className="py-1.5 pr-3 text-slate-700 dark:text-slate-200">
+                  <td className="py-1.5 pr-3 text-linen-700 dark:text-linen-200">
                     {r.raw.merchant_name || r.raw.name || '—'}
                     {r.raw.merchant_name && r.raw.name && r.raw.merchant_name !== r.raw.name && (
-                      <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">
+                      <span className="ml-1 text-xs text-linen-400 dark:text-linen-500">
                         ({r.raw.name})
                       </span>
                     )}
-                    <span className="ml-1 text-[10px] text-slate-400 dark:text-slate-500">
+                    <span className="ml-1 text-[10px] text-linen-400 dark:text-linen-500">
                       {r.item.institution}
                     </span>
                   </td>
-                  <td className="py-1.5 pr-3 text-right font-mono text-xs text-slate-500 dark:text-slate-400">
+                  <td className="py-1.5 pr-3 text-right font-mono text-xs text-linen-500 dark:text-linen-400">
                     {money(r.raw.amount)}
                   </td>
-                  <td className="py-1.5 pr-3 font-mono text-[11px] text-slate-500 dark:text-slate-400">
+                  <td className="py-1.5 pr-3 font-mono text-[11px] text-linen-500 dark:text-linen-400">
                     {r.raw.personal_finance_category?.primary ?? '—'}
                     {r.raw.personal_finance_category?.detailed && (
-                      <span className="block text-slate-400 dark:text-slate-600">
+                      <span className="block text-linen-400 dark:text-linen-600">
                         {r.raw.personal_finance_category.detailed}
                       </span>
                     )}
                   </td>
-                  <td className="py-1.5 pr-3 text-slate-700 dark:text-slate-200">
+                  <td className="py-1.5 pr-3 text-linen-700 dark:text-linen-200">
                     {m.emoji} {m.label}
                     {r.overridden && r.autoCategory !== r.mapped.category && (
-                      <span className="block text-[10px] text-slate-400 dark:text-slate-500">
+                      <span className="block text-[10px] text-linen-400 dark:text-linen-500">
                         was {categoryMeta(r.autoCategory).label}
                       </span>
                     )}
@@ -212,8 +212,8 @@ export function PlaidDebugTab() {
                   <td
                     className={`py-1.5 pr-3 text-right font-mono text-xs ${
                       r.mapped.amount < 0
-                        ? 'text-slate-600 dark:text-slate-300'
-                        : 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-linen-600 dark:text-linen-300'
+                        : 'text-forest-600 dark:text-forest-400'
                     }`}
                   >
                     {money(r.mapped.amount)}
@@ -221,7 +221,7 @@ export function PlaidDebugTab() {
                   <td className="py-1.5">
                     <div className="flex flex-wrap gap-1">
                       {income && (
-                        <Badge tone="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        <Badge tone="bg-forest-50 dark:bg-forest-500/10 text-forest-700 dark:text-forest-300">
                           income
                         </Badge>
                       )}
@@ -231,7 +231,7 @@ export function PlaidDebugTab() {
                         </Badge>
                       )}
                       {!counts && (
-                        <Badge tone="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                        <Badge tone="bg-linen-100 dark:bg-linen-800 text-linen-500 dark:text-linen-400">
                           excluded
                         </Badge>
                       )}
@@ -241,7 +241,7 @@ export function PlaidDebugTab() {
                         </Badge>
                       )}
                       {r.suspect && (
-                        <Badge tone="bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                        <Badge tone="bg-honey-50 dark:bg-honey-500/10 text-honey-700 dark:text-honey-300">
                           {r.suspectWhy}
                         </Badge>
                       )}

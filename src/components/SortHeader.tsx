@@ -40,7 +40,7 @@ export function SortHeader<K extends string>({
   return (
     <button
       onClick={() => onToggle(sortKey)}
-      className="inline-flex items-center font-medium hover:text-slate-600 dark:hover:text-slate-300"
+      className="inline-flex items-center font-medium hover:text-linen-600 dark:hover:text-linen-300"
     >
       {inner}
     </button>

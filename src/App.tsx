@@ -24,7 +24,7 @@ const AdminView = lazy(() =>
 
 function ViewFallback() {
   return (
-    <div className="flex items-center justify-center py-24 text-sm text-slate-400 dark:text-slate-500">
+    <div className="flex items-center justify-center py-24 text-sm text-linen-400 dark:text-linen-500">
       Loading…
     </div>
   )
@@ -41,18 +41,18 @@ function ConfirmClear({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl"
+        className="w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
           <TrashIcon className="h-6 w-6" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-100">Clear all data?</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <h3 className="mt-4 font-display text-lg font-semibold text-linen-800 dark:text-linen-100">Clear all data?</h3>
+        <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
           This permanently removes every transaction, your category edits, and your saved column
           mapping from this browser{alsoCloud ? ' and from your account' : ''}. This can&apos;t be
           undone.
@@ -60,7 +60,7 @@ function ConfirmClear({
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
           >
             Cancel
           </button>
@@ -85,28 +85,28 @@ function ConfirmLeaveQuiz({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onStay}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl"
+        className="w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Leave the quiz?</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">Leave the quiz?</h3>
+        <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
           You&apos;re mid-quiz — if you leave now, your progress won&apos;t be counted toward your
           history or XP.
         </p>
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onStay}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
           >
             Keep playing
           </button>
           <button
             onClick={onLeave}
-            className="rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
           >
             Leave quiz
           </button>
@@ -136,7 +136,7 @@ function Shell() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 md:flex-row">
+    <div className="flex min-h-screen flex-col bg-linen-50 dark:bg-linen-950 text-linen-900 dark:text-linen-100 md:flex-row">
       <Sidebar
         view={view}
         onNavigate={navigate}

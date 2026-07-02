@@ -164,17 +164,17 @@ export function GroupDetailModal({ ids, onClose }: Props) {
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
         onClick={onClose}
       >
         <div
-          className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-white dark:bg-slate-900 shadow-xl"
+          className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header: rename + summary */}
-          <div className="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 p-5">
+          <div className="flex items-start justify-between gap-3 border-b border-linen-100 dark:border-linen-800 p-5">
             <div className="min-w-0 flex-1">
-              <label className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              <label className="text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
                 Name
               </label>
               <div className="mt-1">
@@ -182,12 +182,12 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                   value={draft.name}
                   onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
                   onKeyDown={(e) => e.key === 'Enter' && dirty && save()}
-                  className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-1.5 text-sm font-semibold text-linen-800 dark:text-linen-100 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none focus:ring-1 focus:ring-forest-500"
                   placeholder="Merchant name"
                   aria-label="Group name"
                 />
               </div>
-              <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1.5 text-xs text-linen-500 dark:text-linen-400">
                 {items.length} transaction{items.length === 1 ? '' : 's'}
                 {out > 0 && ` · ${formatCurrency(out)} out`}
                 {inn > 0 && ` · ${formatCurrency(inn)} in`}
@@ -196,7 +196,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/60 hover:text-slate-600"
+              className="rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-700/60 hover:text-linen-600"
               aria-label="Close"
             >
               <XIcon className="h-5 w-5" />
@@ -204,26 +204,26 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           </div>
 
           {/* Group settings */}
-          <div className="border-b border-slate-100 dark:border-slate-800 p-4">
+          <div className="border-b border-linen-100 dark:border-linen-800 p-4">
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setGroupRecurring(ids, !isRecurringFlagged)}
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm font-medium transition-colors ${
                   isRecurringFlagged
-                    ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300'
-                    : 'border-slate-300 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
+                    ? 'border-honey-300 bg-honey-50 text-honey-700 dark:border-honey-500/40 dark:bg-honey-500/10 dark:text-honey-300'
+                    : 'border-linen-300 text-linen-600 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-300 dark:hover:bg-linen-800'
                 }`}
               >
                 <StarIcon className="h-4 w-4" filled={isRecurringFlagged} />
                 {isRecurringFlagged ? 'Recurring' : 'Mark as recurring'}
               </button>
 
-              <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 dark:text-slate-300">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-linen-600 dark:text-linen-300">
                 <input
                   type="checkbox"
                   checked={inRecurring}
                   onChange={(e) => setRecurringDismissed(gKey, !e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
                 />
                 Show in recurring payments
               </label>
@@ -231,12 +231,12 @@ export function GroupDetailModal({ ids, onClose }: Props) {
               {recurringGroup && (
                 <div className="inline-flex items-center gap-1.5">
                   <span
-                    className="text-sm text-slate-600 dark:text-slate-300"
+                    className="text-sm text-linen-600 dark:text-linen-300"
                     title="Bills are expected payments (rent, power); habits are repeat merchants whose amounts vary (Amazon, pharmacy runs)"
                   >
                     Treat as
                   </span>
-                  <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+                  <div className="inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
                     {(['bill', 'habit'] as RecurringKind[]).map((k) => (
                       <button
                         key={k}
@@ -244,8 +244,8 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                         aria-pressed={recurringGroup.kind === k}
                         className={`rounded-md px-2.5 py-1 text-sm capitalize transition-colors ${
                           recurringGroup.kind === k
-                            ? 'bg-emerald-600 text-white'
-                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                            ? 'bg-forest-600 text-white'
+                            : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
                         }`}
                       >
                         {k === 'bill' ? 'Expected bill' : 'Habit'}
@@ -256,15 +256,15 @@ export function GroupDetailModal({ ids, onClose }: Props) {
               )}
 
               {isSubscription ? (
-                <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5">
+                <div className="inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
                   {(['monthly', 'annual'] as SubscriptionCadence[]).map((c) => (
                     <button
                       key={c}
                       onClick={() => setDraft((d) => ({ ...d, cadence: c }))}
                       className={`rounded-md px-2.5 py-1 text-sm capitalize transition-colors ${
                         draft.cadence === c
-                          ? 'bg-emerald-600 text-white'
-                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          ? 'bg-forest-600 text-white'
+                          : 'text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800'
                       }`}
                     >
                       {c}
@@ -331,7 +331,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           {/* Transactions */}
           <div className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/50 text-left text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
                 <tr>
                   <th className="px-5 py-2.5 font-medium">
                     <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
@@ -347,17 +347,17 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
                 {items.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                    <td className="whitespace-nowrap px-5 py-2.5 text-slate-500 dark:text-slate-400">
+                  <tr key={t.id} className="hover:bg-linen-50/60 dark:hover:bg-linen-800/40">
+                    <td className="whitespace-nowrap px-5 py-2.5 text-linen-500 dark:text-linen-400">
                       {formatDate(t.date)}
                     </td>
                     <td className="px-3 py-2.5">
                       <select
                         value={t.category}
                         onChange={(e) => change(t.id, e.target.value as Category)}
-                        className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-1.5 py-1 text-sm text-slate-700 dark:text-slate-200 hover:border-slate-300 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="rounded-md border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 px-1.5 py-1 text-sm text-linen-700 dark:text-linen-200 hover:border-linen-300 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none focus:ring-1 focus:ring-forest-500"
                         aria-label={`Category for ${t.description}`}
                       >
                         {allCategories().map((d) => (
@@ -369,20 +369,20 @@ export function GroupDetailModal({ ids, onClose }: Props) {
                     </td>
                     <td
                       className={`whitespace-nowrap px-3 py-2.5 text-right font-medium tabular-nums ${
-                        t.amount < 0 ? 'text-slate-700 dark:text-slate-200' : 'text-emerald-600'
+                        t.amount < 0 ? 'text-linen-700 dark:text-linen-200' : 'text-forest-600'
                       }`}
                     >
                       {formatCurrency(t.amount)}
                     </td>
-                    <td className="px-5 py-2.5 text-slate-700 dark:text-slate-200">
+                    <td className="px-5 py-2.5 text-linen-700 dark:text-linen-200">
                       <span className="flex items-center gap-1.5">
                         <button
                           onClick={() => toggleRecurring(t.id)}
                           title={t.recurring ? 'Unflag recurring' : 'Mark as recurring'}
                           className={`shrink-0 rounded p-0.5 transition-colors ${
                             t.recurring
-                              ? 'text-amber-500 hover:text-amber-600'
-                              : 'text-slate-300 hover:text-amber-400 dark:text-slate-600'
+                              ? 'text-honey-500 hover:text-honey-600'
+                              : 'text-linen-300 hover:text-honey-400 dark:text-linen-600'
                           }`}
                         >
                           <StarIcon className="h-4 w-4" filled={!!t.recurring} />
@@ -398,17 +398,17 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           </div>
 
           {/* Save / cancel */}
-          <div className="flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800 p-4">
+          <div className="flex items-center justify-end gap-2 border-t border-linen-100 dark:border-linen-800 p-4">
             <button
               onClick={onClose}
-              className="rounded-lg border border-slate-300 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
             >
               Cancel
             </button>
             <button
               onClick={save}
               disabled={!dirty}
-              className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Save
             </button>
@@ -423,12 +423,12 @@ export function GroupDetailModal({ ids, onClose }: Props) {
 }
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500'
+  'w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none focus:ring-1 focus:ring-forest-500'
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+      <span className="text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
         {label}
       </span>
       <div className="mt-1">{children}</div>

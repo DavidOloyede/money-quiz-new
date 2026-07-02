@@ -47,8 +47,17 @@ and infra are intentionally excluded.
   Tailwind build (all utilities the app uses), self-contained (no external
   `url()`/`@import`). The bundle has no CSS of its own (Tailwind classes aren't
   CSS imports), so `_ds_bundle.css` is empty by design.
-- **Fonts:** none. The app uses the system font stack; emojis render via system
-  emoji fonts. No `@font-face` to ship.
+- **Fonts:** self-hosted variable fonts since the Manna Money redesign
+  (Jul 2026): Fraunces (display serif, `font-display`) + Inter (body), served
+  from `/fonts/*.woff2` via `@font-face` in `src/index.css`. Those `url()`s do
+  NOT resolve in the preview host, so **previews fall back to the system
+  serif/sans stacks** — metrics differ slightly from the real app; grade
+  layout, not exact type. Emojis render via system emoji fonts.
+- **Theme tokens:** the compiled `app.css` now carries the Manna Money
+  `@theme` palette (linen/forest/honey/cream utilities + `--chart-*` vars).
+  Components no longer use slate/emerald/amber/bg-white utilities — if a
+  preview renders unstyled after edits, the frozen `app.css` is stale
+  (regenerate per below).
 
 ## Re-sync risks (what can silently go stale)
 

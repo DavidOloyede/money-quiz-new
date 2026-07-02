@@ -46,11 +46,11 @@ export function DebtCard({
   if (debts.length === 0 && trend.length === 0 && confirmed.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Debt freedom</h3>
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Debt freedom</h3>
         {monthlyTotal > 0 && (
-          <span className="text-xs tabular-nums text-slate-400 dark:text-slate-500">
+          <span className="text-xs tabular-nums text-linen-400 dark:text-linen-500">
             ~{formatCurrency(monthlyTotal)} / month
           </span>
         )}
@@ -62,12 +62,12 @@ export function DebtCard({
             <div key={m.monthKey} className="flex-1 text-center">
               <div className="flex h-14 items-end justify-center">
                 <div
-                  className="w-full max-w-8 rounded-t bg-amber-400 dark:bg-amber-600"
+                  className="w-full max-w-8 rounded-t bg-honey-400 dark:bg-honey-600"
                   style={{ height: `${Math.max(m.total > 0 ? 6 : 0, (m.total / maxMonth) * 100)}%` }}
                   title={`${formatMonth(m.monthKey)}: ${formatCurrency(m.total)}`}
                 />
               </div>
-              <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+              <div className="mt-1 text-[10px] text-linen-400 dark:text-linen-500">
                 {formatMonth(m.monthKey).split(' ')[0]}
               </div>
             </div>
@@ -76,24 +76,24 @@ export function DebtCard({
       )}
 
       {active.length > 0 && (
-        <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="mt-3 divide-y divide-linen-100 dark:divide-linen-800">
           {active.map((d) => (
             <li key={d.groupKey}>
               <button
                 onClick={() => onOpenGroup(d.ids)}
-                className="flex w-full items-center justify-between gap-3 py-2 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                className="flex w-full items-center justify-between gap-3 py-2 text-left hover:bg-linen-50 dark:hover:bg-linen-800/50"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <div className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
                     🏦 {d.merchant}
                   </div>
-                  <div className="text-xs text-slate-400 dark:text-slate-500">
+                  <div className="text-xs text-linen-400 dark:text-linen-500">
                     last payment {formatDate(d.lastDate)}
                   </div>
                 </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-100">
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-linen-800 dark:text-linen-100">
                   {formatCurrency(d.monthlyEstimate)}
-                  <span className="text-xs font-normal text-slate-400 dark:text-slate-500"> /mo</span>
+                  <span className="text-xs font-normal text-linen-400 dark:text-linen-500"> /mo</span>
                 </span>
               </button>
             </li>
@@ -106,26 +106,26 @@ export function DebtCard({
           {candidates.map(({ payment: d, daysSince }) => (
             <div
               key={d.groupKey}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 p-3"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-honey-50 dark:bg-honey-500/10 p-3"
             >
               <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-amber-800 dark:text-amber-300">
+                <div className="truncate text-sm font-medium text-honey-800 dark:text-honey-300">
                   {d.merchant} — possibly paid off?
                 </div>
-                <div className="text-xs text-amber-700/80 dark:text-amber-400/80">
+                <div className="text-xs text-honey-700/80 dark:text-honey-400/80">
                   No payment in {daysSince} days (was {formatCurrency(d.monthlyEstimate)}/mo)
                 </div>
               </div>
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => onSetPaidOff(d.groupKey, true)}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                  className="rounded-lg bg-forest-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-forest-700"
                 >
                   Confirm paid off
                 </button>
                 <button
                   onClick={() => onOpenGroup(d.ids)}
-                  className="rounded-lg border border-amber-300 dark:border-amber-700 px-3 py-1.5 text-xs font-medium text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20"
+                  className="rounded-lg border border-honey-300 dark:border-honey-700 px-3 py-1.5 text-xs font-medium text-honey-800 dark:text-honey-300 hover:bg-honey-100 dark:hover:bg-honey-500/20"
                 >
                   Review
                 </button>
@@ -144,13 +144,13 @@ export function DebtCard({
             return (
               <li
                 key={d.groupKey}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-3"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-forest-50 dark:bg-forest-500/10 p-3"
               >
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                  <div className="truncate text-sm font-medium text-forest-800 dark:text-forest-300">
                     🎉 {d.merchant} — paid off {confirmedAt ? formatDate(confirmedAt.slice(0, 10)) : ''}
                   </div>
-                  <div className="text-xs text-emerald-700/80 dark:text-emerald-400/80">
+                  <div className="text-xs text-forest-700/80 dark:text-forest-400/80">
                     {resumed
                       ? '⚠️ New payments appeared after this was confirmed.'
                       : `${formatCurrency(d.monthlyEstimate)}/mo freed for saving and giving`}
@@ -158,7 +158,7 @@ export function DebtCard({
                 </div>
                 <button
                   onClick={() => onSetPaidOff(d.groupKey, false)}
-                  className="shrink-0 text-xs font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 underline-offset-2 hover:underline"
+                  className="shrink-0 text-xs font-medium text-forest-700 hover:text-forest-800 dark:text-forest-400 underline-offset-2 hover:underline"
                 >
                   Undo
                 </button>
@@ -168,7 +168,7 @@ export function DebtCard({
         </ul>
       )}
 
-      <p className="mt-4 text-xs italic text-slate-400 dark:text-slate-500">
+      <p className="mt-4 text-xs italic text-linen-400 dark:text-linen-500">
         “Owe no one anything, except to love one another.” — Romans 13:8
       </p>
     </div>

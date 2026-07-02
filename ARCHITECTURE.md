@@ -1,13 +1,17 @@
-# How Money Quiz Works — Explained Simply
+# How Manna Money Works — Explained Simply
 
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
+
+*(Manna Money used to be called "Money Quiz." The name on the screen changed;
+the machinery below — package names, saved-data keys — deliberately kept the
+old name so nobody's data gets lost.)*
 
 ---
 
 ## 1. What is this app?
 
-Money Quiz is a website that:
+Manna Money is a website that:
 
 1. **Reads your bank transactions** (the list of stuff you bought).
 2. **Sorts them into groups** like "Food", "Shopping", and "Rent".
@@ -479,7 +483,15 @@ the financial details scrubbed out.
 - **Vite** — the tool that runs the app while you build it and packages it for the
   web.
 - **Tailwind CSS** — the styling shortcuts (colors, spacing) that make it look
-  nice, including dark mode.
+  nice, including dark mode. The app's look is the **Manna Money theme**,
+  defined in one place (`src/index.css`): warm paper colors named **linen**,
+  a deep green named **forest**, and a gold named **honey**, plus two fonts
+  the app ships itself (no font service watches you download them) —
+  **Fraunces**, the bookish serif in headings, verses, and big numbers, and
+  **Inter** for everything else. Category colors (the donut, the little
+  chips) live in `src/lib/categories.ts` and were checked by a program —
+  not by eye — so they stay tellable-apart for colorblind readers and
+  readable in both light and dark mode.
 - **Recharts** — draws the pie and bar charts.
 - **PapaParse** — reads spreadsheet (CSV) files.
 - **Node.js + Fastify** — the backend server that owns the data and the API.

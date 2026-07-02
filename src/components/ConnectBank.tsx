@@ -101,47 +101,47 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
   }
 
   return (
-    <div className="mb-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="mb-4 rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest-50 dark:bg-forest-500/10 text-forest-600">
           <LinkIcon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-semibold text-slate-800 dark:text-slate-100">Connect a bank or card</h3>
+            <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Connect a bank or card</h3>
             {status.kind === 'ready' && status.health.mode === 'mock' && (
-              <span className="rounded-full bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+              <span className="rounded-full bg-honey-50 dark:bg-honey-500/10 px-2 py-0.5 text-[10px] font-medium text-honey-700 dark:text-honey-300">
                 Demo mode — sample data
               </span>
             )}
             {status.kind === 'ready' && status.health.mode === 'plaid' && (
-              <span className="rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
+              <span className="rounded-full bg-forest-50 dark:bg-forest-500/10 px-2 py-0.5 text-[10px] font-medium text-forest-700 dark:text-forest-300">
                 Plaid · {status.health.env}
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
             Link an account with Plaid to pull in and auto-categorize transactions. You log in with
             your bank inside Plaid — this app never sees your credentials.
           </p>
 
           {status.kind === 'loading' && (
-            <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">Checking the connection service…</p>
+            <p className="mt-3 text-sm text-linen-400 dark:text-linen-500">Checking the connection service…</p>
           )}
 
           {status.kind === 'unavailable' && (
-            <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+            <div className="mt-3 rounded-lg bg-linen-50 dark:bg-linen-800/60 p-3 text-sm text-linen-600 dark:text-linen-300">
               Bank connections aren’t configured in this build. CSV import below works without them.
             </div>
           )}
 
           {status.kind === 'signin' && (
-            <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+            <div className="mt-3 rounded-lg bg-linen-50 dark:bg-linen-800/60 p-3 text-sm text-linen-600 dark:text-linen-300">
               Bank connections are tied to your account so they can follow you across devices.{' '}
               {onNavigate ? (
                 <button
                   onClick={() => onNavigate('account')}
-                  className="font-medium text-emerald-700 dark:text-emerald-300 hover:underline"
+                  className="font-medium text-forest-700 dark:text-forest-300 hover:underline"
                 >
                   Sign in or create an account
                 </button>
@@ -153,7 +153,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
           )}
 
           {status.kind === 'down' && (
-            <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-sm text-slate-600 dark:text-slate-300">
+            <div className="mt-3 rounded-lg bg-linen-50 dark:bg-linen-800/60 p-3 text-sm text-linen-600 dark:text-linen-300">
               The connection service isn’t reachable right now — try again in a moment. CSV import
               below works regardless.
             </div>
@@ -163,25 +163,25 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
             <div className="mt-3 flex flex-wrap items-end gap-2">
               {status.health.mode === 'mock' && (
                 <label className="block">
-                  <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
                     Institution (optional)
                   </span>
                   <input
                     value={institution}
                     onChange={(e) => setInstitution(e.target.value)}
                     placeholder="e.g. Chase"
-                    className="w-40 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none"
+                    className="w-40 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
                   />
                 </label>
               )}
               <label className="block">
-                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
                   Account type
                 </span>
                 <select
                   value={accountType}
                   onChange={(e) => setAccountType(e.target.value as AccountType)}
-                  className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+                  className="rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
                 >
                   <option value="bank">Bank / checking</option>
                   <option value="credit">Credit card</option>
@@ -190,7 +190,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
               <button
                 onClick={status.health.mode === 'mock' ? connectMock : connectPlaid}
                 disabled={busy}
-                className="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-forest-700 disabled:opacity-50"
               >
                 {busy ? 'Connecting…' : status.health.mode === 'mock' ? 'Connect (demo)' : 'Connect with Plaid'}
               </button>
@@ -198,7 +198,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
           )}
 
           {done && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300">
+            <div className="mt-3 flex items-center gap-2 text-sm text-forest-700 dark:text-forest-300">
               <CheckIcon className="h-4 w-4 shrink-0" /> {done}
             </div>
           )}

@@ -109,17 +109,17 @@ export function ImportView({ onNavigate }: Props) {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Import transactions</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h2 className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Import transactions</h2>
+        <p className="text-sm text-linen-500 dark:text-linen-400">
           Upload one or more bank CSVs — each adds to what&apos;s already here — or load the sample
           data to get started.
         </p>
       </div>
 
       {/* Privacy banner */}
-      <div className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
-        <ShieldIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-        <div className="text-sm text-emerald-800 dark:text-emerald-300">
+      <div className="mb-4 flex items-start gap-3 rounded-xl border border-forest-200 dark:border-forest-500/30 bg-forest-50 dark:bg-forest-500/10 p-4">
+        <ShieldIcon className="mt-0.5 h-5 w-5 shrink-0 text-forest-600" />
+        <div className="text-sm text-forest-800 dark:text-forest-300">
           <span className="font-semibold">Your data stays on your device.</span> We never ask for
           bank logins — CSV import runs entirely in your browser, and a bank connection (Plaid) runs
           through a local server you control. Use “Clear all data” anytime to wipe it.
@@ -129,12 +129,12 @@ export function ImportView({ onNavigate }: Props) {
       <ConnectBank onNavigate={onNavigate} />
 
       {notice && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-900 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-forest-200 dark:border-forest-500/30 bg-cream dark:bg-linen-900 p-3 text-sm text-forest-700 dark:text-forest-300">
           <CheckIcon className="h-4 w-4 shrink-0" />
           {notice}
           <button
             onClick={() => onNavigate('dashboard')}
-            className="ml-auto shrink-0 font-medium text-emerald-700 dark:text-emerald-300 underline-offset-2 hover:underline"
+            className="ml-auto shrink-0 font-medium text-forest-700 dark:text-forest-300 underline-offset-2 hover:underline"
           >
             View dashboard →
           </button>
@@ -165,7 +165,7 @@ export function ImportView({ onNavigate }: Props) {
           {/* Upload card */}
           <div
             className={`lg:col-span-2 rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-              dragOver ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'
+              dragOver ? 'border-forest-400 bg-forest-50 dark:bg-forest-500/10' : 'border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-900'
             }`}
             onDragOver={(e) => {
               e.preventDefault()
@@ -179,16 +179,16 @@ export function ImportView({ onNavigate }: Props) {
               if (file) handleFile(file)
             }}
           >
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-forest-50 dark:bg-forest-500/10 text-forest-600">
               <UploadIcon className="h-7 w-7" />
             </div>
-            <h3 className="mt-4 font-semibold text-slate-800 dark:text-slate-100">
+            <h3 className="mt-4 font-semibold text-linen-800 dark:text-linen-100">
               {hasData ? 'Add another CSV' : 'Drop a CSV here'}
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">or choose a file from your computer</p>
+            <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">or choose a file from your computer</p>
             <button
               onClick={() => inputRef.current?.click()}
-              className="mt-4 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              className="mt-4 rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
             >
               Choose CSV file
             </button>
@@ -206,10 +206,10 @@ export function ImportView({ onNavigate }: Props) {
           </div>
 
           {/* Sample card */}
-          <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
-            <h3 className="font-semibold text-slate-800 dark:text-slate-100">Just exploring?</h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Load ~60 realistic sample transactions spanning a few months and try the whole app
+          <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
+            <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Just exploring?</h3>
+            <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
+              Load ~70 realistic sample transactions spanning a few months and try the whole app
               instantly.
             </p>
             <button
@@ -218,13 +218,13 @@ export function ImportView({ onNavigate }: Props) {
                 setNotice('Loaded the sample dataset.')
                 setError(null)
               }}
-              className="mt-4 w-full rounded-lg bg-slate-800 dark:bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 dark:hover:bg-slate-700"
+              className="mt-4 w-full rounded-lg bg-linen-800 dark:bg-linen-700 px-4 py-2 text-sm font-medium text-white hover:bg-linen-900 dark:hover:bg-linen-700"
             >
               Load sample data
             </button>
             <button
               onClick={downloadSample}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800"
             >
               <DownloadIcon className="h-4 w-4" />
               Download sample CSV

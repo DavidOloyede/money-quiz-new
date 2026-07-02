@@ -18,7 +18,7 @@ if (typeof window !== 'undefined') {
 
 export function Default() {
   return (
-    <div className="inline-flex rounded-xl border border-slate-200 bg-white p-4">
+    <div className="inline-flex rounded-xl border border-linen-200 bg-cream p-4">
       <ProgressChip />
     </div>
   )

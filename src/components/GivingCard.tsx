@@ -59,24 +59,24 @@ export function GivingCard({
   const maxMonth = Math.max(1, ...months.map((m) => m.total))
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">Giving &amp; Generosity</h3>
-        <span className="text-xs text-slate-400 dark:text-slate-500">{scopeLabel}</span>
+        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Giving &amp; Generosity</h3>
+        <span className="text-xs text-linen-400 dark:text-linen-500">{scopeLabel}</span>
       </div>
 
       {stats.total === 0 ? (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-2 text-sm text-linen-500 dark:text-linen-400">
           No giving recorded in this range yet. Tithes and charity show up here once a gift is
           categorized as 🙏 Tithes &amp; Offerings or 🎁 Charity &amp; Gifts.
         </p>
       ) : (
         <>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+            <span className="font-display text-[26px] font-semibold text-forest-700 dark:text-forest-400">
               {formatCurrency(stats.total)}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+            <span className="text-xs text-linen-500 dark:text-linen-400 tabular-nums">
               🙏 {formatCurrency(stats.tithes)} tithes
               {stats.charity > 0 && <> · 🎁 {formatCurrency(stats.charity)} charity</>}
             </span>
@@ -84,24 +84,24 @@ export function GivingCard({
 
           {pct !== null && (
             <div className="mt-3">
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between text-xs text-linen-500 dark:text-linen-400">
                 <span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="font-semibold text-linen-700 dark:text-linen-200">
                     {formatPercent(pct, 1)}
                   </span>{' '}
                   of income
                 </span>
                 <span>tithe benchmark {TITHE_BENCHMARK_PCT}%</span>
               </div>
-              <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-linen-100 dark:bg-linen-800">
                 <div
                   className={`h-full rounded-full ${
-                    pct >= TITHE_BENCHMARK_PCT ? 'bg-emerald-500' : 'bg-emerald-300 dark:bg-emerald-700'
+                    pct >= TITHE_BENCHMARK_PCT ? 'bg-forest-500' : 'bg-forest-300 dark:bg-forest-700'
                   }`}
                   style={{ width: `${Math.min(100, fillPct)}%` }}
                 />
                 <div
-                  className="absolute inset-y-0 w-0.5 bg-amber-500"
+                  className="absolute inset-y-0 w-0.5 bg-honey-500"
                   style={{ left: `${tickPct}%` }}
                   title={`${TITHE_BENCHMARK_PCT}% of income`}
                 />
@@ -112,13 +112,13 @@ export function GivingCard({
       )}
 
       {/* Monthly giving goal */}
-      <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+      <div className="mt-4 border-t border-linen-100 dark:border-linen-800 pt-3">
         {givingGoal > 0 && !editing ? (
           <>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-700 dark:text-slate-200">
+              <span className="text-linen-700 dark:text-linen-200">
                 Goal: give {formatPercent(givingGoal, givingGoal % 1 ? 1 : 0)} of income
-                <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">
+                <span className="ml-1 text-xs text-linen-400 dark:text-linen-500">
                   · {formatMonth(monthKey)}
                 </span>
               </span>
@@ -127,25 +127,25 @@ export function GivingCard({
                   setDraft(String(givingGoal))
                   setEditing(true)
                 }}
-                className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                className="text-xs font-medium text-forest-600 hover:text-forest-700 dark:text-forest-400"
               >
                 Edit
               </button>
             </div>
-            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-linen-100 dark:bg-linen-800">
               <div
-                className={`h-full rounded-full ${goal.met ? 'bg-emerald-500' : 'bg-amber-400'}`}
+                className={`h-full rounded-full ${goal.met ? 'bg-forest-500' : 'bg-honey-400'}`}
                 style={{ width: `${Math.min(100, goal.pct)}%` }}
               />
             </div>
-            <div className="mt-0.5 text-xs tabular-nums text-slate-500 dark:text-slate-400">
+            <div className="mt-0.5 text-xs tabular-nums text-linen-500 dark:text-linen-400">
               {formatCurrency(goal.given)} of {formatCurrency(goal.target)}
-              {goal.met && <span className="ml-1 text-emerald-600 dark:text-emerald-400">— goal met 🎉</span>}
+              {goal.met && <span className="ml-1 text-forest-600 dark:text-forest-400">— goal met 🎉</span>}
             </div>
           </>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <span className="text-sm text-linen-500 dark:text-linen-400">
               {editing ? 'Giving goal:' : 'Set a monthly giving goal:'}
             </span>
             {editing || givingGoal === 0 ? (
@@ -158,12 +158,12 @@ export function GivingCard({
                   onChange={(e) => setDraft(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && saveGoal()}
                   placeholder={String(TITHE_BENCHMARK_PCT)}
-                  className="w-20 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none"
+                  className="w-20 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
                 />
-                <span className="text-sm text-slate-500 dark:text-slate-400">% of income</span>
+                <span className="text-sm text-linen-500 dark:text-linen-400">% of income</span>
                 <button
                   onClick={saveGoal}
-                  className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700"
+                  className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
                 >
                   Save
                 </button>
@@ -175,18 +175,18 @@ export function GivingCard({
 
       {/* Monthly trend */}
       {months.length > 1 && (
-        <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-3">
+        <div className="mt-4 border-t border-linen-100 dark:border-linen-800 pt-3">
           <div className="flex items-end gap-2">
             {months.map((m) => (
               <div key={m.monthKey} className="flex-1 text-center">
                 <div className="flex h-16 items-end justify-center">
                   <div
-                    className="w-full max-w-8 rounded-t bg-emerald-400 dark:bg-emerald-600"
+                    className="w-full max-w-8 rounded-t bg-forest-400 dark:bg-forest-600"
                     style={{ height: `${Math.max(m.total > 0 ? 6 : 0, (m.total / maxMonth) * 100)}%` }}
                     title={`${formatCurrency(m.total)}${m.pct !== null ? ` · ${formatPercent(m.pct, 1)} of income` : ''}`}
                   />
                 </div>
-                <div className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+                <div className="mt-1 text-[10px] text-linen-400 dark:text-linen-500">
                   {formatMonth(m.monthKey).split(' ')[0]}
                 </div>
               </div>
@@ -195,7 +195,7 @@ export function GivingCard({
         </div>
       )}
 
-      <p className="mt-4 text-xs italic text-slate-400 dark:text-slate-500">
+      <p className="mt-4 font-display text-[13px] italic text-linen-400 dark:text-linen-500">
         “God loves a cheerful giver.” — 2 Corinthians 9:7
       </p>
     </div>
