@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
 import { AuthProvider } from '@/lib/auth'
+import { SyncDialogs, SyncProvider } from '@/lib/sync'
 import { palette } from '@/theme'
 
 SplashScreen.preventAutoHideAsync()
@@ -33,13 +34,18 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null
 
-  // Auth sits above the store: screens read the session from anywhere, and when
-  // sync lands (next phase) it can remount the store on the account boundary.
+  // Auth above sync above the store: sync watches the session and, on the
+  // account boundary, bumps the epoch so the store re-reads MMKV (after a
+  // login pull or a sign-out wipe).
   return (
     <AuthProvider>
-      <StoreProvider>
-        <ThemedShell />
-      </StoreProvider>
+      <SyncProvider>
+        {(epoch) => (
+          <StoreProvider key={epoch}>
+            <ThemedShell />
+          </StoreProvider>
+        )}
+      </SyncProvider>
     </AuthProvider>
   )
 }
@@ -69,6 +75,7 @@ function ThemedShell() {
           contentStyle: { backgroundColor: colors.background },
         }}
       />
+      <SyncDialogs />
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
   )

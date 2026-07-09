@@ -65,10 +65,12 @@ car so a second car can use the same engine**:
   the phone's body around them. On the phone the "notebook" isn't the
   browser's `localStorage` — it's a phone-native notebook called **MMKV** that
   the shared brain plugs into. Same pages, same page names, so cloud sync
-  works between the website and the phone. You can now **sign into your account
-  on the phone** (email + password, or Google) — it uses the same login service
-  and the same account as the website, so the two will share your data once
-  phone sync is switched on.
+  works between the website and the phone. You can **sign into your account
+  on the phone** (email + password, or Google) — same login service, same
+  account as the website — and **your data now follows you**: edit a budget on
+  the laptop, tap "Sync now" on the phone (or just reopen the app) and the
+  change is there, and the other way around too. Signing out on the phone
+  clears its local copy, exactly like the website.
 - **`server/`** — the Node.js backend, unchanged.
 
 ---
@@ -268,7 +270,8 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   When you sign in it fetches your account's copy, asks the right question
   ("Save this device's data to your account?" or "Use your account's data?"),
   and reloads the notebook. When you sign out on a shared computer it clears
-  the local copy.
+  the local copy. The phone has the same doorman
+  (`apps/mobile/src/lib/sync.tsx`) asking the same questions.
 - **`SupportCard.tsx`** — File a **support ticket** (bug, question, feature
   request) and read replies, right inside Settings.
 - **`AdminView.tsx`** — The **Admin** panel (only for admin accounts): user
@@ -405,11 +408,16 @@ the exceptions — they need a real browser.
   cord plugged in it simply behaves as signed-out and local-only.
 - **`configure.ts`** *(web-only, in `src/lib`)* — The web app's **cord**: at startup it tells `api.ts`
   where the backend lives and how to fetch the signed-in token from Supabase.
-  The phone app will have its own version of this file.
+  The phone's version of this cord is `apps/mobile/src/lib/platform.ts`.
 - **`cloudSync.ts`** — The **photocopier**. It watches every save to the
   notebook and, a couple of seconds later, sends the changed pages to the
   backend (`POST /api/sync`). It also pulls everything down at sign-in and
-  skips pages that haven't actually changed.
+  skips pages that haven't actually changed. When it compares pages it looks
+  at the *contents*, not the exact wording order — the database shelves the
+  fields of a page in its own order, and that must never look like a change
+  you made. The website and the phone share this photocopier; the website
+  gives it one last nudge when you close the tab, the phone when you switch
+  away from the app.
 - **`track.ts`** *(web-only, in `src/lib`)* — The **activity logger**: small batched events ("viewed the
   quiz", "imported a file — 214 rows") sent to `POST /api/events` for the admin
   activity log. It never records store names or amounts, and records nothing

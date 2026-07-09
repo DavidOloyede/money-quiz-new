@@ -32,6 +32,16 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   `platform.ts` hands the API client that session's JWT via `getToken`.
   Google sign-in redirects to `mannamoney://auth`, which must be in the
   Supabase project's redirect allow-list (a dashboard step).
+- **Never call `supabase.auth.getSession()` on a hot path** (e.g. per API
+  request): it serializes on an internal lock that can deadlock under React
+  Native's concurrent auth traffic — a sign-in event racing the sync pull it
+  triggers wedges both. `platform.ts` caches the access token from
+  `onAuthStateChange`; read that instead.
+- Sync lives in `lib/sync.tsx` (`SyncProvider` above the store, `SyncDialogs`
+  inside it — one `Modal` hosts overlay + prompts because iOS won't present
+  two at once). The store remounts via the epoch key on the account boundary;
+  backgrounding the app flushes pending pushes (the phone's version of the
+  web's tab-hide flush).
 - `npx expo install --check` flags react (e.g. 19.2.7 vs the SDK's pinned
   19.2.3). That's deliberate: react is `^19.2.3` here so the whole workspace
   shares ONE hoisted copy with the web app and core. "Fixing" it to the exact

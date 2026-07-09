@@ -97,7 +97,21 @@ How core stays neutral:
    Google needs its redirect URL (`mannamoney://auth`) added to the Supabase
    project's allow-list and the Google provider enabled — a dashboard step, so
    it's implemented but not yet end-to-end verified.
-4. **Sync** — port `cloudSync` with injected storage; same slice keys.
+4. ✅ **Sync** (July 2026) — the shared `cloudSync` runs on mobile as-is;
+   `apps/mobile/src/lib/sync.tsx` is the SyncGate counterpart (sign-in
+   pull/upload/replace prompts as themed modals, sign-out wipe, `useSync` for
+   the Account screen's status + "Sync now"), with the store remounted via an
+   epoch key on the account boundary. The web's tab-hide flush is replaced by
+   an AppState listener that calls `flushNow()` whenever the app leaves the
+   foreground. Verified both directions on the Simulator against the real
+   backend (web edit → phone; phone edit → web). Two latent web bugs surfaced
+   and were fixed in the shared code: slice comparisons are now canonical
+   (Postgres JSONB re-orders object keys, which made identical data look like
+   a conflict on every pull) and a sign-out during an in-flight pull no longer
+   strands the "Syncing…" overlay. Mobile-only: the API token comes from an
+   `onAuthStateChange` cache in `platform.ts`, not `auth.getSession()` per
+   request — getSession's internal lock can deadlock under RN's concurrent
+   auth traffic.
 5. **Core screens, in order of mobile value**: Daily Question + streak (the
    habit loop), Quiz, Dashboard (cards first, charts via `victory-native`),
    Import (Plaid connect; CSV is desktop-first), Settings/Support.

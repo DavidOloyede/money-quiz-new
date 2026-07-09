@@ -6,8 +6,8 @@
  * Profile type (via @moneyquiz/core). With Supabase unconfigured this renders a
  * permanently signed-out context and the app runs fully on-device.
  *
- * Sync is wired in a later phase; for now signing in just tracks the session
- * and fetches the profile — the store stays local until sync lands.
+ * SyncProvider (lib/sync.tsx) watches this context: signing in pulls the
+ * account's slices, signing out clears them from the device.
  */
 import {
   createContext,

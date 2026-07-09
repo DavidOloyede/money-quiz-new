@@ -1,8 +1,8 @@
 /**
  * The Account screen: sign in / create account (email+password or Google) when
- * signed out; profile and sign-out when signed in. The mobile counterpart of
- * the web's AccountView — same warm copy, themed from the shared tokens. Sync
- * status lands here in a later phase.
+ * signed out; profile, sync status, and sign-out when signed in. The mobile
+ * counterpart of the web's AccountView — same warm copy, themed from the
+ * shared tokens.
  */
 import { Stack } from 'expo-router'
 import { useState } from 'react'
@@ -19,6 +19,7 @@ import {
 } from 'react-native'
 
 import { useAuth } from '@/lib/auth'
+import { useSync } from '@/lib/sync'
 import { fonts, radii, spacing, useAppTheme, type ThemeColors } from '@/theme'
 
 export default function AccountScreen() {
@@ -53,7 +54,10 @@ export default function AccountScreen() {
               <ActivityIndicator color={colors.primary} />
             </Card>
           ) : session ? (
-            <ProfileCard colors={colors} />
+            <>
+              <ProfileCard colors={colors} />
+              <SyncCard colors={colors} />
+            </>
           ) : (
             <SignInCard colors={colors} theme={theme} />
           )}
@@ -300,6 +304,51 @@ function ProfileCard({ colors }: { colors: ThemeColors }) {
       >
         <Text style={{ fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text }}>
           Sign out
+        </Text>
+      </Pressable>
+    </Card>
+  )
+}
+
+/** Sync status + a manual "Sync now" — the same states the web AccountView shows. */
+function SyncCard({ colors }: { colors: ThemeColors }) {
+  const sync = useSync()
+  const [resyncing, setResyncing] = useState(false)
+
+  const syncLabel = !sync.active
+    ? 'Not syncing on this device'
+    : sync.status === 'error'
+      ? 'Sync error — will retry on your next change'
+      : sync.pendingCount > 0 || sync.status === 'pushing'
+        ? 'Saving changes…'
+        : sync.lastSyncAt
+          ? `Synced ${new Date(sync.lastSyncAt).toLocaleTimeString()}`
+          : 'Synced'
+
+  return (
+    <Card colors={colors}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 16, color: colors.ink }}>Sync</Text>
+      <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.muted }}>
+        Changes save to your account automatically. {syncLabel}.
+      </Text>
+      <Pressable
+        onPress={() => {
+          setResyncing(true)
+          void sync.resync().finally(() => setResyncing(false))
+        }}
+        disabled={!sync.active || resyncing}
+        style={{
+          alignSelf: 'flex-start',
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: radii.md,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: colors.borderStrong,
+          opacity: !sync.active || resyncing ? 0.4 : 1,
+        }}
+      >
+        <Text style={{ fontFamily: fonts.sansMedium, fontSize: 14, color: colors.text }}>
+          {resyncing ? 'Syncing…' : 'Sync now'}
         </Text>
       </Pressable>
     </Card>

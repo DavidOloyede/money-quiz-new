@@ -30,6 +30,8 @@ export interface ThemeColors {
   primary: string
   /** Honey gold — manna, gamification warmth, spending. */
   accent: string
+  /** Dimmed backdrop behind modals (web: linen-900/40). */
+  overlay: string
 }
 
 export const palette: Record<ThemeMode, ThemeColors> = {
@@ -44,6 +46,7 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     faint: linen['400'],
     primary: forest['600'],
     accent: honey['500'],
+    overlay: `${linen['900']}66`,
   },
   dark: {
     background: linen['950'],
@@ -56,6 +59,8 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     faint: linen['500'],
     primary: forest['400'],
     accent: honey['400'],
+    // Darker than the web's shared value so it still dims behind linen-900 cards.
+    overlay: `${linen['950']}99`,
   },
 }
 

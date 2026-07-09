@@ -29,17 +29,21 @@ setThemeAdapter({
   apply: (mode) => Appearance.setColorScheme(mode),
 })
 
+// The signed-in user's JWT, attached to every API request; the Node API
+// verifies it and scopes the query. Kept fresh from auth events instead of
+// calling supabase.auth.getSession() per request: getSession serializes on an
+// internal lock that can deadlock under React Native's concurrent auth
+// traffic (a sign-in notification racing the sync pull it triggers).
+let accessToken: string | null = null
+supabase?.auth.onAuthStateChange((_event, session) => {
+  accessToken = session?.access_token ?? null
+})
+
 configureApi({
   // The iOS Simulator shares the Mac's network, so localhost reaches the dev
   // API (`npm run server`, port 8787). A physical device needs the Mac's LAN
   // address in EXPO_PUBLIC_API_URL instead.
   baseUrl: process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8787/api',
-  // Attach the signed-in user's Supabase JWT to every request; the Node API
-  // verifies it and scopes the query. Null when signed out or unconfigured.
-  getToken: async () => {
-    if (!supabase) return null
-    const { data } = await supabase.auth.getSession()
-    return data.session?.access_token ?? null
-  },
+  getToken: async () => accessToken,
   cloudEnabled,
 })
