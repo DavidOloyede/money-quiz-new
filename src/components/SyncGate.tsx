@@ -139,7 +139,9 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
           // Pull failed (offline?): stay usable locally, just don't mirror.
         })
         .finally(() => {
-          if (!cancelled) setPulling(false)
+          // Unconditionally: if this pull was cancelled (signed out mid-flight),
+          // skipping the reset would leave the "Syncing…" overlay up forever.
+          setPulling(false)
         })
       return () => {
         cancelled = true

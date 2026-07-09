@@ -45,6 +45,26 @@ export const SYNCED_KEYS: string[] = [
 
 const DEBOUNCE_MS = 2500
 
+/**
+ * JSON.stringify with object keys sorted at every level. The server stores
+ * slices as Postgres JSONB, which does not preserve key order — a pulled
+ * value can serialize differently from a semantically identical local one.
+ * Every equality check in this module goes through this canonical form;
+ * comparing plain stringify output would see phantom differences (and, worse,
+ * offer the "replace your data?" dialog on every sign-in pull).
+ */
+function stableStringify(value: unknown): string {
+  return JSON.stringify(value, (_key, v: unknown) =>
+    v !== null && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(
+          Object.keys(v as Record<string, unknown>)
+            .sort()
+            .map((k) => [k, (v as Record<string, unknown>)[k]]),
+        )
+      : v,
+  )
+}
+
 export interface SliceRow {
   key: string
   value: unknown
@@ -60,7 +80,7 @@ interface SyncState {
 
 let userId: string | null = null
 let accessToken: string | null = null
-/** Slice -> serialized value already in the cloud, to skip no-op pushes. */
+/** Slice -> canonical serialized value already in the cloud, to skip no-op pushes. */
 const lastSynced = new Map<string, string>()
 const pending = new Map<string, string>()
 let timer: ReturnType<typeof setTimeout> | null = null
@@ -86,7 +106,7 @@ function onSave(key: string, value: unknown) {
   if (!userId || !SYNCED_KEYS.includes(key)) return
   let raw: string
   try {
-    raw = JSON.stringify(value)
+    raw = stableStringify(value)
   } catch {
     return
   }
@@ -198,7 +218,7 @@ export function applyToLocal(rows: SliceRow[]): void {
   const byKey = new Map(rows.map((r) => [r.key, r.value]))
   for (const key of SYNCED_KEYS) {
     if (byKey.has(key)) {
-      const raw = JSON.stringify(byKey.get(key))
+      const raw = stableStringify(byKey.get(key))
       setRaw(key, raw)
       lastSynced.set(key, raw)
     } else {
@@ -216,7 +236,7 @@ export async function pushAllFromLocal(_uid: string): Promise<void> {
     const value = loadJSON<unknown>(key, null)
     if (value === null) continue
     slices.push({ key, value })
-    lastSynced.set(key, JSON.stringify(value))
+    lastSynced.set(key, stableStringify(value))
   }
   if (slices.length === 0) return
   await api.post('/sync', { slices })
@@ -240,12 +260,12 @@ export function localSnapshotJson(): string {
   return JSON.stringify(out, null, 2)
 }
 
-/** True when any local slice differs from the given cloud rows. */
+/** True when any local slice differs (semantically) from the given cloud rows. */
 export function localDiffersFromCloud(rows: SliceRow[]): boolean {
-  const byKey = new Map(rows.map((r) => [r.key, JSON.stringify(r.value)]))
+  const byKey = new Map(rows.map((r) => [r.key, stableStringify(r.value)]))
   for (const key of SYNCED_KEYS) {
     const local = loadJSON<unknown>(key, null)
-    const localRaw = local === null ? undefined : JSON.stringify(local)
+    const localRaw = local === null ? undefined : stableStringify(local)
     if (localRaw !== byKey.get(key)) return true
   }
   return false

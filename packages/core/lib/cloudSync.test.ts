@@ -162,3 +162,32 @@ describe('login pull / first-sign-in push', () => {
     expect(snap[STORAGE_KEYS.transactions]).toBeUndefined()
   })
 })
+
+// The server stores slices as Postgres JSONB, which re-orders object keys.
+// Every comparison must be canonical or identical data looks like a conflict.
+describe('key-order tolerance (JSONB round-trips)', () => {
+  it('localDiffersFromCloud ignores object key order, at any depth', () => {
+    saveJSON(STORAGE_KEYS.transactions, [{ id: 't1', amount: -12, category: 'dining' }])
+    saveJSON(STORAGE_KEYS.game, { xp: 120, streak: 3 })
+    const reordered = [
+      { key: STORAGE_KEYS.transactions, value: [{ category: 'dining', id: 't1', amount: -12 }] },
+      { key: STORAGE_KEYS.game, value: { streak: 3, xp: 120 } },
+    ]
+    expect(localDiffersFromCloud(reordered)).toBe(false)
+    expect(
+      localDiffersFromCloud([
+        { key: STORAGE_KEYS.transactions, value: [{ category: 'dining', id: 't1', amount: -13 }] },
+        { key: STORAGE_KEYS.game, value: { streak: 3, xp: 120 } },
+      ]),
+    ).toBe(true)
+  })
+
+  it('a re-save matching a pulled slice does not echo back up', async () => {
+    start('user-1', 'token')
+    applyToLocal([{ key: STORAGE_KEYS.game, value: { streak: 3, xp: 120 } }])
+    // the store remount re-saves with its own key order
+    saveJSON(STORAGE_KEYS.game, { xp: 120, streak: 3 })
+    await vi.advanceTimersByTimeAsync(3000)
+    expect(posts).toHaveLength(0)
+  })
+})
