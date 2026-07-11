@@ -13,10 +13,15 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
 import { AuthProvider } from '@/lib/auth'
+import { ensureReminderScheduled } from '@/lib/reminder'
 import { SyncDialogs, SyncProvider } from '@/lib/sync'
 import { palette } from '@/theme'
 
 SplashScreen.preventAutoHideAsync()
+
+// Re-assert the daily-reminder schedule saved on this device (fire and
+// forget — nothing in the UI waits on it).
+void ensureReminderScheduled()
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({

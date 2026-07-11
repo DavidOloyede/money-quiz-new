@@ -5,17 +5,27 @@
  */
 import Constants from 'expo-constants'
 import { useRouter } from 'expo-router'
-import { Alert, Pressable, Text, View } from 'react-native'
+import { useState } from 'react'
+import { Alert, Pressable, Switch, Text, View } from 'react-native'
 import { useStore, type ThemeMode } from '@moneyquiz/core'
 
 import { useAuth } from '@/lib/auth'
+import { getReminder, setReminder, type ReminderPref } from '@/lib/reminder'
 import { Support } from '@/components/Support'
-import { Button, Card, CardTitle, Note, Screen, Segmented } from '@/components/ui'
+import { Button, Card, CardTitle, Note, Screen, Segmented, StatusLine } from '@/components/ui'
 import { fonts, spacing, useAppTheme } from '@/theme'
 
 const THEMES: { id: ThemeMode; label: string }[] = [
   { id: 'light', label: '☀️ Light' },
   { id: 'dark', label: '🌙 Dark' },
+]
+
+/** Preset reminder times — a full picker can come later if anyone asks. */
+const REMINDER_TIMES: { id: string; label: string; hour: number; minute: number }[] = [
+  { id: '8:00', label: 'Morning · 8:00', hour: 8, minute: 0 },
+  { id: '12:30', label: 'Midday · 12:30', hour: 12, minute: 30 },
+  { id: '18:00', label: 'Evening · 6:00', hour: 18, minute: 0 },
+  { id: '21:00', label: 'Night · 9:00', hour: 21, minute: 0 },
 ]
 
 export default function SettingsScreen() {
@@ -81,6 +91,9 @@ export default function SettingsScreen() {
         <Segmented options={THEMES} value={theme} onChange={setTheme} />
       </Card>
 
+      {/* Daily reminder */}
+      <ReminderCard />
+
       {/* Data */}
       <Card>
         <CardTitle>Your data</CardTitle>
@@ -100,5 +113,72 @@ export default function SettingsScreen() {
         Manna Money {Constants.expoConfig?.version ?? ''} — steward your daily bread. 🍞
       </Note>
     </Screen>
+  )
+}
+
+/** Toggle + preset times for the daily-question reminder (a local notification). */
+function ReminderCard() {
+  const { colors } = useAppTheme()
+  const [pref, setPref] = useState<ReminderPref>(getReminder)
+  const [error, setError] = useState<string | null>(null)
+
+  const apply = (next: ReminderPref) => {
+    setPref(next)
+    setError(null)
+    void setReminder(next).then((err) => {
+      if (err) {
+        setError(err)
+        setPref({ ...next, enabled: false })
+      }
+    })
+  }
+
+  return (
+    <Card>
+      <CardTitle
+        right={
+          <Switch
+            value={pref.enabled}
+            onValueChange={(on) => apply({ ...pref, enabled: on })}
+            trackColor={{ true: colors.primary }}
+          />
+        }
+      >
+        Daily reminder
+      </CardTitle>
+      <Note>A gentle nudge when the day&apos;s question is ready, so the streak stays alive.</Note>
+      {pref.enabled && (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs }}>
+          {REMINDER_TIMES.map((t) => {
+            const selected = pref.hour === t.hour && pref.minute === t.minute
+            return (
+              <Pressable
+                key={t.id}
+                onPress={() => apply({ ...pref, hour: t.hour, minute: t.minute })}
+                style={{
+                  paddingHorizontal: spacing.sm + 2,
+                  paddingVertical: spacing.xs + 2,
+                  borderRadius: 999,
+                  backgroundColor: selected ? colors.primary : 'transparent',
+                  borderWidth: 1,
+                  borderColor: selected ? colors.primary : colors.borderStrong,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: fonts.sansMedium,
+                    fontSize: 12,
+                    color: selected ? colors.card : colors.muted,
+                  }}
+                >
+                  {t.label}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
+      )}
+      {error && <StatusLine kind="error">{error}</StatusLine>}
+    </Card>
   )
 }
