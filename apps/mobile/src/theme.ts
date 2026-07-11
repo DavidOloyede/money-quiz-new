@@ -28,11 +28,26 @@ export interface ThemeColors {
   faint: string
   /** Brand green — primary actions, income. */
   primary: string
+  /** Soft green wash behind chips/correct answers (web: forest-50 / forest-500/10). */
+  primarySoft: string
   /** Honey gold — manna, gamification warmth, spending. */
   accent: string
+  /** Honey wash for the warm cards (web: honey-50 / honey-500/10). */
+  accentSoft: string
+  /** Readable honey text on accentSoft (web: honey-700 / honey-300). */
+  accentDeep: string
+  /** Correct / positive text (web: forest-700..800 / forest-300). */
+  success: string
+  /** Wrong / destructive text (web: Tailwind rose-600 / rose-400 — not a brand ramp). */
+  danger: string
+  /** Rose wash behind wrong answers (web: rose-50 / rose-500/10). */
+  dangerSoft: string
   /** Dimmed backdrop behind modals (web: linen-900/40). */
   overlay: string
 }
+
+/** Web components use Tailwind's rose for error states; these mirror rose-600/400/50/500. */
+const rose = { text: '#e11d48', textDark: '#fb7185', soft: '#fff1f2', base: '#f43f5e' }
 
 export const palette: Record<ThemeMode, ThemeColors> = {
   light: {
@@ -45,7 +60,13 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     muted: linen['500'],
     faint: linen['400'],
     primary: forest['600'],
+    primarySoft: forest['50'],
     accent: honey['500'],
+    accentSoft: honey['50'],
+    accentDeep: honey['700'],
+    success: forest['700'],
+    danger: rose.text,
+    dangerSoft: rose.soft,
     overlay: `${linen['900']}66`,
   },
   dark: {
@@ -58,7 +79,13 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     muted: linen['400'],
     faint: linen['500'],
     primary: forest['400'],
+    primarySoft: `${forest['500']}1a`,
     accent: honey['400'],
+    accentSoft: `${honey['500']}1a`,
+    accentDeep: honey['300'],
+    success: forest['300'],
+    danger: rose.textDark,
+    dangerSoft: `${rose.base}1a`,
     // Darker than the web's shared value so it still dims behind linen-900 cards.
     overlay: `${linen['950']}99`,
   },
