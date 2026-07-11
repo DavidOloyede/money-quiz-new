@@ -7,10 +7,11 @@
  * one arrives at midnight.
  */
 import { useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import { useStore } from '@moneyquiz/core'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
 
+import { AnswerOption } from '@/components/AnswerOption'
 import { Card, CardTitle } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 
@@ -54,58 +55,16 @@ export function DailyQuestion() {
       </Text>
 
       <View style={{ gap: spacing.sm }}>
-        {q.options.map((opt, i) => {
-          const isCorrect = i === q.correctIndex
-          const isChosen = i === daily.answer
-          let border = colors.borderStrong
-          let bg = colors.card
-          let fg = colors.text
-          if (answered) {
-            if (isCorrect) {
-              border = colors.primary
-              bg = colors.primarySoft
-              fg = colors.success
-            } else if (isChosen) {
-              border = colors.danger
-              bg = colors.dangerSoft
-              fg = colors.danger
-            } else {
-              fg = colors.faint
-              border = colors.border
-            }
-          }
-          return (
-            <Pressable
-              key={i}
-              onPress={() => choose(i)}
-              disabled={answered}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: spacing.sm,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderColor: border,
-                backgroundColor: bg,
-                borderRadius: radii.md,
-                paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm + 2,
-              }}
-            >
-              <Text
-                style={{ flex: 1, fontFamily: fonts.sansMedium, fontSize: 14, color: fg }}
-              >
-                {opt}
-              </Text>
-              {answered && isCorrect && (
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, color: colors.success }}>✓</Text>
-              )}
-              {answered && isChosen && !isCorrect && (
-                <Text style={{ fontFamily: fonts.sansBold, fontSize: 14, color: colors.danger }}>✕</Text>
-              )}
-            </Pressable>
-          )
-        })}
+        {q.options.map((opt, i) => (
+          <AnswerOption
+            key={i}
+            label={opt}
+            answered={answered}
+            isCorrect={i === q.correctIndex}
+            isChosen={i === daily.answer}
+            onPress={() => choose(i)}
+          />
+        ))}
       </View>
 
       {answered && (
