@@ -112,11 +112,41 @@ How core stays neutral:
    `onAuthStateChange` cache in `platform.ts`, not `auth.getSession()` per
    request — getSession's internal lock can deadlock under RN's concurrent
    auth traffic.
-5. **Core screens, in order of mobile value**: Daily Question + streak (the
-   habit loop), Quiz, Dashboard (cards first, charts via `victory-native`),
-   Import (Plaid connect; CSV is desktop-first), Settings/Support.
-6. **Push notifications** (Expo Notifications) — daily-question reminder;
-   this is the retention feature the web app can't do.
+5. ✅ **Core screens** (July 2026) — a five-tab shell (`(tabs)/_layout.tsx`,
+   Ionicons via `@expo/vector-icons`) in roadmap order: **Today** (verse of
+   the day, the daily question, level/streak/badges — replaces the Phase E
+   debug screen), **Quiz** (full intro→playing→results port: evidence lists,
+   insights, XP through `recordQuizResult`), **Dashboard** (view-only cards:
+   stat tiles, category bars with tap-to-drill `TxListModal`, top 5,
+   recurring bills, budgets, giving; edits stay on the web), **Import**
+   (Plaid Link via `react-native-plaid-link-sdk` v13 —
+   `createPlaidLinkSession`/`open` against the same `/api/plaid` routes;
+   mock mode posts `mock_connect`; source list with per-item sync/remove),
+   and **Settings** (account row → the existing Account screen, theme,
+   reminder, data controls, Support tickets via the new platform-neutral
+   `@moneyquiz/core/lib/tickets.ts` — the web SupportCard keeps its own copy
+   for design-sync isolation). Charts are **dependency-free View-based
+   bars** rather than `victory-native` — no extra native module, and the
+   paired-bar trend covers the need; revisit only if interactive charts are
+   wanted. A shared mobile UI kit lives in `src/components/ui.tsx`; state
+   colors (success/danger/soft washes) joined the mobile theme. Verified on
+   the Simulator with sample data across light and dark: real personalized
+   quiz generated on-device (figures match the dashboard), drill-downs,
+   recurring detection, and — after a midnight rollover — a fresh verse, a
+   fresh *personalized* daily question, and the streak advancing to 2.
+   Residual: the in-Plaid-Link tap-through (sandbox `user_good`/`pass_good`)
+   needs one human pass — everything up to Link opening is verified, and the
+   exchange/sync path is proven server-side.
+6. ✅ **Daily reminder** (July 2026) — `expo-notifications` **local**
+   scheduling only (a `DAILY` calendar trigger): no push server, no APNs, no
+   Apple Developer account. The preference (on/off + preset times) is
+   device-specific in plain MMKV (`moneyquiz.mobile.reminder.v1`, not a
+   synced slice); `lib/reminder.ts` owns the permission ask, schedule sync,
+   and an on-launch re-assert from the root layout. Verified on the
+   Simulator (permission pre-granted with `applesimutils`, installed via
+   brew): iOS reports the repeating `UNCalendarNotificationTrigger` and the
+   banner delivers with the warm copy. Remote/server push stays deliberately
+   out of scope.
 7. **TestFlight** → App Store review (finance apps get extra scrutiny: have a
    privacy policy URL and demo-mode reviewer account ready).
 

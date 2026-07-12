@@ -46,3 +46,26 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   19.2.3). That's deliberate: react is `^19.2.3` here so the whole workspace
   shares ONE hoisted copy with the web app and core. "Fixing" it to the exact
   pin nests a second react under apps/mobile and breaks hooks at runtime.
+- **Screens & UI kit (Phase H):** tabs live in `src/app/(tabs)/` (Today, Quiz,
+  Dashboard, Import, Settings); build new UI from `src/components/ui.tsx`
+  (Screen/Card/Button/Segmented/Bar/Empty/Note/StatusLine) instead of ad-hoc
+  styles, and take state colors (success/danger/soft washes) from the theme —
+  no hex in components. Charts are deliberately View-based bars (no
+  victory-native/react-native-svg); don't add a chart lib without David.
+  Mobile dashboards are **view-only** — budget/category/rename edits stay on
+  the web.
+- **Plaid on the phone:** `react-native-plaid-link-sdk` v13 API is
+  `createPlaidLinkSession({ token, onSuccess, onExit, onEvent })` then
+  `session.open()` — the older `create`/`open` pair from v11/12 docs doesn't
+  exist here. Native module: adding/upgrading it (or expo-notifications)
+  needs a dev-client rebuild (`npx expo run:ios`).
+- **Daily reminder is LOCAL-only** (`lib/reminder.ts`): expo-notifications
+  DAILY calendar trigger, preference under the mobile-only MMKV key
+  `moneyquiz.mobile.reminder.v1` (device-specific — keep it out of the synced
+  slices and STORAGE_KEYS). The root layout re-asserts the schedule on
+  launch. Don't introduce remote push/APNs for it.
+- **Sim permission dialogs can't be tapped** — `applesimutils` (installed via
+  `brew tap wix/brew`) pre-grants them instead, e.g.
+  `applesimutils --booted --bundle com.mannamoney.app --setPermissions
+  notifications=YES`. Combined with the `--initialUrl` launch trick and temp
+  harness effects, that's the whole sim-verification toolkit.

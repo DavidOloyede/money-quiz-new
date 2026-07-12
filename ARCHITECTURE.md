@@ -59,18 +59,46 @@ car so a second car can use the same engine**:
   The web's stylesheet tokens (`src/theme.css`) are **generated** from
   `packages/core/theme.ts` by `npm run gen:theme` — change colors there, not
   in the CSS.
-- **`apps/mobile`** — the iPhone app (started July 2026, still being built).
-  It's the second car using the same engine: all the money math, the central
-  brain, and the colors/fonts come from `packages/core`; this folder is just
-  the phone's body around them. On the phone the "notebook" isn't the
+- **`apps/mobile`** — the iPhone app (built July 2026; not yet in the App
+  Store). It's the second car using the same engine: all the money math, the
+  central brain, and the colors/fonts come from `packages/core`; this folder
+  is just the phone's body around them. On the phone the "notebook" isn't the
   browser's `localStorage` — it's a phone-native notebook called **MMKV** that
   the shared brain plugs into. Same pages, same page names, so cloud sync
   works between the website and the phone. You can **sign into your account
   on the phone** (email + password, or Google) — same login service, same
-  account as the website — and **your data now follows you**: edit a budget on
+  account as the website — and **your data follows you**: edit a budget on
   the laptop, tap "Sync now" on the phone (or just reopen the app) and the
   change is there, and the other way around too. Signing out on the phone
   clears its local copy, exactly like the website.
+
+  The phone app has five tabs along the bottom:
+
+  - **Today** — the daily rhythm in one place: the verse of the day, the
+    question of the day (personalized once you have data, a general money
+    question before that), and your level/streak/badge progress. A new verse
+    and question arrive at midnight, and opening the app counts toward your
+    streak.
+  - **Quiz** — the same quiz as the website, built from your own
+    transactions, with the "receipts" behind every answer and the insights
+    at the end.
+  - **Dashboard** — the phone-sized read on your money: income/spending/net,
+    spending by category (tap one to see its transactions), a monthly trend
+    chart, your top 5 expenses, recurring bills, budget progress, and
+    giving. It's a *viewing* dashboard — changing budgets, renaming
+    merchants, and recategorizing stay on the website, where there's room.
+  - **Import** — connect a bank or card through Plaid, right on the phone
+    (same rules: your bank login happens inside Plaid's own screen; the app
+    never sees it). CSV files are better imported on the website.
+  - **Settings** — your account (sign in / sync / sign out), light or dark
+    look, the **daily reminder**, data controls, and Help & support tickets
+    (same tickets as the website — replies appear in both places).
+
+  The **daily reminder** is the phone's special power: pick a time and iOS
+  itself taps you on the shoulder ("Your daily bread is ready 🍞") even if
+  the app is closed. It's a *local* alarm the app sets on your phone — no
+  message is sent from any server, so it works with zero setup and nothing
+  about your money ever leaves the device for it.
 - **`server/`** — the Node.js backend, unchanged.
 
 ---
@@ -295,11 +323,11 @@ almost all of them live in the shared `packages/core` package so the phone
 app can use them unchanged. The five marked **(web-only, in `src/lib`)** are
 the exceptions — they need a real browser.
 
-- **`storage.ts`** — Talks to the notebook: save and load. The notebook now has
+- **`storage.ts`** — Talks to the notebook: save and load. The notebook has
   **swappable paper**: in the browser it writes to `localStorage` (found
-  automatically — nothing to set up), and the future phone app will hand it a
-  different notebook that answers just as instantly. Either way the rest of the
-  app doesn't know or care which paper it's writing on.
+  automatically — nothing to set up), and the phone app hands it MMKV, a
+  different notebook that answers just as instantly. Either way the rest of
+  the app doesn't know or care which paper it's writing on.
 - **`id.ts`** — Hands out the little **name tags** (unique ids) that each
   transaction and import gets, so helpers that make data don't need to touch
   the notebook just for a tag.
@@ -392,8 +420,8 @@ the exceptions — they need a real browser.
   start a connection, sync, disconnect.
 - **`plaidLink.ts`** *(web-only, in `src/lib`)* — Opens **Plaid's own pop-up** in the browser (loading
   their script from their site) so you type your bank password into Plaid's
-  window, never ours. Browser-only on purpose; the phone app will use Plaid's
-  phone kit instead.
+  window, never ours. Browser-only on purpose; the phone app uses Plaid's
+  phone kit (`react-native-plaid-link-sdk`) for the same job.
 - **`plaidMap.ts`** — Translates Plaid's data into our Transaction cards and maps
   Plaid's categories onto ours.
 - **`exportData.ts`** *(web-only, in `src/lib`)* — Builds the **download** files (CSV, JSON, and a printable
