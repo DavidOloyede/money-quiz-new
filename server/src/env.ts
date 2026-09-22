@@ -33,7 +33,15 @@ const schema = z.object({
   // Comma-separated allowlist for CORS (only needed for split-origin deploys).
   CORS_ORIGINS: z.string().optional(),
   // Serve the built frontend (dist/) from this server in production.
-  SERVE_STATIC: z.coerce.boolean().default(false),
+  // Parsed explicitly: z.coerce.boolean() is JS Boolean(), which makes the
+  // string "false" true — the opposite of what anyone setting it would mean.
+  SERVE_STATIC: z
+    .string()
+    .optional()
+    .transform((v) => {
+      const s = (v ?? '').trim().toLowerCase()
+      return s === 'true' || s === '1'
+    }),
   SENTRY_DSN: z.string().optional(),
 })
 

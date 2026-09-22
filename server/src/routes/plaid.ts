@@ -64,7 +64,7 @@ export async function plaidRoutes(app: FastifyInstance): Promise<void> {
       if (PLAID_MODE === 'mock') return { link_token: `mock-link-${randomUUID()}`, mode: 'mock' }
       const r = await plaid('/link/token/create', {
         user: { client_user_id: userId },
-        client_name: 'Money Quiz',
+        client_name: 'Manna Money',
         products: PLAID_PRODUCTS,
         country_codes: PLAID_COUNTRY_CODES,
         language: 'en',

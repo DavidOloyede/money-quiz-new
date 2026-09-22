@@ -38,3 +38,6 @@ ds-bundle/
 
 # Claude Code local settings (per-machine, not shared)
 .claude/settings.local.json
+
+# Personal annotated code walkthrough / interview prep — deliberately local
+WALKTHROUGH.html

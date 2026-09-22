@@ -18,3 +18,12 @@ export const supabase: SupabaseClient | null =
 
 /** True when accounts are configured (Supabase auth credentials present). */
 export const cloudEnabled = supabase !== null
+
+/**
+ * Google sign-in is opt-in per deployment: the provider has to be configured
+ * in Supabase AND the origin allowlisted, so an environment that hasn't done
+ * both should not show a button that can only fail. Email/password is
+ * unaffected. Set VITE_ENABLE_GOOGLE_AUTH=true to turn it back on.
+ */
+export const googleAuthEnabled =
+  cloudEnabled && (env.VITE_ENABLE_GOOGLE_AUTH || '').toLowerCase() === 'true'

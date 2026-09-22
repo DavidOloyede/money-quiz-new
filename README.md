@@ -162,9 +162,10 @@ any other transaction. CSV import keeps working with the API off.
   far), shown in italics. Click any filled-in actual number to see the exact
   transactions it was calculated from (totals, blanks, and projections aren't
   clickable — there's nothing behind them).
-- **Quiz** — 8–10 multiple-choice questions computed from your real numbers
-  (spending by category, largest expense, month-over-month changes, recurring
-  costs, busiest spending day, budget vs actual, and more). Each answer reveals
+- **Quiz** — up to 10 multiple-choice questions computed from your real numbers
+  (fewer when there isn't enough data to ask 10 distinct ones; spending by
+  category, largest expense, month-over-month changes, recurring costs,
+  busiest spending day, budget vs actual, and more). Each answer reveals
   the real figure and a one-sentence takeaway, and your **scores, best result,
   and day streak** are tracked across attempts. Retake for a fresh set.
 - **Streaks, levels & badges** — using the app each day keeps a 🔥 **daily
@@ -200,7 +201,9 @@ any other transaction. CSV import keeps working with the API off.
   never reach the browser.
 - Activity logging records *what you did* (viewed the quiz, imported a file),
   never transaction descriptions, merchants, or amounts — and only for
-  signed-in users. Crash reports are scrubbed the same way.
+  signed-in users. Crash reports are scrubbed the same way. (The rule is
+  enforced client-side, at the `track.ts` call sites — the API's schema does
+  not independently reject an event that carries more than it should.)
 - App data is persisted in `localStorage` under keys prefixed `moneyquiz.`
   (the app's original working name — the keys stay stable on purpose so
   existing data and cloud sync are never orphaned), and **Clear all data**

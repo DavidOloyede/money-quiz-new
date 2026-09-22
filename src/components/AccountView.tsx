@@ -1,9 +1,11 @@
 /**
- * The Account screen: sign in / create account (email+password or Google)
- * when signed out; profile, sync status, and sign-out when signed in.
+ * The Account screen: sign in / create account (email+password, plus Google
+ * where that provider is turned on for the deployment) when signed out;
+ * profile, sync status, and sign-out when signed in.
  */
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth'
+import { googleAuthEnabled } from '../lib/supabase'
 import { useSync } from './SyncGate'
 import { ShieldIcon, UserIcon } from './icons'
 
@@ -128,22 +130,26 @@ function SignInCard() {
         </button>
       </form>
 
-      <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wide text-linen-400 dark:text-linen-500">
-        <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
-        or
-        <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
-      </div>
+      {googleAuthEnabled && (
+        <>
+          <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wide text-linen-400 dark:text-linen-500">
+            <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
+            or
+            <span className="h-px flex-1 bg-linen-200 dark:bg-linen-700" />
+          </div>
 
-      <button
-        onClick={() => {
-          setError(null)
-          void signInWithGoogle().then((err) => err && setError(err))
-        }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
-      >
-        <GoogleMark className="h-4 w-4" />
-        Continue with Google
-      </button>
+          <button
+            onClick={() => {
+              setError(null)
+              void signInWithGoogle().then((err) => err && setError(err))
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+          >
+            <GoogleMark className="h-4 w-4" />
+            Continue with Google
+          </button>
+        </>
+      )}
     </section>
   )
 }

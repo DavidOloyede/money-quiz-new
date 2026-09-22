@@ -1,5 +1,7 @@
 # How Manna Money Works — Explained Simply
 
+*Last verified against the working tree: 2026-09-22 (commit `f945b3b`).*
+
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
 
