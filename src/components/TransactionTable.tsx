@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Category, Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
 import { allCategories, categoryMeta } from '@moneyquiz/core/lib/categories'
@@ -8,6 +8,7 @@ import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { StarIcon } from './icons'
+import { useWheelPan } from '../hooks/useWheelPan'
 
 interface Props {
   transactions: Transaction[]
@@ -27,6 +28,8 @@ export function TransactionTable({ transactions }: Props) {
   const [sortAsc, setSortAsc] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkCat, setBulkCat] = useState<Category | ''>('')
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useWheelPan(scrollRef)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -156,7 +159,7 @@ export function TransactionTable({ transactions }: Props) {
         </div>
       )}
 
-      <div className="max-h-[28rem] overflow-auto">
+      <div ref={scrollRef} className="max-h-[28rem] overflow-auto">
         <table className="w-full text-sm">
           <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
             <tr>

@@ -7,6 +7,7 @@ import { CategoryDetailModal, type CellTarget } from './CategoryDetailModal'
 import { EmptyState } from './EmptyState'
 import { TableIcon } from './icons'
 import type { View } from './Nav'
+import { useWheelPan } from '../hooks/useWheelPan'
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
@@ -78,6 +79,7 @@ export function YearSheetView({ onNavigate }: Props) {
   const syncFromTop = () => {
     if (topBarRef.current && mainRef.current) mainRef.current.scrollLeft = topBarRef.current.scrollLeft
   }
+  useWheelPan(mainRef)
 
   if (!hasData) {
     return (

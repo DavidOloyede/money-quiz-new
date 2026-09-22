@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Category, SubscriptionCadence, SubscriptionMeta } from '@moneyquiz/core/types'
 import { recurringPayments, type RecurringKind } from '@moneyquiz/core/lib/analysis'
 import { useStore } from '@moneyquiz/core/store'
@@ -15,6 +15,7 @@ import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { XIcon, StarIcon } from './icons'
+import { useWheelPan } from '../hooks/useWheelPan'
 
 interface Props {
   /** Member transaction ids of the group being inspected. */
@@ -59,6 +60,8 @@ export function GroupDetailModal({ ids, onClose }: Props) {
   const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortAsc, setSortAsc] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useWheelPan(scrollRef)
 
   const idset = useMemo(() => new Set(ids), [ids])
   const items = useMemo(() => {
@@ -329,7 +332,7 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           </div>
 
           {/* Transactions */}
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
                 <tr>

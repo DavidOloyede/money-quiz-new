@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Category, Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
 import { allCategories, categoryLabel, categoryMeta, isExcludedCategory } from '@moneyquiz/core/lib/categories'
@@ -18,6 +18,7 @@ import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { StarIcon, XIcon } from './icons'
+import { useWheelPan } from '../hooks/useWheelPan'
 
 /**
  * One Year Sheet cell: a category's actuals for one month, split by direction
@@ -50,6 +51,8 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
   const [sortKey, setSortKey] = useState<SortKey>('amount')
   const [sortAsc, setSortAsc] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  useWheelPan(scrollRef)
 
   const cell = typeof category === 'object' && 'category' in category ? category : null
   const flow = !cell && typeof category === 'object' && 'flow' in category ? category.flow : null
@@ -196,7 +199,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
               <tr>

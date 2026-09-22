@@ -229,7 +229,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   year) feeds the **Projected End Balance** row, and the **NET** row is green or
   red per month. The month header and the four summary rows **stay frozen**
   while you scroll, a second horizontal scrollbar sits above the sheet, and
-  credit-card credits in spending categories are folded into one
+  when the sheet is too wide but short enough that there's nothing left to
+  scroll down to, spinning the mouse wheel over it slides it sideways instead
+  (the same is true of the transaction table). Credit-card credits in spending
+  categories are folded into one
   **Refunds & Cashback** income row. Every filled-in *actual* cell is
   **clickable** — it opens the drill-in list with exactly the transactions that
   cell summed (the totals rows, the frozen block, blanks, and projected cells
