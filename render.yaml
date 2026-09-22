@@ -1,0 +1,59 @@
+# Render blueprint for the single-service deploy (docs/SETUP-backend.md §9):
+# one Node process serves the built dist/ AND /api, so there is no CORS
+# surface and no second host to keep in sync.
+#
+# Secrets are deliberately NOT in this file. Every `sync: false` var must be
+# set in the Render dashboard; Render prompts for them on first deploy.
+services:
+  - type: web
+    name: manna-money
+    runtime: node
+    plan: free
+    branch: main
+    healthCheckPath: /api/health
+
+    # --include=dev is required, not optional: Render sets NODE_ENV=production,
+    # under which npm omits devDependencies — but the server has no build step
+    # and starts via `tsx`, which lives in devDependencies.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm --prefix server run start
+
+    envVars:
+      # PORT is deliberately absent — Render injects it, and setting our own
+      # would override it and strand the health check.
+      - key: NODE_VERSION
+        value: "22"
+      - key: SERVE_STATIC
+        value: "true"
+      - key: ADMIN_EMAIL
+        value: doloyede00@gmail.com
+      - key: PLAID_ENV
+        value: sandbox
+      - key: PLAID_PRODUCTS
+        value: transactions
+      - key: PLAID_COUNTRY_CODES
+        value: US
+
+      # Set in the dashboard. DATABASE_URL must be the Supabase *transaction
+      # pooler* string (port 6543) — the direct db.<ref>.supabase.co:5432 host
+      # is IPv6-only and unreachable from Render.
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: PLAID_CLIENT_ID
+        sync: false
+      - key: PLAID_SECRET
+        sync: false
+      # Must match the local key byte-for-byte: it decrypts the existing
+      # plaid_items.access_token_enc rows in the shared database.
+      - key: PLAID_TOKEN_KEY
+        sync: false
+
+      # Baked into the browser bundle at build time by Vite.
+      # VITE_API_URL is intentionally unset → defaults to same-origin "/api".
+      # VITE_ENABLE_GOOGLE_AUTH is intentionally unset → Google stays hidden.
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
