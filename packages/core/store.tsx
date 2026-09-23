@@ -30,6 +30,7 @@ import { assignTxKeys } from './lib/txKey'
 import { autoDetectLinks, resolveLinks, type TxLinks } from './lib/links'
 import { counterpartyKey, isSelfTransfer, isTransferDescription } from './lib/owner'
 import type { TransferRules } from './lib/transferReview'
+import { matchCategoryRule, type CategoryRule } from './lib/categoryRules'
 import {
   autoRecurringBill,
   recurringBills,
@@ -48,7 +49,12 @@ import {
 } from './lib/categories'
 import { DATA_KEYS, loadJSON, removeKey, saveJSON, STORAGE_KEYS } from './lib/storage'
 import { getThemeAdapter } from './lib/themeAdapter'
-import { loadSampleTransactions, SAMPLE_ACCOUNTS } from './data/sampleData'
+import {
+  loadSampleTransactions,
+  SAMPLE_ACCOUNTS,
+  SAMPLE_CATEGORY_RULES,
+  SAMPLE_OWNER_NAMES,
+} from './data/sampleData'
 
 interface StoreValue {
   transactions: Transaction[]
@@ -82,6 +88,8 @@ interface StoreValue {
   ownerNames: string[]
   /** Review decisions kept per transfer counterparty, applied to future imports. */
   transferRules: TransferRules
+  /** "Anything matching X is category Y" rules, applied to every import. */
+  categoryRules: CategoryRule[]
   addImport: (tx: Transaction[], source: ImportSource) => void
   removeSource: (sourceId: string) => void
   /** Register a Plaid-connected account as a source. */
@@ -109,6 +117,8 @@ interface StoreValue {
   setOwnerNames: (names: string[]) => void
   /** Remember (or, with null, forget) what to do with a counterparty's transfers. */
   setTransferRule: (counterparty: string, rule: TransferRules[string] | null) => void
+  /** Replace the description-pattern category rules. */
+  setCategoryRules: (rules: CategoryRule[]) => void
   /** Toggle the ★ recurring flag for ONE transaction (e.g. a single Amazon charge that repeats). */
   toggleRecurring: (id: string) => void
   /** Flag/unflag a whole group as recurring (every merchant key behind the given transactions). */
@@ -201,6 +211,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
   const [transferRules, setTransferRules] = useState<TransferRules>(() =>
     loadJSON<TransferRules>(STORAGE_KEYS.transferRules, {}),
+  )
+  const [categoryRules, setCategoryRulesState] = useState<CategoryRule[]>(() =>
+    loadJSON<CategoryRule[]>(STORAGE_KEYS.categoryRules, []),
   )
   const [overrides, setOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.overrides, {}),
@@ -323,7 +336,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ruled = rule?.category
         }
       }
-      const pinned = txOverrides[key] ?? ruled
+      const pinned = txOverrides[key] ?? matchCategoryRule(t.description, categoryRules) ?? ruled
       return pinned ? { ...t, key, category: pinned, overridden: true } : { ...t, key }
     })
     // Treatments and links come next: a linked credit adopts its charge's
@@ -362,6 +375,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     txLinks,
     ownerNames,
     transferRules,
+    categoryRules,
     aliases,
     ignoredTransfers,
     recurringMerchants,
@@ -383,6 +397,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.txLinks, txLinks), [txLinks])
   useEffect(() => saveJSON(STORAGE_KEYS.ownerNames, ownerNames), [ownerNames])
   useEffect(() => saveJSON(STORAGE_KEYS.transferRules, transferRules), [transferRules])
+  useEffect(() => saveJSON(STORAGE_KEYS.categoryRules, categoryRules), [categoryRules])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.recurring, recurringMerchants), [recurringMerchants])
@@ -517,6 +532,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
     setMerchantOverrides({})
     setTxOverrides({})
+    // The sample stands in for someone who has already set the app up: their
+    // own names are listed, so its self-transfers are recognized, and their
+    // rental rules are in place.
+    setOwnerNamesState(SAMPLE_OWNER_NAMES)
+    setCategoryRulesState(SAMPLE_CATEGORY_RULES)
+    setTransferRules({})
+    setTxTreatments({})
+    setTxLinks({})
     setRawTransactions(tx)
     setSources(
       SAMPLE_ACCOUNTS.map((a) => ({
@@ -615,6 +638,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const setOwnerNames = useCallback((names: string[]) => {
     setOwnerNamesState(names.map((n) => n.trim()).filter(Boolean))
+  }, [])
+
+  const setCategoryRules = useCallback((rules: CategoryRule[]) => {
+    setCategoryRulesState(rules.filter((r) => r.pattern.trim() && r.category))
   }, [])
 
   const setTransferRule = useCallback((party: string, rule: TransferRules[string] | null) => {
@@ -911,6 +938,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTxTreatments({})
     setTxLinks({})
     setTransferRules({})
+    setCategoryRulesState([])
     setOverrides({})
     setMerchantOverrides({})
     setRecurringMerchants({})
@@ -952,6 +980,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       recurringKinds,
       ownerNames,
       transferRules,
+      categoryRules,
       addImport,
       removeSource,
       addPlaidSource,
@@ -965,6 +994,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unlinkTransaction,
       setOwnerNames,
       setTransferRule,
+      setCategoryRules,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,
@@ -1006,6 +1036,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       recurringKinds,
       ownerNames,
       transferRules,
+      categoryRules,
       addImport,
       removeSource,
       addPlaidSource,
@@ -1019,6 +1050,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unlinkTransaction,
       setOwnerNames,
       setTransferRule,
+      setCategoryRules,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,

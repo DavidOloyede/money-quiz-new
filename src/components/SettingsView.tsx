@@ -11,6 +11,7 @@ import {
 import { SupportCard } from './SupportCard'
 import { DownloadIcon, MoonIcon, SunIcon, TrashIcon } from './icons'
 import { counterpartyLabel } from '@moneyquiz/core/lib/owner'
+import { countRuleMatches } from '@moneyquiz/core/lib/categoryRules'
 
 interface Props {
   onClear: () => void
@@ -32,9 +33,13 @@ export function SettingsView({ onClear }: Props) {
     setOwnerNames,
     transferRules,
     setTransferRule,
+    categoryRules,
+    setCategoryRules,
   } = useStore()
 
   const [newOwnerName, setNewOwnerName] = useState('')
+  const [newRulePattern, setNewRulePattern] = useState('')
+  const [newRuleCategory, setNewRuleCategory] = useState('business')
   const [newLabel, setNewLabel] = useState('')
   const [newColor, setNewColor] = useState('#3796bc')
   const [newEmoji, setNewEmoji] = useState('🏷️')
@@ -268,6 +273,84 @@ export function SettingsView({ onClear }: Props) {
               </ul>
             </div>
           )}
+        </section>
+
+        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+            Category rules
+          </h3>
+          <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
+            Say it once and it sticks: anything whose description contains this text goes
+            in that category, now and on every future import. Useful for money that
+            belongs on a separate ledger — a rental&apos;s mortgage, its utilities and its
+            letting fees are scattered across accounts, and a few rules gather them into
+            Business&nbsp;/&nbsp;Rental.
+          </p>
+          {categoryRules.length > 0 && (
+            <ul className="mt-3 space-y-1.5">
+              {categoryRules.map((rule, i) => {
+                const matches = countRuleMatches(
+                  transactions.map((t) => t.description),
+                  rule,
+                )
+                return (
+                  <li
+                    key={`${rule.pattern}-${i}`}
+                    className="flex flex-wrap items-center gap-2 rounded-lg border border-linen-200 dark:border-linen-700 px-3 py-2 text-sm"
+                  >
+                    <span className="font-mono text-xs text-linen-700 dark:text-linen-200">
+                      {rule.pattern}
+                    </span>
+                    <span className="text-linen-400 dark:text-linen-500">→</span>
+                    <span className="text-linen-700 dark:text-linen-200">
+                      {allCategories().find((d) => d.id === rule.category)?.label ?? rule.category}
+                    </span>
+                    <span className="text-xs text-linen-400 dark:text-linen-500">
+                      {matches} match{matches === 1 ? '' : 'es'}
+                    </span>
+                    <button
+                      onClick={() => setCategoryRules(categoryRules.filter((_, j) => j !== i))}
+                      aria-label={`Remove rule for ${rule.pattern}`}
+                      className="ml-auto rounded p-1 text-linen-400 hover:text-rose-600 dark:text-linen-500"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              value={newRulePattern}
+              onChange={(e) => setNewRulePattern(e.target.value)}
+              placeholder="Description contains…"
+              className="w-52 rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
+            />
+            <select
+              value={newRuleCategory}
+              onChange={(e) => setNewRuleCategory(e.target.value)}
+              className="rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-2 py-1.5 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none"
+            >
+              {allCategories().map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => {
+                const pattern = newRulePattern.trim()
+                if (!pattern) return
+                setCategoryRules([...categoryRules, { pattern, category: newRuleCategory }])
+                setNewRulePattern('')
+              }}
+              disabled={!newRulePattern.trim()}
+              className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+            >
+              Add rule
+            </button>
+          </div>
         </section>
 
         <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">

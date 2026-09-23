@@ -12,6 +12,7 @@ export type BuiltinCategory =
   | 'utilities'
   | 'rent'
   | 'home'
+  | 'business'
   | 'insurance'
   | 'loans'
   | 'shopping'

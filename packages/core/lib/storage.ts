@@ -74,6 +74,9 @@ export const STORAGE_KEYS = {
   // Decisions made in the transfer review, kept per counterparty so they
   // apply to future imports too.
   transferRules: 'moneyquiz.transferRules.v1',
+  // "Anything matching X is category Y" — stated once, applied to every
+  // import, including future ones.
+  categoryRules: 'moneyquiz.categoryRules.v1',
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
@@ -112,6 +115,7 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.txLinks,
   STORAGE_KEYS.ownerNames,
   STORAGE_KEYS.transferRules,
+  STORAGE_KEYS.categoryRules,
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,

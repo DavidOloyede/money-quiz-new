@@ -25,11 +25,29 @@
  */
 import type { AccountType, Transaction } from '../types'
 import { categorize } from '../lib/categorize'
+import { matchCategoryRule, type CategoryRule } from '../lib/categoryRules'
 import { isCardPayment } from '../lib/importCsv'
 import { newId } from '../lib/id'
 
 /** The fictional account holder. Used for the self-transfer descriptors. */
 export const SAMPLE_OWNER_NAMES = ['Jordan Avery', 'Avery Jordan']
+
+/**
+ * The sample user co-owns a duplex, so some of their money is on a different
+ * ledger. These are the rules they'd have set up to gather it, and the sample
+ * ships with them already applied — the rent they RECEIVE stays plain Income,
+ * because Business / Rental is a spending category and money in would
+ * otherwise read as a refund against it.
+ *
+ * "BRIGHTLINE ENERGY UNIT B" is deliberately more specific than the personal
+ * power bill from the same company: it shows a narrow rule beating a broad one.
+ */
+export const SAMPLE_CATEGORY_RULES: CategoryRule[] = [
+  { pattern: 'BRIGHTLINE ENERGY UNIT B', category: 'business' },
+  { pattern: 'KEYSTONE LEASING', category: 'business' },
+  { pattern: 'TURBOTENANT', category: 'business' },
+  { pattern: 'OWNWELL', category: 'business' },
+]
 
 export interface SampleAccount {
   id: string
@@ -251,7 +269,8 @@ const ONE_OFFS: OneOff[] = [
   { month: 10, day: 3, description: 'Zelle payment from Dana Whitlock', account: 'sample-checking', amount: 42.5 },
   { month: 6, day: 20, description: 'Zelle payment from Dana Whitlock', account: 'sample-checking', amount: 61 },
   // Rental vacancy: the unit's own power bill and a letting agent's fee.
-  { month: 4, day: 12, description: 'BRIGHTLINE ENERGY', account: 'sample-checking', amount: -63.2 },
+  { month: 4, day: 12, description: 'BRIGHTLINE ENERGY UNIT B', account: 'sample-checking', amount: -63.2 },
+  { month: 5, day: 12, description: 'BRIGHTLINE ENERGY UNIT B', account: 'sample-checking', amount: -58.75 },
   { month: 4, day: 26, description: 'KEYSTONE LEASING FEE', account: 'sample-checking', amount: -725 },
   // The home-insurance half of the WILLOW BEND descriptor — same name as the
   // monthly dues, a very different amount and a very different bill.
@@ -321,7 +340,11 @@ export function loadSampleTransactions(now: Date = new Date()): Transaction[] {
       date: r.date,
       description: r.description,
       amount: r.amount,
-      category: categorize(r.description, r.amount),
+      // The sample ships with its owner's rules already in force, so the
+      // duplex costs arrive on the right ledger.
+      category:
+        matchCategoryRule(r.description, SAMPLE_CATEGORY_RULES) ??
+        categorize(r.description, r.amount),
       sourceId: r.account,
     }))
 }

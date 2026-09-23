@@ -62,6 +62,10 @@ export const BUILTIN_CATEGORIES: CategoryDef[] = [
   { id: 'utilities', label: 'Utilities', color: '#5a50c8', emoji: '💡', kind: 'spending', builtin: true },
   { id: 'rent', label: 'Rent / Mortgage', color: '#d95a50', emoji: '🏠', kind: 'spending', builtin: true },
   { id: 'home', label: 'Home & HOA', color: '#9b6b35', emoji: '🏡', kind: 'spending', builtin: true },
+  // Money that belongs to a separate ledger — a rental, a side business. It
+  // is deliberately assigned by hand (or by a description rule), never by
+  // keyword: no descriptor can tell us whose books a cost belongs on.
+  { id: 'business', label: 'Business / Rental', color: '#6e7a35', emoji: '🏢', kind: 'spending', builtin: true },
   { id: 'insurance', label: 'Insurance', color: '#2e6b75', emoji: '🛡️', kind: 'spending', builtin: true },
   { id: 'loans', label: 'Loans & Debt', color: '#8a621b', emoji: '🏦', kind: 'spending', builtin: true },
   { id: 'shopping', label: 'Shopping', color: '#d26594', emoji: '🛍️', kind: 'spending', builtin: true },

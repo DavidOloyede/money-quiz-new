@@ -67,6 +67,7 @@ const EXPENSE_SECTIONS: { id: string; title: string; cats: Category[] }[] = [
   },
   { id: 'home', title: 'Home Expenses', cats: ['rent', 'home', 'utilities', 'insurance'] },
   { id: 'transport', title: 'Transportation', cats: ['transport'] },
+  { id: 'business', title: 'Business & Rental', cats: ['business'] },
   { id: 'fun', title: 'Subscriptions & Entertainment', cats: ['subscriptions', 'entertainment'] },
   { id: 'giving', title: 'Giving', cats: ['charity', 'tithes'] },
   { id: 'debt', title: 'Debt & Fees', cats: ['loans', 'fees'] },

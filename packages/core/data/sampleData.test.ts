@@ -81,6 +81,30 @@ describe('coverage', () => {
     expect(new Set(willow.map((t) => t.amount)).size).toBe(2)
   })
 
+  it('puts the duplex costs on the Business / Rental ledger', () => {
+    const business = tx.filter((t) => t.category === 'business')
+    expect(business.length).toBeGreaterThan(0)
+    // All costs — rent RECEIVED stays income, because a spending category
+    // would make money in read as a refund against it.
+    expect(business.every((t) => t.amount < 0)).toBe(true)
+    expect(business.some((t) => /TURBOTENANT/.test(t.description))).toBe(true)
+    expect(business.some((t) => /KEYSTONE LEASING/.test(t.description))).toBe(true)
+  })
+
+  it('leaves the personal power bill alone while re-filing the unit’s', () => {
+    // Same energy company, two ledgers — a narrow rule beating a broad one.
+    const power = tx.filter((t) => /BRIGHTLINE ENERGY/.test(t.description))
+    expect(power.some((t) => t.category === 'utilities')).toBe(true)
+    expect(power.some((t) => t.category === 'business')).toBe(true)
+    expect(
+      power.filter((t) => /UNIT B/.test(t.description)).every((t) => t.category === 'business'),
+    ).toBe(true)
+    // The tenant's rent also mentions the unit, and must stay income.
+    expect(
+      tx.filter((t) => /MAPLE COURT/.test(t.description)).every((t) => t.category === 'income'),
+    ).toBe(true)
+  })
+
   it('keeps rent received out of the housing category', () => {
     const rentIn = tx.filter((t) => /MAPLE COURT RENT/.test(t.description))
     expect(rentIn.length).toBeGreaterThan(0)

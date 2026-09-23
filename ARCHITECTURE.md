@@ -355,6 +355,18 @@ the exceptions — they need a real browser.
   repeating every month fills every slot and tells you nothing — so it adds a
   shop's charges up, shows how many there were, and lets you click through to
   them. Refunds come off the shop they came back from.
+- **`categoryRules.ts`** — "**Anything containing X is Y**", said once and
+  applied forever, including to imports that haven't happened yet. The other
+  ways of remembering a category all start from fixing a row you can see; this
+  one starts from a statement about money you haven't met. It exists for money
+  on a **separate ledger** — someone who co-owns a rental has the tenant's
+  rent, the mortgage, the empty unit's power bill and the letting agent's fee
+  spread across three accounts, each correctly categorized and each wrong to
+  mix into personal spending. A few rules gather them into **Business /
+  Rental**. The rent they *receive* stays plain Income, since Business /
+  Rental is a spending bin and money landing in one would be read as a refund.
+  A narrower rule beats a broader one, so the rental's power bill can go one
+  way while the household's, from the same company, goes another.
 - **`filter.ts`** — The one **sieve** every list uses: text, amount, category,
   source. Amounts match on size rather than direction, so you can look for "the
   $118 one" without first remembering whether it was money in or out. This
@@ -393,7 +405,8 @@ the exceptions — they need a real browser.
   lists everything you bought with it — counting both would charge you twice.
 - **`categories.ts`** — The **list of bins** and their names, colors, and emojis.
   There's a rich built-in set — Groceries, Dining, Transport, Utilities,
-  Rent/Mortgage, **Home & HOA**, **Insurance**, **Loans & Debt**, Shopping,
+  Rent/Mortgage, **Home & HOA**, **Business / Rental**, **Insurance**,
+  **Loans & Debt**, Shopping,
   **Personal Care**, Entertainment, Subscriptions, **Education**, Health,
   **Pets**, **Charity & Gifts**, **Tithes & Offerings**, **Fees & Taxes** — plus
   Zelle/Income/Transfers/Other. This is also what lets you **make your own
