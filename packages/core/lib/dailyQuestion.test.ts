@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import type { Transaction } from '../types'
 import { GENERAL_QUESTIONS } from '../data/generalQuestions'
 import { XP } from './gamification'
@@ -10,6 +10,19 @@ import {
   getDailyState,
   type DailyState,
 } from './dailyQuestion'
+import { setStorageBackend, type KVBackend } from './storage'
+
+/** Map-backed fake store, so save/load round-trips are real in tests. */
+function memoryBackend(): KVBackend {
+  const mem = new Map<string, string>()
+  return {
+    getItem: (k) => mem.get(k) ?? null,
+    setItem: (k, v) => void mem.set(k, v),
+    removeItem: (k) => void mem.delete(k),
+  }
+}
+
+afterEach(() => setStorageBackend(null))
 
 let n = 0
 function tx(date: string, amount: number, category: string, description: string): Transaction {
@@ -55,6 +68,35 @@ describe('buildDailyQuestion', () => {
     ]
     const { source } = buildDailyQuestion(txs, { now: NOW })
     expect(source).toBe('personal')
+  })
+
+  it('carries the receipts, so the day\'s figure can be checked', () => {
+    const txs = [
+      tx('2026-05-01', 3000, 'income', 'Paycheck'),
+      tx('2026-05-02', -1200, 'rent', 'Rent Payment'),
+      tx('2026-05-10', -150, 'groceries', 'Safeway'),
+      tx('2026-05-12', -45, 'dining', 'Chipotle'),
+    ]
+    const { question } = buildDailyQuestion(txs, { now: NOW })
+    expect(question.evidence?.length).toBeGreaterThan(0)
+    expect(question.evidence![0].items.length).toBeGreaterThan(0)
+  })
+
+  it('keeps the evidence across the save/load round-trip', () => {
+    const txs = [
+      tx('2026-05-01', 3000, 'income', 'Paycheck'),
+      tx('2026-05-02', -1200, 'rent', 'Rent Payment'),
+      tx('2026-05-10', -150, 'groceries', 'Safeway'),
+      tx('2026-05-12', -45, 'dining', 'Chipotle'),
+    ]
+    setStorageBackend(memoryBackend())
+    const fresh = getDailyState(txs, { now: NOW })
+    expect(fresh.source).toBe('personal')
+    // Same day again: the saved copy comes back, receipts intact.
+    const reloaded = getDailyState(txs, { now: NOW })
+    expect(reloaded.question.id).toBe(fresh.question.id)
+    expect(reloaded.question.evidence).toEqual(fresh.question.evidence)
+    expect(reloaded.question.evidence!.length).toBeGreaterThan(0)
   })
 })
 

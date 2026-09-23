@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { QuizEvidence } from './QuizEvidence'
 import { CheckIcon, SparkIcon, XIcon } from './icons'
 
 /**
@@ -8,7 +9,9 @@ import { CheckIcon, SparkIcon, XIcon } from './icons'
  * own transactions when there's data; a general financial-literacy question
  * when there isn't, so the daily habit starts before any account is connected.
  * Answering earns XP (a little more when correct); the same question stays up
- * all day and a new one arrives at midnight.
+ * all day and a new one arrives at midnight. Once answered it shows the same
+ * receipts the quiz does — the transactions the figure came from — so the
+ * day's number is never something to take on faith.
  */
 export function DailyQuestionCard() {
   const {
@@ -95,6 +98,7 @@ export function DailyQuestionCard() {
             <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-honey-500" />
             <span>{q.takeaway}</span>
           </div>
+          <QuizEvidence evidence={q.evidence} compact />
           <p className="text-center text-xs text-linen-400 dark:text-linen-500">
             +{dailyQuestionXp(correct)} XP · come back tomorrow for a new one
           </p>

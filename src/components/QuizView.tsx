@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '@moneyquiz/core/store'
-import { askedKinds, generateQuiz, quizInsights, type EvidenceCard, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
+import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
 import { quizXp } from '@moneyquiz/core/lib/gamification'
-import { formatCurrency } from '@moneyquiz/core/lib/format'
 import { track } from '../lib/track'
+import { QuizEvidence } from './QuizEvidence'
 import { QuizHistory } from './QuizHistory'
 import { BadgesCard } from './BadgesCard'
 import { DailyQuestionCard } from './DailyQuestionCard'
@@ -259,51 +259,13 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
         </div>
 
         {/* The receipts: transactions behind the answer, shown once answered */}
-        {answered && q.evidence && q.evidence.length > 0 && (
+        {answered && (
           <div className="mt-4">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-linen-400 dark:text-linen-500">
-              The numbers behind this answer
-            </div>
-            <div className={`grid gap-3 ${q.evidence.length > 1 ? 'sm:grid-cols-2' : ''}`}>
-              {q.evidence.map((card, i) => (
-                <EvidenceList key={i} card={card} />
-              ))}
-            </div>
+            <QuizEvidence evidence={q.evidence} />
           </div>
         )}
       </div>
     </Shell>
-  )
-}
-
-function EvidenceList({ card }: { card: EvidenceCard }) {
-  return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
-      <div className="border-b border-linen-100 dark:border-linen-800 px-4 py-2 text-xs font-semibold text-linen-600 dark:text-linen-300">
-        {card.title}
-      </div>
-      <ul className="max-h-56 divide-y divide-linen-100 dark:divide-linen-800 overflow-y-auto px-4">
-        {card.items.map((it, i) => (
-          <li key={i} className="flex items-baseline justify-between gap-3 py-1.5 text-xs">
-            <span className="min-w-0 truncate text-linen-700 dark:text-linen-200">
-              {it.label}
-              {it.detail && (
-                <span className="ml-1.5 text-linen-400 dark:text-linen-500">{it.detail}</span>
-              )}
-            </span>
-            {it.amount !== undefined && (
-              <span
-                className={`shrink-0 tabular-nums font-medium ${
-                  it.amount > 0 ? 'text-forest-600' : 'text-linen-600 dark:text-linen-300'
-                }`}
-              >
-                {formatCurrency(it.amount)}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }
 
