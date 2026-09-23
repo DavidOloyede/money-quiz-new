@@ -349,6 +349,12 @@ the exceptions — they need a real browser.
   Linking the two says "this cancels that", so the pair nets out and you see
   what you actually spent. It also spots payment plans by itself, because
   nobody would think to go looking for them.
+- **`filter.ts`** — The one **sieve** every list uses: text, amount, category,
+  source. Amounts match on size rather than direction, so you can look for "the
+  $118 one" without first remembering whether it was money in or out. This
+  matters when one shop name covers two different bills — the HOA dues and the
+  home insurance arrive under the same name, and the amount is the only thing
+  that tells them apart.
 - **`owner.ts`** — Knows the difference between **money you moved to yourself**
   and money that changed hands. Zelle, Cash App and PayPal make both look the
   same, and most people's statements are mostly the first kind. You tell it
@@ -551,6 +557,9 @@ which lives with the other shapes in `types.ts`.)
     instead, which also clears the individual pins on that store — you asked
     for all of them. Older per-description edits are still honored.
   - **renames (aliases)** — per merchant, survive re-imports.
+  - **treatments** — per charge: "someone paid me back" or "this was just me
+    moving money", both of which change whether and how a row counts.
+  - **links** — which credit cancels which charge, per charge.
   - **recurring flags** — a per-merchant flag (whole-merchant repeats like Rent)
     **and** `recurringTxns`, a per-charge flag by signature (one Amazon charge that
     repeats). *(Subscriptions are instead identified by the Subscriptions

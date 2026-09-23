@@ -38,6 +38,8 @@ export function ImportView({ onNavigate }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  // Set when someone clicks a source above, so the table below narrows to it.
+  const [focusSource, setFocusSource] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleFile = (file: File) => {
@@ -240,13 +242,22 @@ export function ImportView({ onNavigate }: Props) {
 
       {sources.length > 0 && stage === 'idle' && (
         <div className="mt-6">
-          <ImportedFiles sources={sources} onRemove={removeSource} onSync={syncPlaidSource} />
+          <ImportedFiles
+            sources={sources}
+            onRemove={removeSource}
+            onSync={syncPlaidSource}
+            onSelect={setFocusSource}
+          />
         </div>
       )}
 
       {hasData && stage === 'idle' && (
         <div className="mt-6">
-          <TransactionTable transactions={transactions} />
+          <TransactionTable
+            transactions={transactions}
+            sources={sources}
+            focusSourceId={focusSource}
+          />
         </div>
       )}
     </div>

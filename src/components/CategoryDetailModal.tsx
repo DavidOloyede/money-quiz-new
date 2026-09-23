@@ -18,6 +18,10 @@ import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { LinkIcon, StarIcon, XIcon } from './icons'
+import { filterTransactions, type TransactionCriteria } from '@moneyquiz/core/lib/filter'
+import { TransactionFilters } from './TransactionFilters'
+import { BulkActionBar } from './BulkActionBar'
+import { useSelection } from '../hooks/useSelection'
 import { TransactionMarks, useTransactionActions } from './TransactionActions'
 import { useWheelPan } from '../hooks/useWheelPan'
 
@@ -51,6 +55,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const { rename, node: renameNode } = useRenameSimilar()
   const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
   const { open: openActions, node: actionsNode } = useTransactionActions()
+  const [criteria, setCriteria] = useState<TransactionCriteria>({})
   const [sortKey, setSortKey] = useState<SortKey>('amount')
   const [sortAsc, setSortAsc] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -87,11 +92,14 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
     [transactions, category, cell, flow, month],
   )
 
+  // The filter bar narrows within whatever the drill already selected.
+  const shown = useMemo(() => filterTransactions(items, criteria), [items, criteria])
+
   // Category is only worth sorting by when the list actually mixes categories.
   const mixed = useMemo(() => new Set(items.map((t) => t.category)).size > 1, [items])
 
   const sorted = useMemo(() => {
-    const arr = items.slice()
+    const arr = shown.slice()
     arr.sort((a, b) => {
       let cmp: number
       switch (sortKey) {
@@ -113,7 +121,9 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
       return sortAsc ? cmp : -cmp
     })
     return arr
-  }, [items, sortKey, sortAsc, aliases])
+  }, [shown, sortKey, sortAsc, aliases])
+
+  const selection = useSelection(useMemo(() => sorted.map((t) => t.id), [sorted]))
 
   // First click: date earliest→latest, text A→Z, amount biggest first.
   const toggleSort = (key: SortKey) => {
@@ -201,10 +211,30 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
           </button>
         </div>
 
+        <div className="border-b border-linen-100 dark:border-linen-800 px-5 py-3">
+          <TransactionFilters value={criteria} onChange={setCriteria} amountMode="both" />
+          {shown.length !== items.length && (
+            <p className="mt-2 text-xs text-linen-400 dark:text-linen-500">
+              Showing {shown.length} of {items.length}.
+            </p>
+          )}
+        </div>
+
+        <BulkActionBar ids={selection.ids} onDone={selection.clear} />
+
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
           <table className="w-full text-sm">
             <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
               <tr>
+                <th className="px-3 py-2.5">
+                  <input
+                    type="checkbox"
+                    checked={selection.allVisibleSelected}
+                    onChange={selection.toggleAllVisible}
+                    className="h-4 w-4 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="px-5 py-2.5 font-medium">
                   <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                 </th>
@@ -222,6 +252,15 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
             <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
               {sorted.map((t) => (
                 <tr key={t.id} className="hover:bg-linen-50/60 dark:hover:bg-linen-800/40">
+                  <td className="px-3 py-2.5">
+                    <input
+                      type="checkbox"
+                      checked={selection.has(t.id)}
+                      onChange={() => selection.toggleOne(t.id)}
+                      className="h-4 w-4 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
+                      aria-label={`Select ${t.description}`}
+                    />
+                  </td>
                   <td className="whitespace-nowrap px-5 py-2.5 text-linen-500 dark:text-linen-400">
                     {formatDate(t.date)}
                   </td>
@@ -274,10 +313,12 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                   </td>
                 </tr>
               ))}
-              {items.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-5 py-10 text-center text-sm text-linen-400 dark:text-linen-500">
-                    Nothing left in this category — you moved it all somewhere else.
+                  <td colSpan={5} className="px-5 py-10 text-center text-sm text-linen-400 dark:text-linen-500">
+                    {items.length === 0
+                      ? 'Nothing left in this category — you moved it all somewhere else.'
+                      : 'No transactions match your filters.'}
                   </td>
                 </tr>
               )}

@@ -16,6 +16,8 @@ import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { XIcon, StarIcon, LinkIcon } from './icons'
 import { TransactionMarks, useTransactionActions } from './TransactionActions'
+import { BulkActionBar } from './BulkActionBar'
+import { useSelection } from '../hooks/useSelection'
 import { useWheelPan } from '../hooks/useWheelPan'
 
 interface Props {
@@ -91,6 +93,8 @@ export function GroupDetailModal({ ids, onClose }: Props) {
     return arr
   }, [transactions, idset, sortKey, sortAsc, aliases])
   // Category only sorts when the group actually mixes categories.
+  const selection = useSelection(useMemo(() => items.map((t) => t.id), [items]))
+
   const mixedCategories = useMemo(
     () => new Set(items.map((t) => t.category)).size > 1,
     [items],
@@ -334,10 +338,20 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           </div>
 
           {/* Transactions */}
+          <BulkActionBar ids={selection.ids} onDone={selection.clear} />
           <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-linen-50 dark:bg-linen-800/50 text-left text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">
                 <tr>
+                  <th className="px-3 py-2.5">
+                    <input
+                      type="checkbox"
+                      checked={selection.allVisibleSelected}
+                      onChange={selection.toggleAllVisible}
+                      className="h-4 w-4 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
+                      aria-label="Select all"
+                    />
+                  </th>
                   <th className="px-5 py-2.5 font-medium">
                     <SortHeader sortKey="date" label="Date" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
                   </th>
@@ -355,6 +369,15 @@ export function GroupDetailModal({ ids, onClose }: Props) {
               <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
                 {items.map((t) => (
                   <tr key={t.id} className="hover:bg-linen-50/60 dark:hover:bg-linen-800/40">
+                    <td className="px-3 py-2.5">
+                      <input
+                        type="checkbox"
+                        checked={selection.has(t.id)}
+                        onChange={() => selection.toggleOne(t.id)}
+                        className="h-4 w-4 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
+                        aria-label={`Select ${t.description}`}
+                      />
+                    </td>
                     <td className="whitespace-nowrap px-5 py-2.5 text-linen-500 dark:text-linen-400">
                       {formatDate(t.date)}
                     </td>

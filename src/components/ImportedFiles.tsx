@@ -6,6 +6,8 @@ interface Props {
   sources: ImportSource[]
   onRemove: (sourceId: string) => void
   onSync?: (sourceId: string) => Promise<number> | void
+  /** Jump to the transaction table, narrowed to this source. */
+  onSelect?: (sourceId: string) => void
 }
 
 function formatWhen(iso: string): string {
@@ -19,7 +21,7 @@ function formatWhen(iso: string): string {
   })
 }
 
-export function ImportedFiles({ sources, onRemove, onSync }: Props) {
+export function ImportedFiles({ sources, onRemove, onSync, onSelect }: Props) {
   const totalTx = sources.reduce((sum, s) => sum + s.count, 0)
   const [syncing, setSyncing] = useState<string | null>(null)
 
@@ -58,9 +60,19 @@ export function ImportedFiles({ sources, onRemove, onSync }: Props) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
-                    {s.fileName}
-                  </span>
+                  {onSelect ? (
+                    <button
+                      onClick={() => onSelect(s.id)}
+                      title={`Show only transactions from ${s.fileName}`}
+                      className="truncate text-left text-sm font-medium text-linen-700 underline-offset-2 hover:text-forest-700 hover:underline dark:text-linen-200 dark:hover:text-forest-400"
+                    >
+                      {s.fileName}
+                    </button>
+                  ) : (
+                    <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
+                      {s.fileName}
+                    </span>
+                  )}
                   {isPlaid && (
                     <span className="shrink-0 rounded-full bg-forest-50 dark:bg-forest-500/10 px-2 py-0.5 text-[10px] font-medium text-forest-700 dark:text-forest-300">
                       Connected
