@@ -59,6 +59,10 @@ export function setSaveListener(fn: SaveListener | null): void {
 export const STORAGE_KEYS = {
   transactions: 'moneyquiz.transactions.v1',
   mapping: 'moneyquiz.mapping.v1',
+  // Category edits remembered at three levels: this exact ROW (txOverrides,
+  // keyed by lib/txKey), every row with this exact description (overrides),
+  // and every row from this merchant (merchantOverrides).
+  txOverrides: 'moneyquiz.txOverrides.v1',
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
@@ -92,6 +96,7 @@ export const STORAGE_KEYS = {
 export const DATA_KEYS: string[] = [
   STORAGE_KEYS.transactions,
   STORAGE_KEYS.mapping,
+  STORAGE_KEYS.txOverrides,
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,

@@ -342,6 +342,12 @@ the exceptions — they need a real browser.
 - **`id.ts`** — Hands out the little **name tags** (unique ids) that each
   transaction and import gets, so helpers that make data don't need to touch
   the notebook just for a tag.
+- **`txKey.ts`** — Gives each transaction a **fingerprint** that stays the same
+  when you import the same statement again. The name tags from `id.ts` are
+  handed out fresh every import, so anything you attach to one particular
+  charge has to be pinned to something about the charge itself: its date, its
+  description, its amount — plus a number saying "this is the second one of
+  those today", because a statement really can list the same charge twice.
 - **`themeAdapter.ts`** — The **light-switch plate**: it knows how to ask the
   device "do you prefer dark mode?" and how to actually flip the app's colors.
   The browser version is built in; the phone app will screw in its own plate.
@@ -510,10 +516,16 @@ which lives with the other shapes in `types.ts`.)
   opted-out groups). Un-starring something the app detected on its own also
   hides that group from the recurring list (otherwise the star would relight
   immediately). The remembered edits:
-  - **category edits** — remembered at **two levels**: by the exact (normalized)
-    description when you fix one transaction, and by merchant when you say
-    "apply to all charges from this store". Both are re-applied on re-import,
-    exact-description first.
+  - **category edits** — remembered at **three levels**. Fixing one transaction
+    now pins your answer to **that exact row** and nothing else, so two charges
+    that look identical — the same HOA descriptor billed at two different
+    amounts, or the very same charge posted twice in one day — can be filed
+    differently and both answers come back on the next import. (It used to
+    remember by description, which meant filing one of them quietly re-filed
+    every other row with the same text, and whichever you edited last won.) Say
+    "apply to all charges from this store" and it's remembered by **merchant**
+    instead, which also clears the individual pins on that store — you asked
+    for all of them. Older per-description edits are still honored.
   - **renames (aliases)** — per merchant, survive re-imports.
   - **recurring flags** — a per-merchant flag (whole-merchant repeats like Rent)
     **and** `recurringTxns`, a per-charge flag by signature (one Amazon charge that

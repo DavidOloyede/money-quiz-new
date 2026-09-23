@@ -25,6 +25,7 @@ import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
 import { groupKey, merchantKey, txSignature } from './lib/merchant'
+import { assignTxKeys } from './lib/txKey'
 import {
   autoRecurringBill,
   recurringBills,
@@ -169,6 +170,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [mapping, setMapping] = useState<ColumnMapping | null>(() =>
     loadJSON<ColumnMapping | null>(STORAGE_KEYS.mapping, null),
   )
+  const [txOverrides, setTxOverrides] = useState<Record<string, Category>>(() =>
+    loadJSON<Record<string, Category>>(STORAGE_KEYS.txOverrides, {}),
+  )
   const [overrides, setOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.overrides, {}),
   )
@@ -239,6 +243,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // (React StrictMode double-invokes updaters, which would duplicate appends).
   const txRef = useRef(rawTransactions)
   txRef.current = rawTransactions
+  const txOverridesRef = useRef(txOverrides)
+  txOverridesRef.current = txOverrides
   const overridesRef = useRef(overrides)
   overridesRef.current = overrides
   const merchantOverridesRef = useRef(merchantOverrides)
@@ -264,25 +270,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // recurring same-amount transfers we promote into spending/income (minus
   // opted-out groups). Recomputed when any input changes.
   const transactions = useMemo(() => {
-    const counted = recurringTransferIds(rawTransactions, aliases, ignoredTransfers)
+    // Stamp each row's stable key and re-apply any category the user pinned to
+    // that exact row. This happens FIRST because everything below reads the
+    // category (transfers are excluded from totals, recurring bills are
+    // detected per category), so it has to see the user's answer, not the
+    // importer's guess.
+    const keys = assignTxKeys(rawTransactions)
+    const rows = rawTransactions.map((t) => {
+      const key = keys.get(t.id) as string
+      const pinned = txOverrides[key]
+      return pinned ? { ...t, key, category: pinned, overridden: true } : { ...t, key }
+    })
+    const counted = recurringTransferIds(rows, aliases, ignoredTransfers)
     const flag = (t: Transaction, rec: boolean): Transaction => {
       const counts = counted.has(t.id)
       if (!rec && !counts) return t
       return { ...t, recurring: rec ? true : undefined, counts: counts ? true : undefined }
     }
     // merchantKey() is regex-heavy — resolve each row's whole-merchant ★ once.
-    const merchantFlagged = rawTransactions.map(
-      (t) => !!recurringMerchants[merchantKey(t.description)],
-    )
+    const merchantFlagged = rows.map((t) => !!recurringMerchants[merchantKey(t.description)])
     // Members of groups the Recurring section shows on its own (detection or a
     // whole-merchant ★) get the star too. Per-transaction sig flags are left
     // out of this pass on purpose — one starred Amazon charge shouldn't light
     // up every Amazon charge.
-    const detectBase = rawTransactions.map((t, i) => flag(t, merchantFlagged[i]))
+    const detectBase = rows.map((t, i) => flag(t, merchantFlagged[i]))
     const sectionIds = new Set(
       recurringBills(detectBase, aliases, dismissedRecurring, recurringKinds).flatMap((r) => r.ids),
     )
-    return rawTransactions.map((t, i) =>
+    return rows.map((t, i) =>
       flag(
         t,
         merchantFlagged[i] ||
@@ -292,6 +307,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     )
   }, [
     rawTransactions,
+    txOverrides,
     aliases,
     ignoredTransfers,
     recurringMerchants,
@@ -308,6 +324,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (mapping) saveJSON(STORAGE_KEYS.mapping, mapping)
   }, [mapping])
+  useEffect(() => saveJSON(STORAGE_KEYS.txOverrides, txOverrides), [txOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.recurring, recurringMerchants), [recurringMerchants])
@@ -442,34 +459,56 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ])
   }, [withOverrides])
 
+  /**
+   * Edit ONE transaction's category. The choice is pinned to that exact row
+   * (lib/txKey), so two identical-looking charges — the same HOA descriptor at
+   * two different amounts, or the same charge posted twice in a day — can be
+   * filed differently and both answers survive a re-import. It used to be
+   * remembered by description, which meant the last edit silently re-filed
+   * every other row that shared the text.
+   */
   const setCategory = useCallback((id: string, category: Category) => {
-    const target = txRef.current.find((t) => t.id === id)
-    setRawTransactions((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, category, overridden: true } : t)),
-    )
-    if (target) {
-      setOverrides((o) => ({ ...o, [overrideKey(target.description)]: category }))
-    }
+    const target = transactionsRef.current.find((t) => t.id === id)
+    const key = target?.key
+    if (!key) return
+    setTxOverrides((o) => ({ ...o, [key]: category }))
   }, [])
 
+  /** Pin a category to each of these exact rows (see setCategory). */
   const setCategoryBulk = useCallback((ids: string[], category: Category) => {
     const idset = new Set(ids)
-    const affected = txRef.current.filter((t) => idset.has(t.id))
-    setRawTransactions((prev) =>
-      prev.map((t) => (idset.has(t.id) ? { ...t, category, overridden: true } : t)),
-    )
-    setOverrides((o) => {
+    const keys = transactionsRef.current
+      .filter((t) => idset.has(t.id) && t.key)
+      .map((t) => t.key as string)
+    if (keys.length === 0) return
+    setTxOverrides((o) => {
       const next = { ...o }
-      for (const t of affected) next[overrideKey(t.description)] = category
+      for (const k of keys) next[k] = category
       return next
     })
   }, [])
 
+  /**
+   * Apply a category to every charge from this merchant and remember it for
+   * future imports. This is the deliberate "all of them" sweep, so it also
+   * clears any per-row pins on that merchant — otherwise rows the user had
+   * filed individually would ignore the sweep they just asked for.
+   */
   const setCategoryForMerchant = useCallback((key: string, category: Category) => {
+    const pinned = transactionsRef.current
+      .filter((t) => t.key && merchantKey(t.description) === key)
+      .map((t) => t.key as string)
     setRawTransactions((prev) =>
       prev.map((t) => (merchantKey(t.description) === key ? { ...t, category, overridden: true } : t)),
     )
     setMerchantOverrides((o) => ({ ...o, [key]: category }))
+    if (pinned.length > 0) {
+      setTxOverrides((o) => {
+        const next = { ...o }
+        for (const k of pinned) delete next[k]
+        return next
+      })
+    }
   }, [])
 
   /** Map a set of transaction ids to the distinct merchant keys behind them. */
@@ -681,6 +720,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setRawTransactions((prev) =>
         prev.map((t) => (t.category === id ? { ...t, category: 'other' } : t)),
       )
+      setTxOverrides((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== id)))
       setOverrides((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== id)))
       setMerchantOverrides((o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== id)))
       setBudgets((b) => {
@@ -743,6 +783,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     DATA_KEYS.forEach(removeKey)
     setRawTransactions([])
     setMapping(null)
+    setTxOverrides({})
     setOverrides({})
     setMerchantOverrides({})
     setRecurringMerchants({})

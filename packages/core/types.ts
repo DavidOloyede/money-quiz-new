@@ -37,6 +37,12 @@ export interface Transaction {
   /** Signed: negative = money out (expense), positive = money in (income) */
   amount: number
   category: Category
+  /**
+   * Stable identity for this row across re-imports (see lib/txKey). DERIVED by
+   * the store, never persisted on the row — it's what per-transaction edits,
+   * links and treatments are keyed on, since `id` is re-minted every import.
+   */
+  key?: string
   /** True when the user has manually changed the category */
   overridden?: boolean
   /**
