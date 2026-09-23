@@ -9,16 +9,11 @@ import { useRouter } from 'expo-router'
 import { useStore } from '@moneyquiz/core'
 import { formatCurrency } from '@moneyquiz/core/lib/format'
 import { quizXp } from '@moneyquiz/core/lib/gamification'
-import {
-  askedKinds,
-  generateQuiz,
-  quizInsights,
-  type EvidenceCard,
-  type QuizQuestion,
-} from '@moneyquiz/core/lib/quiz'
+import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { BadgesCard } from '@/components/BadgesCard'
+import { QuizEvidence } from '@/components/QuizEvidence'
 import { QuizStatsRow } from '@/components/QuizStatsRow'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, StatusLine } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
@@ -227,77 +222,8 @@ export default function QuizScreen() {
         )}
       </Card>
 
-      {answered && q.evidence && q.evidence.length > 0 && (
-        <View style={{ gap: spacing.sm }}>
-          <Text
-            style={{
-              fontFamily: fonts.sansSemiBold,
-              fontSize: 11,
-              letterSpacing: 0.5,
-              textTransform: 'uppercase',
-              color: colors.faint,
-            }}
-          >
-            The numbers behind this answer
-          </Text>
-          {q.evidence.map((card, i) => (
-            <EvidenceList key={i} card={card} />
-          ))}
-        </View>
-      )}
+      {answered && <QuizEvidence evidence={q.evidence} />}
     </Screen>
-  )
-}
-
-function EvidenceList({ card }: { card: EvidenceCard }) {
-  const { colors } = useAppTheme()
-  return (
-    <Card style={{ gap: 0, padding: 0 }}>
-      <Text
-        style={{
-          fontFamily: fonts.sansSemiBold,
-          fontSize: 12,
-          color: colors.text,
-          paddingHorizontal: spacing.md,
-          paddingVertical: spacing.sm,
-        }}
-      >
-        {card.title}
-      </Text>
-      {card.items.map((it, i) => (
-        <View
-          key={i}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'baseline',
-            gap: spacing.sm,
-            paddingHorizontal: spacing.md,
-            paddingVertical: spacing.xs + 2,
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-          }}
-        >
-          <Text
-            numberOfLines={1}
-            style={{ flex: 1, fontFamily: fonts.sans, fontSize: 12, color: colors.text }}
-          >
-            {it.label}
-            {it.detail && <Text style={{ color: colors.faint }}> {it.detail}</Text>}
-          </Text>
-          {it.amount !== undefined && (
-            <Text
-              style={{
-                fontFamily: fonts.sansMedium,
-                fontSize: 12,
-                color: it.amount > 0 ? colors.success : colors.text,
-              }}
-            >
-              {formatCurrency(it.amount)}
-            </Text>
-          )}
-        </View>
-      ))}
-    </Card>
   )
 }
 

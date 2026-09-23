@@ -4,7 +4,8 @@
  * there's data; a general financial-literacy question when there isn't, so
  * the daily habit starts before any account is connected. Answering earns XP
  * (a little more when correct); the same question stays up all day and a new
- * one arrives at midnight.
+ * one arrives at midnight. Once answered it shows the same receipts the quiz
+ * does — the transactions the figure came from.
  */
 import { useState } from 'react'
 import { Text, View } from 'react-native'
@@ -12,6 +13,7 @@ import { useStore } from '@moneyquiz/core'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
 
 import { AnswerOption } from '@/components/AnswerOption'
+import { QuizEvidence } from '@/components/QuizEvidence'
 import { Card, CardTitle } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 
@@ -104,6 +106,7 @@ export function DailyQuestion() {
               {q.takeaway}
             </Text>
           </View>
+          <QuizEvidence evidence={q.evidence} />
           <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint, textAlign: 'center' }}>
             +{dailyQuestionXp(correct)} XP · come back tomorrow for a new one
           </Text>

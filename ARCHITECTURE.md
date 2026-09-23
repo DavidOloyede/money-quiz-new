@@ -78,7 +78,8 @@ car so a second car can use the same engine**:
 
   - **Today** — the daily rhythm in one place: the verse of the day, the
     question of the day (personalized once you have data, a general money
-    question before that), and your level/streak/badge progress. A new verse
+    question before that — with the transactions behind the answer, same as
+    the quiz), and your level/streak/badge progress. A new verse
     and question arrive at midnight, and opening the app counts toward your
     streak.
   - **Quiz** — the same quiz as the website, built from your own
@@ -294,17 +295,22 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     default**; untick "Counts" for genuine account-to-account moves.
 - **`charts/CategoryDonut.tsx`, `charts/MonthlyTrend.tsx`** — The actual pie
   chart and bar chart (drawn with a tool called Recharts).
-- **`QuizView.tsx`** — The Quiz screen. After you answer, most questions show
+- **`QuizView.tsx`** — The Quiz screen. After you answer, every question shows
   **"the numbers behind this answer"** — the actual transactions (or recurring
   bills) the figure came from; trend questions show the two months side by
   side. Leaving mid-quiz pops a **"Leave the quiz?"** warning so progress isn't
   lost by accident.
+- **`QuizEvidence.tsx`** — That "numbers behind this answer" list itself. It's
+  its own piece so the quiz and the question of the day show the same receipts
+  — no answer anywhere in the app gives you a figure you can't check.
 - **`DailyQuestionCard.tsx`** — The **Question of the day** at the top of the
   Quiz screen: one question per day, same question all day, a new one at local
   midnight. With data it's personalized from *your* transactions; **with no data
   it asks a general money-literacy question** (so a brand-new user can start a
   streak before connecting anything). Answering earns XP — a little more when
-  you're right — and the card shows your 🔥 streak.
+  you're right — and the card shows your 🔥 streak. Once you've answered, it
+  lists the transactions behind the figure, just like the quiz does (the
+  general questions have no transactions behind them, so they show none).
 - **`QuizHistory.tsx`** — Your past scores and your "day streak".
 - **`SettingsView.tsx`** — Theme, custom categories, the export/clear buttons,
   and the **Help & support** card.
@@ -469,7 +475,10 @@ the exceptions — they need a real browser.
   question per day (personalized from your data via the quiz maker, or a
   general literacy question from `data/generalQuestions.ts` when there's no
   data), saves it so reloads show the same question, and pays XP for answering
-  (+bonus when correct). Rolls over at local midnight, like the verse.
+  (+bonus when correct). Rolls over at local midnight, like the verse. Because
+  it borrows the quiz maker's questions, it also borrows their receipts — the
+  saved question keeps the transaction list, so it's still there after a
+  reload.
 - **`giving.ts`** — The **generosity calculator**: tithes + charity totals,
   giving as a % of income, per-month giving, and progress toward a giving goal.
 - **`badges.ts`** — The **badge rules**: one-time achievements (First Steps,
@@ -484,7 +493,10 @@ the exceptions — they need a real browser.
   end-of-quiz insights. The income question counts **real income only** (refunds
   net against spending), the transaction-count question counts **expenses only**
   (how often money went *out*), and the recurring questions ask about
-  **bills only** — repeat habits like Amazon runs are left out.
+  **bills only** — repeat habits like Amazon runs are left out. Every question
+  it builds comes with its **receipts** — the list of transactions the figure
+  was worked out from, refunds included so the list adds up to the number you
+  were asked about.
 - **`format.ts`** — Makes numbers and dates look nice ("$1,234.56", "Apr 3, 2026").
 - **`plaid.ts`** — Talks to the backend's bank connector (`/api/plaid/…`):
   start a connection, sync, disconnect.
