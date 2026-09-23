@@ -63,6 +63,11 @@ export const STORAGE_KEYS = {
   // keyed by lib/txKey), every row with this exact description (overrides),
   // and every row from this merchant (merchantOverrides).
   txOverrides: 'moneyquiz.txOverrides.v1',
+  // Description relabels pinned to this exact ROW (keyed by lib/txKey), same
+  // shape as txOverrides — lets two same-merchant, different-amount charges
+  // (e.g. Apple's $9.99 iCloud vs $10.99 Music) get different labels, which a
+  // merchant-wide alias can't do.
+  txDescriptionOverrides: 'moneyquiz.txDescriptionOverrides.v1',
   // How single rows count: 'reimbursement' or 'internal' (see types.TxTreatment).
   txTreatments: 'moneyquiz.txTreatments.v1',
   // A credit -> the charge it offsets, both by txKey. '' is a tombstone meaning
@@ -111,6 +116,7 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.transactions,
   STORAGE_KEYS.mapping,
   STORAGE_KEYS.txOverrides,
+  STORAGE_KEYS.txDescriptionOverrides,
   STORAGE_KEYS.txTreatments,
   STORAGE_KEYS.txLinks,
   STORAGE_KEYS.ownerNames,

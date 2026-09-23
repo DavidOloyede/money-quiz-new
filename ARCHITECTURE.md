@@ -178,11 +178,17 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 - **`ImportedFiles.tsx`** — The list of files and connected accounts you added,
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
-  search, filter, and **change a category**. You can also select many at once.
-  Each row has a **★ star** for **recurring payments** — it lights up on its
-  own when the charge belongs to a group already shown in the Recurring &
-  subscriptions card, and you can tap it to flag a charge yourself. There's
-  also a "Recurring" filter to show only those.
+  search, filter, and **change a category**. You can also select many at once
+  and, from the bar that appears, **set a category**, **mark reimbursement /
+  internal / normal**, or **rename them** to a label of your choosing — e.g.
+  select just the $9.99 Apple charges and call them "iCloud", leaving the
+  $10.99 ones alone to become "Apple Music" separately. Unlike the pencil-icon
+  rename below, a bulk rename is pinned to those *exact* charges, not the
+  whole merchant, so different amounts from the same merchant can carry
+  different names. Each row has a **★ star** for **recurring payments** — it
+  lights up on its own when the charge belongs to a group already shown in
+  the Recurring & subscriptions card, and you can tap it to flag a charge
+  yourself. There's also a "Recurring" filter to show only those.
 - **`ApplyToSimilar.tsx`** — The little popup after you change a category. It
   offers to update the charges that share the **same amount and a similar name**
   (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
@@ -576,6 +582,11 @@ which lives with the other shapes in `types.ts`.)
     instead, which also clears the individual pins on that store — you asked
     for all of them. Older per-description edits are still honored.
   - **renames (aliases)** — per merchant, survive re-imports.
+  - **description overrides** — the bulk-rename counterpart to per-row category
+    edits, same idea: pinned to that **exact row**, so the $9.99 Apple charges
+    can become "iCloud" while the $10.99 ones stay untouched (or become
+    "Apple Music" separately) instead of one merchant-wide alias overwriting
+    both. Survives re-imports the same way per-row category pins do.
   - **treatments** — per charge: "someone paid me back" or "this was just me
     moving money", both of which change whether and how a row counts.
   - **links** — which credit cancels which charge, per charge.
@@ -703,8 +714,12 @@ the financial details scrubbed out.
   card; habits in the Spending habits card; "Treat as" re-files either way.
 - **Refund / cashback** — money back in a spending category. Not income: it
   subtracts from that category's spending in the month it lands.
-- **Alias / rename** — a clean display name you give a merchant; every messy
-  variant folds under it, in display and in grouping.
+- **Alias / rename** — a clean display name you give a merchant (via the
+  pencil icon); every messy variant folds under it, in display and in
+  grouping — including other amounts from the same merchant. A **bulk
+  rename** (select rows in the transaction table, then "Rename to…") instead
+  pins the label to just the exact charges you selected, so two amounts from
+  one merchant can carry different names.
 - **Recurring transfer** — a same-amount, same-day Zelle/transfer that's really a
   monthly bill; counted toward your totals (unless you opt it out).
 - **Source** — one thing you added (an uploaded file or a connected bank).

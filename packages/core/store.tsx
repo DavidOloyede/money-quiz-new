@@ -101,6 +101,8 @@ interface StoreValue {
   setCategory: (id: string, category: Category) => void
   /** Set a category on many transactions at once (remembered by description). */
   setCategoryBulk: (ids: string[], category: Category) => void
+  /** Relabel many transactions' description at once, pinned per exact row. */
+  setDescriptionBulk: (ids: string[], description: string) => void
   /** Apply a category to every transaction from the same merchant + remember it. */
   setCategoryForMerchant: (key: string, category: Category) => void
   /**
@@ -202,6 +204,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [txOverrides, setTxOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.txOverrides, {}),
   )
+  const [txDescriptionOverrides, setTxDescriptionOverrides] = useState<Record<string, string>>(() =>
+    loadJSON<Record<string, string>>(STORAGE_KEYS.txDescriptionOverrides, {}),
+  )
   const [txTreatments, setTxTreatments] = useState<Record<string, TxTreatment>>(() =>
     loadJSON<Record<string, TxTreatment>>(STORAGE_KEYS.txTreatments, {}),
   )
@@ -287,6 +292,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   txRef.current = rawTransactions
   const txOverridesRef = useRef(txOverrides)
   txOverridesRef.current = txOverrides
+  const txDescriptionOverridesRef = useRef(txDescriptionOverrides)
+  txDescriptionOverridesRef.current = txDescriptionOverrides
   const txLinksRef = useRef(txLinks)
   txLinksRef.current = txLinks
   const overridesRef = useRef(overrides)
@@ -326,6 +333,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const keyed = rawTransactions.map((t) => {
       const key = keys.get(t.id) as string
       let ruled: Category | undefined
+      // Transfer detection reads the bank's own text, not a relabel — renaming
+      // "Zelle to John Doe" to something else shouldn't stop it being reviewed.
       if (isTransferDescription(t.description)) {
         if (isSelfTransfer(t.description, ownerNames)) {
           // Money you moved to yourself never counts, and never needs review.
@@ -336,8 +345,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           ruled = rule?.category
         }
       }
-      const pinned = txOverrides[key] ?? matchCategoryRule(t.description, categoryRules) ?? ruled
-      return pinned ? { ...t, key, category: pinned, overridden: true } : { ...t, key }
+      const label = txDescriptionOverrides[key]
+      const base = label ? { ...t, key, description: label, renamed: true } : { ...t, key }
+      const pinned = txOverrides[key] ?? matchCategoryRule(base.description, categoryRules) ?? ruled
+      return pinned ? { ...base, category: pinned, overridden: true } : base
     })
     // Treatments and links come next: a linked credit adopts its charge's
     // category, and an internal transfer must be settled before the recurring
@@ -371,6 +382,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [
     rawTransactions,
     txOverrides,
+    txDescriptionOverrides,
     txTreatments,
     txLinks,
     ownerNames,
@@ -393,6 +405,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (mapping) saveJSON(STORAGE_KEYS.mapping, mapping)
   }, [mapping])
   useEffect(() => saveJSON(STORAGE_KEYS.txOverrides, txOverrides), [txOverrides])
+  useEffect(
+    () => saveJSON(STORAGE_KEYS.txDescriptionOverrides, txDescriptionOverrides),
+    [txDescriptionOverrides],
+  )
   useEffect(() => saveJSON(STORAGE_KEYS.txTreatments, txTreatments), [txTreatments])
   useEffect(() => saveJSON(STORAGE_KEYS.txLinks, txLinks), [txLinks])
   useEffect(() => saveJSON(STORAGE_KEYS.ownerNames, ownerNames), [ownerNames])
@@ -532,6 +548,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
     setMerchantOverrides({})
     setTxOverrides({})
+    setTxDescriptionOverrides({})
     // The sample stands in for someone who has already set the app up: their
     // own names are listed, so its self-transfers are recognized, and their
     // rental rules are in place.
@@ -583,6 +600,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTxOverrides((o) => {
       const next = { ...o }
       for (const k of keys) next[k] = category
+      return next
+    })
+  }, [])
+
+  /**
+   * Relabel each of these exact rows (see setCategory) to a description of the
+   * user's choosing. Pinned per-row rather than by merchant, so ten Apple
+   * charges at different amounts can become "iCloud" and "Apple Music"
+   * separately instead of one relabel overwriting the rest. An empty string
+   * clears the relabel, reverting to the bank's own text.
+   */
+  const setDescriptionBulk = useCallback((ids: string[], description: string) => {
+    const clean = description.trim()
+    const idset = new Set(ids)
+    const keys = transactionsRef.current
+      .filter((t) => idset.has(t.id) && t.key)
+      .map((t) => t.key as string)
+    if (keys.length === 0) return
+    setTxDescriptionOverrides((o) => {
+      const next = { ...o }
+      for (const k of keys) {
+        if (clean) next[k] = clean
+        else delete next[k]
+      }
       return next
     })
   }, [])
@@ -940,6 +981,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setRawTransactions([])
     setMapping(null)
     setTxOverrides({})
+    setTxDescriptionOverrides({})
     setTxTreatments({})
     setTxLinks({})
     setTransferRules({})
@@ -993,6 +1035,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       loadSample,
       setCategory,
       setCategoryBulk,
+      setDescriptionBulk,
       setCategoryForMerchant,
       setTreatment,
       linkTransaction,
@@ -1049,6 +1092,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       loadSample,
       setCategory,
       setCategoryBulk,
+      setDescriptionBulk,
       setCategoryForMerchant,
       setTreatment,
       linkTransaction,

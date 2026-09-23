@@ -152,6 +152,11 @@ export function TransactionTable({ transactions, sources = [], focusSourceId }: 
                         edited
                       </span>
                     )}
+                    {t.renamed && (
+                      <span className="rounded bg-linen-100 dark:bg-linen-700/40 px-1.5 py-0.5 text-[10px] font-medium text-linen-500 dark:text-linen-300">
+                        renamed
+                      </span>
+                    )}
                     <TransactionMarks t={t} />
                   </span>
                 </td>

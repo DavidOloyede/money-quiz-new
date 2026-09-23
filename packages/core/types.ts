@@ -46,6 +46,8 @@ export interface Transaction {
   key?: string
   /** True when the user has manually changed the category */
   overridden?: boolean
+  /** True when the user has manually relabeled this row's description */
+  renamed?: boolean
   /**
    * How this row counts toward totals. DERIVED by the store from the saved
    * treatments, the owner-name rules and any link, never persisted on the row.
