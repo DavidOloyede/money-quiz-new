@@ -15,6 +15,9 @@ export type TimeRange = 'thisMonth' | 'lastMonth' | 'thisYear'
  * lands in spending/income like any other expense.
  */
 export function countsTowardTotals(t: Transaction): boolean {
+  // An internal transfer is money that never left you, whatever category it
+  // ended up in — so it beats even the `counts` promotion above.
+  if (t.treatment === 'internal') return false
   return t.counts === true || !isExcludedCategory(t.category)
 }
 
@@ -52,6 +55,10 @@ export function isIncome(t: Transaction): boolean {
  * month it arrives — the original expense stays where it was.
  */
 export function isRefund(t: Transaction): boolean {
+  if (t.treatment === 'internal') return false
+  // Money someone paid you back is a refund even when its category couldn't
+  // say so on its own — that's the whole point of marking it.
+  if (t.treatment === 'reimbursement') return t.amount > 0
   return t.amount > 0 && isSpendingCategory(t.category)
 }
 
@@ -710,6 +717,9 @@ export function recurringTransfers(transactions: Transaction[], aliases: Aliases
   }
   const map = new Map<string, G>()
   for (const t of transactions) {
+    // Never promote a transfer to yourself into your totals, however
+    // reliably it repeats.
+    if (t.treatment === 'internal') continue
     if (!isExcludedCategory(t.category) || t.amount === 0) continue
     const dir: 'out' | 'in' = t.amount < 0 ? 'out' : 'in'
     const cents = Math.round(Math.abs(t.amount) * 100) / 100

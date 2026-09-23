@@ -46,6 +46,18 @@ export interface Transaction {
   /** True when the user has manually changed the category */
   overridden?: boolean
   /**
+   * How this row counts toward totals. DERIVED by the store from the saved
+   * treatments, the owner-name rules and any link, never persisted on the row.
+   */
+  treatment?: TxTreatment
+  /**
+   * The `key` of the charge this credit reverses or offsets, when the user (or
+   * installment-plan detection) linked them. DERIVED.
+   */
+  linkedTo?: string
+  /** The `key`s of credits linked TO this charge — one charge can have several. DERIVED. */
+  linkedFrom?: string[]
+  /**
    * True when the user has flagged this charge as a recurring payment. Flagging
    * is remembered per-merchant or per-charge (see store), so it survives
    * re-imports. This is the ★ flag; subscriptions are instead identified by the
@@ -61,6 +73,22 @@ export interface Transaction {
   /** Which imported file this transaction came from (so it can be removed). */
   sourceId?: string
 }
+
+/**
+ * How a transaction should be counted, independently of its category.
+ *
+ * Category says *what* the money was; treatment says *whether and how* it
+ * counts. They're separate facts, and a category can only carry one of them —
+ * which is why this isn't just another category:
+ *
+ *  - 'reimbursement' is money in that isn't income. Someone paid you back, so
+ *    it reduces what you spent rather than adding to what you earned — and the
+ *    category is still free to say which spending it offsets.
+ *  - 'internal' is money that only moved between your own accounts. It stays
+ *    out of every total no matter what category it sits in, so a Cash App or
+ *    PayPal transfer to yourself can keep saying it was Cash App.
+ */
+export type TxTreatment = 'normal' | 'reimbursement' | 'internal'
 
 /** How often a subscription bills. */
 export type SubscriptionCadence = 'monthly' | 'annual'

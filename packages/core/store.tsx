@@ -20,12 +20,14 @@ import type {
   SubscriptionMeta,
   ThemeMode,
   Transaction,
+  TxTreatment,
 } from './types'
 import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
 import { groupKey, merchantKey, txSignature } from './lib/merchant'
 import { assignTxKeys } from './lib/txKey'
+import { autoDetectLinks, resolveLinks, type TxLinks } from './lib/links'
 import {
   autoRecurringBill,
   recurringBills,
@@ -87,6 +89,16 @@ interface StoreValue {
   setCategoryBulk: (ids: string[], category: Category) => void
   /** Apply a category to every transaction from the same merchant + remember it. */
   setCategoryForMerchant: (key: string, category: Category) => void
+  /**
+   * Mark rows as a reimbursement (money in that isn't income), an internal
+   * transfer (never counts), or back to normal. Optionally re-files them at the
+   * same time, so "this was someone paying me back for groceries" is one step.
+   */
+  setTreatment: (ids: string[], treatment: TxTreatment, category?: Category) => void
+  /** Link a credit to the charge it offsets, so the pair nets out. */
+  linkTransaction: (childId: string, parentId: string) => void
+  /** Break a link. Also stops installment detection from re-making it. */
+  unlinkTransaction: (childId: string) => void
   /** Toggle the ★ recurring flag for ONE transaction (e.g. a single Amazon charge that repeats). */
   toggleRecurring: (id: string) => void
   /** Flag/unflag a whole group as recurring (every merchant key behind the given transactions). */
@@ -170,6 +182,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [txOverrides, setTxOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.txOverrides, {}),
   )
+  const [txTreatments, setTxTreatments] = useState<Record<string, TxTreatment>>(() =>
+    loadJSON<Record<string, TxTreatment>>(STORAGE_KEYS.txTreatments, {}),
+  )
+  const [txLinks, setTxLinks] = useState<TxLinks>(() => loadJSON<TxLinks>(STORAGE_KEYS.txLinks, {}))
   const [overrides, setOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.overrides, {}),
   )
@@ -242,6 +258,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   txRef.current = rawTransactions
   const txOverridesRef = useRef(txOverrides)
   txOverridesRef.current = txOverrides
+  const txLinksRef = useRef(txLinks)
+  txLinksRef.current = txLinks
   const overridesRef = useRef(overrides)
   overridesRef.current = overrides
   const merchantOverridesRef = useRef(merchantOverrides)
@@ -273,11 +291,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // detected per category), so it has to see the user's answer, not the
     // importer's guess.
     const keys = assignTxKeys(rawTransactions)
-    const rows = rawTransactions.map((t) => {
+    const keyed = rawTransactions.map((t) => {
       const key = keys.get(t.id) as string
       const pinned = txOverrides[key]
       return pinned ? { ...t, key, category: pinned, overridden: true } : { ...t, key }
     })
+    // Treatments and links come next: a linked credit adopts its charge's
+    // category, and an internal transfer must be settled before the recurring
+    // pass below, which would otherwise promote it into the totals.
+    const rows = resolveLinks(keyed, txTreatments, txLinks)
     const counted = recurringTransferIds(rows, aliases, ignoredTransfers)
     const flag = (t: Transaction, rec: boolean): Transaction => {
       const counts = counted.has(t.id)
@@ -305,6 +327,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [
     rawTransactions,
     txOverrides,
+    txTreatments,
+    txLinks,
     aliases,
     ignoredTransfers,
     recurringMerchants,
@@ -322,6 +346,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (mapping) saveJSON(STORAGE_KEYS.mapping, mapping)
   }, [mapping])
   useEffect(() => saveJSON(STORAGE_KEYS.txOverrides, txOverrides), [txOverrides])
+  useEffect(() => saveJSON(STORAGE_KEYS.txTreatments, txTreatments), [txTreatments])
+  useEffect(() => saveJSON(STORAGE_KEYS.txLinks, txLinks), [txLinks])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.recurring, recurringMerchants), [recurringMerchants])
@@ -353,6 +379,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }),
     )
   }, [transactions, quizHistory, sources, paidOffDebts])
+  // Card installment plans arrive as three rows (charge, credit, plan charge).
+  // Pair the credit with the plan charge so only the original purchase counts.
+  // autoDetectLinks skips rows already linked or deliberately unlinked, so
+  // this settles after one pass instead of looping.
+  useEffect(() => {
+    const found = autoDetectLinks(transactionsRef.current, txLinksRef.current)
+    if (Object.keys(found).length > 0) setTxLinks((prev) => ({ ...prev, ...found }))
+  }, [transactions])
+
   useEffect(() => {
     saveJSON(STORAGE_KEYS.theme, theme)
     getThemeAdapter().apply(theme)
@@ -510,6 +545,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return next
       })
     }
+  }, [])
+
+  const setTreatment = useCallback((ids: string[], treatment: TxTreatment, category?: Category) => {
+    const idset = new Set(ids)
+    const keys = transactionsRef.current
+      .filter((t) => idset.has(t.id) && t.key)
+      .map((t) => t.key as string)
+    if (keys.length === 0) return
+    setTxTreatments((prev) => {
+      const next = { ...prev }
+      for (const k of keys) {
+        if (treatment === 'normal') delete next[k]
+        else next[k] = treatment
+      }
+      return next
+    })
+    if (category) {
+      setTxOverrides((prev) => {
+        const next = { ...prev }
+        for (const k of keys) next[k] = category
+        return next
+      })
+    }
+  }, [])
+
+  const linkTransaction = useCallback((childId: string, parentId: string) => {
+    const rows = transactionsRef.current
+    const child = rows.find((t) => t.id === childId)
+    const parent = rows.find((t) => t.id === parentId)
+    if (!child?.key || !parent?.key || child.key === parent.key) return
+    setTxLinks((prev) => ({ ...prev, [child.key as string]: parent.key as string }))
+  }, [])
+
+  const unlinkTransaction = useCallback((childId: string) => {
+    const child = transactionsRef.current.find((t) => t.id === childId)
+    if (!child?.key) return
+    // '' rather than delete: a tombstone, so autoDetectLinks doesn't
+    // immediately re-make the link the user just broke.
+    setTxLinks((prev) => ({ ...prev, [child.key as string]: '' }))
   }, [])
 
   /** Map a set of transaction ids to the distinct merchant keys behind them. */
@@ -785,6 +859,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setRawTransactions([])
     setMapping(null)
     setTxOverrides({})
+    setTxTreatments({})
+    setTxLinks({})
     setOverrides({})
     setMerchantOverrides({})
     setRecurringMerchants({})
@@ -832,6 +908,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategory,
       setCategoryBulk,
       setCategoryForMerchant,
+      setTreatment,
+      linkTransaction,
+      unlinkTransaction,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,
@@ -879,6 +958,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCategory,
       setCategoryBulk,
       setCategoryForMerchant,
+      setTreatment,
+      linkTransaction,
+      unlinkTransaction,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,

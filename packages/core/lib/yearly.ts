@@ -10,8 +10,8 @@
  * it's modeled on.
  */
 import type { Budgets, Category, Transaction } from '../types'
-import { countsTowardTotals } from './analysis'
-import { allCategories, categoryDef, isSpendingCategory } from './categories'
+import { countsTowardTotals, isRefund } from './analysis'
+import { allCategories, categoryDef } from './categories'
 
 export interface SheetCell {
   value: number
@@ -117,12 +117,24 @@ export function buildYearSheet(
 
   const incomeByCat = new Map<Category, number[]>()
   const expenseByCat = new Map<Category, number[]>()
+  // Money coming back to you — a card refund, cashback, or someone paying you
+  // back — is neither income nor a negative expense, so it's collected apart
+  // from both and shown as its own "Refunds & Cashback" row. Deciding that
+  // with isRefund() rather than the category's kind is what lets a
+  // reimbursement fold in here even when its category couldn't have said so.
+  const refundTotals = zeros()
+  let hasRefunds = false
   let firstActualMonth = lastActualMonth
   for (const t of transactions) {
     if (Number(t.date.slice(0, 4)) !== year || !countsTowardTotals(t)) continue
     const m = Number(t.date.slice(5, 7)) - 1
     if (m < 0 || m > 11) continue
     if (m < firstActualMonth) firstActualMonth = m
+    if (isRefund(t)) {
+      hasRefunds = true
+      refundTotals[m] += Math.abs(t.amount)
+      continue
+    }
     const map = t.amount > 0 ? incomeByCat : expenseByCat
     const arr = map.get(t.category) ?? zeros()
     arr[m] += Math.abs(t.amount)
@@ -130,20 +142,9 @@ export function buildYearSheet(
   }
   firstActualMonth = Math.max(0, firstActualMonth)
 
-  // Income rows: income-kind categories stand alone (salary, …); positive
-  // amounts in spending categories are credit-card refunds/cashback, so they
-  // fold into a single "Refunds & Cashback" row instead of masquerading as
-  // "Shopping income".
   const incomeRows: SheetRow[] = []
-  const refundTotals = zeros()
-  let hasRefunds = false
   for (const [cat, actual] of incomeByCat) {
-    if (isSpendingCategory(cat)) {
-      hasRefunds = true
-      for (let m = 0; m < 12; m++) refundTotals[m] += actual[m]
-    } else {
-      incomeRows.push(buildRow(cat, actual, firstActualMonth, lastActualMonth, undefined))
-    }
+    incomeRows.push(buildRow(cat, actual, firstActualMonth, lastActualMonth, undefined))
   }
   if (hasRefunds) {
     incomeRows.push({

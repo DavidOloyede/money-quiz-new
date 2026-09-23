@@ -25,6 +25,8 @@ export const SYNCED_KEYS: string[] = [
   STORAGE_KEYS.transactions,
   STORAGE_KEYS.mapping,
   STORAGE_KEYS.txOverrides,
+  STORAGE_KEYS.txTreatments,
+  STORAGE_KEYS.txLinks,
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,

@@ -63,6 +63,11 @@ export const STORAGE_KEYS = {
   // keyed by lib/txKey), every row with this exact description (overrides),
   // and every row from this merchant (merchantOverrides).
   txOverrides: 'moneyquiz.txOverrides.v1',
+  // How single rows count: 'reimbursement' or 'internal' (see types.TxTreatment).
+  txTreatments: 'moneyquiz.txTreatments.v1',
+  // A credit -> the charge it offsets, both by txKey. '' is a tombstone meaning
+  // "the user unlinked this", so auto-detection doesn't put it straight back.
+  txLinks: 'moneyquiz.txLinks.v1',
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
@@ -97,6 +102,8 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.transactions,
   STORAGE_KEYS.mapping,
   STORAGE_KEYS.txOverrides,
+  STORAGE_KEYS.txTreatments,
+  STORAGE_KEYS.txLinks,
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,
