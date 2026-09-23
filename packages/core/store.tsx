@@ -28,6 +28,8 @@ import { overrideKey } from './lib/categorize'
 import { groupKey, merchantKey, txSignature } from './lib/merchant'
 import { assignTxKeys } from './lib/txKey'
 import { autoDetectLinks, resolveLinks, type TxLinks } from './lib/links'
+import { counterpartyKey, isSelfTransfer, isTransferDescription } from './lib/owner'
+import type { TransferRules } from './lib/transferReview'
 import {
   autoRecurringBill,
   recurringBills,
@@ -76,6 +78,10 @@ interface StoreValue {
   dismissedRecurring: Record<string, true>
   /** Bill ⇄ habit reclassifications for recurring groups (by group key). */
   recurringKinds: RecurringKindOverrides
+  /** The user's own names / account nicknames, for spotting transfers to themselves. */
+  ownerNames: string[]
+  /** Review decisions kept per transfer counterparty, applied to future imports. */
+  transferRules: TransferRules
   addImport: (tx: Transaction[], source: ImportSource) => void
   removeSource: (sourceId: string) => void
   /** Register a Plaid-connected account as a source. */
@@ -99,6 +105,10 @@ interface StoreValue {
   linkTransaction: (childId: string, parentId: string) => void
   /** Break a link. Also stops installment detection from re-making it. */
   unlinkTransaction: (childId: string) => void
+  /** Replace the list of "my names / my accounts" phrases. */
+  setOwnerNames: (names: string[]) => void
+  /** Remember (or, with null, forget) what to do with a counterparty's transfers. */
+  setTransferRule: (counterparty: string, rule: TransferRules[string] | null) => void
   /** Toggle the ★ recurring flag for ONE transaction (e.g. a single Amazon charge that repeats). */
   toggleRecurring: (id: string) => void
   /** Flag/unflag a whole group as recurring (every merchant key behind the given transactions). */
@@ -186,6 +196,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     loadJSON<Record<string, TxTreatment>>(STORAGE_KEYS.txTreatments, {}),
   )
   const [txLinks, setTxLinks] = useState<TxLinks>(() => loadJSON<TxLinks>(STORAGE_KEYS.txLinks, {}))
+  const [ownerNames, setOwnerNamesState] = useState<string[]>(() =>
+    loadJSON<string[]>(STORAGE_KEYS.ownerNames, []),
+  )
+  const [transferRules, setTransferRules] = useState<TransferRules>(() =>
+    loadJSON<TransferRules>(STORAGE_KEYS.transferRules, {}),
+  )
   const [overrides, setOverrides] = useState<Record<string, Category>>(() =>
     loadJSON<Record<string, Category>>(STORAGE_KEYS.overrides, {}),
   )
@@ -291,15 +307,30 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // detected per category), so it has to see the user's answer, not the
     // importer's guess.
     const keys = assignTxKeys(rawTransactions)
+    // Decisions the user already made about a transfer counterparty apply to
+    // every row from them, including ones imported later.
+    const fromRules: Record<string, TxTreatment> = {}
     const keyed = rawTransactions.map((t) => {
       const key = keys.get(t.id) as string
-      const pinned = txOverrides[key]
+      let ruled: Category | undefined
+      if (isTransferDescription(t.description)) {
+        if (isSelfTransfer(t.description, ownerNames)) {
+          // Money you moved to yourself never counts, and never needs review.
+          fromRules[key] = 'internal'
+        } else {
+          const rule = transferRules[counterpartyKey(t.description)]
+          if (rule?.treatment) fromRules[key] = rule.treatment
+          ruled = rule?.category
+        }
+      }
+      const pinned = txOverrides[key] ?? ruled
       return pinned ? { ...t, key, category: pinned, overridden: true } : { ...t, key }
     })
     // Treatments and links come next: a linked credit adopts its charge's
     // category, and an internal transfer must be settled before the recurring
-    // pass below, which would otherwise promote it into the totals.
-    const rows = resolveLinks(keyed, txTreatments, txLinks)
+    // pass below, which would otherwise promote it into the totals. An
+    // explicit per-row choice outranks anything a rule inferred.
+    const rows = resolveLinks(keyed, { ...fromRules, ...txTreatments }, txLinks)
     const counted = recurringTransferIds(rows, aliases, ignoredTransfers)
     const flag = (t: Transaction, rec: boolean): Transaction => {
       const counts = counted.has(t.id)
@@ -329,6 +360,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     txOverrides,
     txTreatments,
     txLinks,
+    ownerNames,
+    transferRules,
     aliases,
     ignoredTransfers,
     recurringMerchants,
@@ -348,6 +381,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => saveJSON(STORAGE_KEYS.txOverrides, txOverrides), [txOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.txTreatments, txTreatments), [txTreatments])
   useEffect(() => saveJSON(STORAGE_KEYS.txLinks, txLinks), [txLinks])
+  useEffect(() => saveJSON(STORAGE_KEYS.ownerNames, ownerNames), [ownerNames])
+  useEffect(() => saveJSON(STORAGE_KEYS.transferRules, transferRules), [transferRules])
   useEffect(() => saveJSON(STORAGE_KEYS.overrides, overrides), [overrides])
   useEffect(() => saveJSON(STORAGE_KEYS.merchantOverrides, merchantOverrides), [merchantOverrides])
   useEffect(() => saveJSON(STORAGE_KEYS.recurring, recurringMerchants), [recurringMerchants])
@@ -576,6 +611,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const parent = rows.find((t) => t.id === parentId)
     if (!child?.key || !parent?.key || child.key === parent.key) return
     setTxLinks((prev) => ({ ...prev, [child.key as string]: parent.key as string }))
+  }, [])
+
+  const setOwnerNames = useCallback((names: string[]) => {
+    setOwnerNamesState(names.map((n) => n.trim()).filter(Boolean))
+  }, [])
+
+  const setTransferRule = useCallback((party: string, rule: TransferRules[string] | null) => {
+    if (!party) return
+    setTransferRules((prev) => {
+      const next = { ...prev }
+      if (rule) next[party] = rule
+      else delete next[party]
+      return next
+    })
   }, [])
 
   const unlinkTransaction = useCallback((childId: string) => {
@@ -861,6 +910,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTxOverrides({})
     setTxTreatments({})
     setTxLinks({})
+    setTransferRules({})
     setOverrides({})
     setMerchantOverrides({})
     setRecurringMerchants({})
@@ -900,6 +950,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ignoredTransfers,
       dismissedRecurring,
       recurringKinds,
+      ownerNames,
+      transferRules,
       addImport,
       removeSource,
       addPlaidSource,
@@ -911,6 +963,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setTreatment,
       linkTransaction,
       unlinkTransaction,
+      setOwnerNames,
+      setTransferRule,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,
@@ -950,6 +1004,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ignoredTransfers,
       dismissedRecurring,
       recurringKinds,
+      ownerNames,
+      transferRules,
       addImport,
       removeSource,
       addPlaidSource,
@@ -961,6 +1017,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setTreatment,
       linkTransaction,
       unlinkTransaction,
+      setOwnerNames,
+      setTransferRule,
       toggleRecurring,
       setGroupRecurring,
       setSubscriptionMeta,

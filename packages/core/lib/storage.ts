@@ -68,6 +68,12 @@ export const STORAGE_KEYS = {
   // A credit -> the charge it offsets, both by txKey. '' is a tombstone meaning
   // "the user unlinked this", so auto-detection doesn't put it straight back.
   txLinks: 'moneyquiz.txLinks.v1',
+  // The user's own names and account nicknames, so transfers to themselves
+  // can be told apart from transfers to other people.
+  ownerNames: 'moneyquiz.ownerNames.v1',
+  // Decisions made in the transfer review, kept per counterparty so they
+  // apply to future imports too.
+  transferRules: 'moneyquiz.transferRules.v1',
   overrides: 'moneyquiz.overrides.v1',
   sources: 'moneyquiz.sources.v1',
   merchantOverrides: 'moneyquiz.merchantOverrides.v1',
@@ -104,6 +110,8 @@ export const DATA_KEYS: string[] = [
   STORAGE_KEYS.txOverrides,
   STORAGE_KEYS.txTreatments,
   STORAGE_KEYS.txLinks,
+  STORAGE_KEYS.ownerNames,
+  STORAGE_KEYS.transferRules,
   STORAGE_KEYS.overrides,
   STORAGE_KEYS.sources,
   STORAGE_KEYS.merchantOverrides,
