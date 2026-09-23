@@ -31,6 +31,7 @@ export type ColorRamp = Record<
 export const fonts = {
   sans: `"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif`,
   display: `"Fraunces", ui-serif, Georgia, "Times New Roman", serif`,
+  rounded: `"Nunito", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`,
 } as const
 
 export const cream = '#fffcf5'

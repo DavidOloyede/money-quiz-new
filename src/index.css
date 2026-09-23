@@ -6,24 +6,32 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Manna Money type: Fraunces (a warm display serif — headings, the verse,
- * hero numbers) + Inter (UI and body, with tabular figures where columns
- * align). Self-hosted variable fonts — no third-party font CDN, in keeping
- * with the app's privacy posture.
+ * Manna Money type, three voices (see docs/DESIGN.md):
+ * - Nunito (`font-rounded`), the coach: headlines, buttons, game text.
+ * - Fraunces (`font-display`), the storyteller: scripture and story; add
+ *   `font-soft` to round it off via its SOFT axis.
+ * - Inter (`font-sans`, the body default), the ledger: tables, money, body.
+ * Self-hosted variable fonts, no third-party font CDN, in keeping with the
+ * app's privacy posture.
+ *
+ * The Fraunces files are Fontsource's "full" cut (5.3.0) with the WONK axis
+ * pinned to 0 via fontTools: WONK defaults to 1 there, which would switch on
+ * the leaning "wonky" letters, and the old opsz-only cut was pinned at 0.
+ * At SOFT 0 they shape and draw exactly like that old cut.
  */
 @font-face {
   font-family: "Fraunces";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url("/fonts/fraunces-latin-opsz-normal.woff2") format("woff2");
+  src: url("/fonts/fraunces-latin-soft-normal.woff2") format("woff2");
 }
 @font-face {
   font-family: "Fraunces";
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url("/fonts/fraunces-latin-opsz-italic.woff2") format("woff2");
+  src: url("/fonts/fraunces-latin-soft-italic.woff2") format("woff2");
 }
 @font-face {
   font-family: "Inter";
@@ -31,6 +39,18 @@
   font-weight: 100 900;
   font-display: swap;
   src: url("/fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("/fonts/nunito-latin-wght-normal.woff2") format("woff2");
+}
+
+/* The storyteller's rounder serif. Other fonts ignore the SOFT axis. */
+@utility font-soft {
+  font-variation-settings: "SOFT" 100;
 }
 
 html {

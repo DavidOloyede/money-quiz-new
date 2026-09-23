@@ -23,6 +23,7 @@ const css = `/*
 @theme {
   --font-sans: ${fonts.sans};
   --font-display: ${fonts.display};
+  --font-rounded: ${fonts.rounded};
 
   --color-cream: ${cream};
 

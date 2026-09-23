@@ -53,7 +53,8 @@ and infra are intentionally excluded.
   `url()`/`@import`). The bundle has no CSS of its own (Tailwind classes aren't
   CSS imports), so `_ds_bundle.css` is empty by design.
 - **Fonts:** self-hosted variable fonts since the Manna Money redesign
-  (Jul 2026): Fraunces (display serif, `font-display`) + Inter (body), served
+  (Jul 2026): Fraunces (display serif, `font-display`) + Inter (body), plus
+  Nunito (`font-rounded`, Sep 2026; no tracked component uses it yet), served
   from `/fonts/*.woff2` via `@font-face` in `src/index.css`. Those `url()`s do
   NOT resolve in the preview host, so **previews fall back to the system
   serif/sans stacks** — metrics differ slightly from the real app; grade

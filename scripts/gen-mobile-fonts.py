@@ -24,8 +24,9 @@ JOBS = [
     ("public/fonts/inter-latin-wght-normal.woff2", {"wght": 600}, "Inter-SemiBold"),
     ("public/fonts/inter-latin-wght-normal.woff2", {"wght": 700}, "Inter-Bold"),
     # opsz pinned by role: 30 suits heading/hero sizes, 14 suits body-size verse text.
-    ("public/fonts/fraunces-latin-opsz-normal.woff2", {"wght": 600, "opsz": 30}, "Fraunces-SemiBold"),
-    ("public/fonts/fraunces-latin-opsz-italic.woff2", {"wght": 400, "opsz": 14}, "Fraunces-Italic"),
+    # SOFT 0 keeps today's shapes; cut a SOFT 100 instance when mobile adopts it.
+    ("public/fonts/fraunces-latin-soft-normal.woff2", {"wght": 600, "opsz": 30, "SOFT": 0}, "Fraunces-SemiBold"),
+    ("public/fonts/fraunces-latin-soft-italic.woff2", {"wght": 400, "opsz": 14, "SOFT": 0}, "Fraunces-Italic"),
 ]
 
 OUT_DIR = "apps/mobile/assets/fonts"
