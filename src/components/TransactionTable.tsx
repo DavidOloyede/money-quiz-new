@@ -7,7 +7,8 @@ import { formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
-import { StarIcon } from './icons'
+import { StarIcon, LinkIcon } from './icons'
+import { TransactionMarks, useTransactionActions } from './TransactionActions'
 import { useWheelPan } from '../hooks/useWheelPan'
 
 interface Props {
@@ -20,6 +21,7 @@ export function TransactionTable({ transactions }: Props) {
   const { setCategoryBulk, aliases } = useStore()
   const { change, node } = useApplyToSimilar()
   const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
+  const { open: openActions, node: actionsNode } = useTransactionActions()
   const [query, setQuery] = useState('')
   const [catFilter, setCatFilter] = useState<Category | 'all'>('all')
   const [minAmount, setMinAmount] = useState('')
@@ -180,6 +182,7 @@ export function TransactionTable({ transactions }: Props) {
               <th className="px-4 py-2.5 text-right">
                 <SortHeader sortKey="amount" label="Amount" align="right" current={sortKey} asc={sortAsc} onToggle={toggleSort} />
               </th>
+              <th className="px-2 py-2.5" />
             </tr>
           </thead>
           <tbody className="divide-y divide-linen-100 dark:divide-linen-800">
@@ -222,6 +225,7 @@ export function TransactionTable({ transactions }: Props) {
                         edited
                       </span>
                     )}
+                    <TransactionMarks t={t} />
                   </span>
                 </td>
                 <td className="px-4 py-2.5">
@@ -248,11 +252,21 @@ export function TransactionTable({ transactions }: Props) {
                 >
                   {formatCurrency(t.amount)}
                 </td>
+                <td className="px-2 py-2.5">
+                  <button
+                    onClick={() => openActions(t.id)}
+                    title="How this counts, and what it offsets"
+                    aria-label={`Actions for ${t.description}`}
+                    className="rounded p-1 text-linen-300 hover:bg-linen-100 hover:text-linen-600 dark:text-linen-600 dark:hover:bg-linen-800 dark:hover:text-linen-300"
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                  </button>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-sm text-linen-400 dark:text-linen-500">
+                <td colSpan={6} className="px-4 py-10 text-center text-sm text-linen-400 dark:text-linen-500">
                   No transactions match your filters.
                 </td>
               </tr>
@@ -262,6 +276,7 @@ export function TransactionTable({ transactions }: Props) {
       </div>
       {node}
       {recurringNode}
+      {actionsNode}
     </div>
   )
 }

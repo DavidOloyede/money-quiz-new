@@ -17,7 +17,8 @@ import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRenameSimilar, EditableDescription } from './RenameDescription'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
-import { StarIcon, XIcon } from './icons'
+import { LinkIcon, StarIcon, XIcon } from './icons'
+import { TransactionMarks, useTransactionActions } from './TransactionActions'
 import { useWheelPan } from '../hooks/useWheelPan'
 
 /**
@@ -49,6 +50,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   const { change, node } = useApplyToSimilar()
   const { rename, node: renameNode } = useRenameSimilar()
   const { toggle: toggleRecurring, node: recurringNode } = useRecurringSimilar()
+  const { open: openActions, node: actionsNode } = useTransactionActions()
   const [sortKey, setSortKey] = useState<SortKey>('amount')
   const [sortAsc, setSortAsc] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -259,6 +261,15 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
                         <StarIcon className="h-4 w-4" filled={!!t.recurring} />
                       </button>
                       <EditableDescription t={t} aliases={aliases} onRename={rename} />
+                      <TransactionMarks t={t} />
+                      <button
+                        onClick={() => openActions(t.id)}
+                        title="How this counts, and what it offsets"
+                        aria-label={`Actions for ${t.description}`}
+                        className="ml-auto shrink-0 rounded p-1 text-linen-300 hover:bg-linen-100 hover:text-linen-600 dark:text-linen-600 dark:hover:bg-linen-800 dark:hover:text-linen-300"
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                      </button>
                     </span>
                   </td>
                 </tr>
@@ -283,6 +294,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
     {node}
     {renameNode}
     {recurringNode}
+    {actionsNode}
     </>
   )
 }
