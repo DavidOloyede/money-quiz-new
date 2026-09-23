@@ -40,14 +40,11 @@ import {
   BUILTIN_CATEGORIES,
   DEFAULT_CATEGORY_CONFIG,
   makeCategoryId,
-  SUBSCRIPTIONS_CATEGORY,
   type CategoryConfig,
 } from './lib/categories'
 import { DATA_KEYS, loadJSON, removeKey, saveJSON, STORAGE_KEYS } from './lib/storage'
 import { getThemeAdapter } from './lib/themeAdapter'
-import { loadSampleTransactions } from './data/sampleData'
-
-const SAMPLE_SOURCE_ID = 'sample-data'
+import { loadSampleTransactions, SAMPLE_ACCOUNTS } from './data/sampleData'
 
 interface StoreValue {
   transactions: Transaction[]
@@ -428,36 +425,40 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [withOverrides],
   )
 
+  /**
+   * Replace everything with the demo set. The sample spans three accounts, so
+   * it registers three sources — that's what gives the import view, and any
+   * per-source filtering, something to show.
+   *
+   * ★-flag the mortgage so the Recurring & subscriptions card has a headline
+   * bill out of the box; the subscription rows carry the word "subscription",
+   * so they categorize themselves and need no merchant overrides.
+   */
   const loadSample = useCallback(() => {
-    // Put Netflix & Spotify in the Subscriptions category (with billing details)
-    // and ★-flag Netflix as recurring, so the Recurring & subscriptions card has
-    // something to show off out of the box.
-    const subKeys = new Set([merchantKey('Netflix'), merchantKey('Spotify')])
-    setMerchantOverrides(Object.fromEntries([...subKeys].map((k) => [k, SUBSCRIPTIONS_CATEGORY])))
-    setRecurringMerchants({ [merchantKey('Netflix')]: true })
+    const now = new Date()
+    const tx = loadSampleTransactions(now)
+    const mortgage = merchantKey('CEDARBROOK MTG PYMTS')
+    setRecurringMerchants({ [mortgage]: true })
     setGroupMeta({
-      [merchantKey('Netflix')]: { cadence: 'monthly', billingDay: 6 },
-      [merchantKey('Spotify')]: { cadence: 'monthly', billingDay: 26 },
+      [merchantKey('LUMEN NOTES SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 6 },
+      [merchantKey('PIXELFORGE SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 11 },
+      [merchantKey('BEACON FITNESS SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 19 },
+      [merchantKey('SKYVAULT STORAGE SUBSCRIPTION')]: { cadence: 'annual' },
     })
-    const tx = withOverrides(
-      loadSampleTransactions().map((t) => ({ ...t, sourceId: SAMPLE_SOURCE_ID })),
-    ).map((t) =>
-      subKeys.has(merchantKey(t.description))
-        ? { ...t, category: SUBSCRIPTIONS_CATEGORY, overridden: true }
-        : t,
-    )
+    setMerchantOverrides({})
+    setTxOverrides({})
     setRawTransactions(tx)
-    setSources([
-      {
-        id: SAMPLE_SOURCE_ID,
-        fileName: 'Sample data',
-        importedAt: new Date().toISOString(),
-        accountType: 'bank',
-        count: tx.length,
+    setSources(
+      SAMPLE_ACCOUNTS.map((a) => ({
+        id: a.id,
+        fileName: a.name,
+        importedAt: now.toISOString(),
+        accountType: a.accountType,
+        count: tx.filter((t) => t.sourceId === a.id).length,
         dropped: 0,
-      },
-    ])
-  }, [withOverrides])
+      })),
+    )
+  }, [])
 
   /**
    * Edit ONE transaction's category. The choice is pinned to that exact row

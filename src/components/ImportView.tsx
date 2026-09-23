@@ -5,7 +5,7 @@ import { useStore } from '@moneyquiz/core/store'
 import { rowsToTransactions } from '@moneyquiz/core/lib/importCsv'
 import { newId } from '@moneyquiz/core/lib/id'
 import { track } from '../lib/track'
-import { sampleCsv } from '@moneyquiz/core/data/sampleData'
+import { SAMPLE_ACCOUNTS, sampleCsv } from '@moneyquiz/core/data/sampleData'
 import { TransactionTable } from './TransactionTable'
 import { ImportedFiles } from './ImportedFiles'
 import { ConnectBank } from './ConnectBank'
@@ -96,14 +96,19 @@ export function ImportView({ onNavigate }: Props) {
     )
   }
 
+  // One file per sample account: each has to stand on its own as something a
+  // bank would actually hand you, so it re-imports through the normal mapping
+  // step (including dropping the card's own payment rows).
   const downloadSample = () => {
-    const blob = new Blob([sampleCsv()], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'money-quiz-sample.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+    for (const account of SAMPLE_ACCOUNTS) {
+      const blob = new Blob([sampleCsv(account.id)], { type: 'text/csv;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${account.id}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
   }
 
   return (
@@ -209,8 +214,8 @@ export function ImportView({ onNavigate }: Props) {
           <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
             <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Just exploring?</h3>
             <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
-              Load ~70 realistic sample transactions spanning a few months and try the whole app
-              instantly.
+              Load a year of realistic sample transactions across three accounts — checking,
+              savings and a credit card — and try the whole app instantly.
             </p>
             <button
               onClick={() => {
@@ -227,7 +232,7 @@ export function ImportView({ onNavigate }: Props) {
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800"
             >
               <DownloadIcon className="h-4 w-4" />
-              Download sample CSV
+              Download sample CSVs
             </button>
           </div>
         </div>

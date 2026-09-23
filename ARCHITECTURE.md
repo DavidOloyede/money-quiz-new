@@ -474,9 +474,17 @@ the exceptions — they need a real browser.
   activity log. It never records store names or amounts, and records nothing
   when you're signed out.
 
-And in **`packages/core/data/`**: **`sampleData.ts`** is a pretend set of 68 transactions
-(including a monthly church tithe and small donations, so the giving features
-have something to show), **`verses.ts`** holds 50 scripture verses about
+And in **`packages/core/data/`**: **`sampleData.ts`** is a pretend year of money for a made-up
+person, spread over three pretend accounts (checking, savings, a credit card)
+so the app has something to show in every corner: a monthly church tithe and
+small donations for the giving features, one very frequent coffee shop, one
+clear biggest purchase, a mortgage that repeats every month, subscriptions
+(monthly, yearly, and one that stopped), refunds, transfers and Zelle both
+ways, and one shop name used for two different bills at two different amounts.
+Its dates are **counted back from today** rather than written down, so "this
+month" is never empty no matter when you open it — and the same day always
+produces exactly the same pretend year, so the quiz and the tests can rely on
+it. **`verses.ts`** holds 50 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,
 and **`generalQuestions.ts`** is the bank of 16 general money-literacy
 questions (budgeting rules, emergency funds, debt, a couple on stewardship)
