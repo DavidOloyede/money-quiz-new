@@ -50,6 +50,10 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
 - UI copy is warm and encouraging, faith-informed but never preachy — see the
   existing quiz takeaways, badge names, and empty states for the register.
   Not generic fintech ("Maximize your portfolio"), not sermonizing.
+- The design rules (color roles, the three type voices, shape, motion,
+  celebrations, sound, voice, the Omer mascot) live in
+  [docs/DESIGN.md](docs/DESIGN.md). Read it before building or restyling a
+  screen: "playful at the moments, calm at the money."
 - Styling is **Tailwind CSS v4 only** (no CSS-in-JS, no other frameworks —
   flag it to David before introducing anything). Theme tokens live in
   `packages/core/theme.ts`; `src/theme.css` is **generated** from it

@@ -686,10 +686,16 @@ the financial details scrubbed out.
   defined in one place (`packages/core/theme.ts`, which generates the web's
   `src/theme.css` via `npm run gen:theme` — so the phone app gets the exact
   same colors): warm paper colors named **linen**,
-  a deep green named **forest**, and a gold named **honey**, plus two fonts
-  the app ships itself (no font service watches you download them) —
-  **Fraunces**, the bookish serif in headings, verses, and big numbers, and
-  **Inter** for everything else. Category colors (the donut, the little
+  a deep green named **forest**, a gold named **honey**, a soft dawn blue
+  named **sky** (backdrops and "for your info"), and a gentle **coral** for
+  "not quite" (so a wrong answer never looks like an alarm), plus three fonts
+  the app ships itself (no font service watches you download them):
+  **Fraunces**, the bookish serif in headings, verses, and big numbers (it
+  can be "softened" to look rounder for scripture and stories); **Inter** for
+  everything else; and **Nunito**, a rounded, friendly font waiting in the
+  wings for buttons and game text. *When* to use each color and font is
+  written down in plain words in [docs/DESIGN.md](docs/DESIGN.md), the app's
+  design rulebook. Category colors (the donut, the little
   chips) live in `packages/core/lib/categories.ts` and were checked by a program —
   not by eye — so they stay tellable-apart for colorblind readers and
   readable in both light and dark mode.
