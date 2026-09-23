@@ -138,6 +138,12 @@ The app reads it and makes a neat "Transaction" card:
         │
         ▼
 A "sorter" guesses the category → "Dining"
+    (using the store name AND whether money came in or went out)
+        │
+        ▼
+If your bank put its own label on the row, that's the backup answer —
+our guess wins when we recognize the store, because bank labels are
+often wrong (one bank files a software subscription under "Restaurants")
         │
         ▼
 The Transaction is saved in the notebook (localStorage)
@@ -344,7 +350,13 @@ the exceptions — they need a real browser.
 - **`categorize.ts`** — The **sorter**. It looks at the store name and guesses a
   category using keywords (e.g., the word "Starbucks" → Dining). It also gives
   **Zelle** and **Transfers** (money you move between your own accounts) their own
-  groups so they don't look like real spending.
+  groups so they don't look like real spending. It pays attention to **which way
+  the money went**, because the same word can mean opposite things: rent you
+  *pay* is a housing cost, but rent a tenant *pays you* is income — so a word
+  like "rent" only counts as housing when money is going out. It also spots a
+  **credit-card bill paid from your checking account** ("CITI CARD ONLINE
+  PAYMENT") and files it as a transfer, because the card's own statement already
+  lists everything you bought with it — counting both would charge you twice.
 - **`categories.ts`** — The **list of bins** and their names, colors, and emojis.
   There's a rich built-in set — Groceries, Dining, Transport, Utilities,
   Rent/Mortgage, **Home & HOA**, **Insurance**, **Loans & Debt**, Shopping,

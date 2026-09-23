@@ -1,7 +1,7 @@
 import type { AccountType, Category, ColumnMapping, CsvRow, Transaction } from '../types'
 import { allCategories } from './categories'
 import { parseAmount, parseDate } from './parse'
-import { categorize } from './categorize'
+import { categorizeMatch } from './categorize'
 import { newId } from './id'
 
 /**
@@ -9,6 +9,9 @@ import { newId } from './id'
  * Banks label things like "Food & Drink", "Bills & Utilities" or
  * "Health & Wellness", which don't match our ids verbatim — so a row the bank
  * already classified used to fall through to "other". This keeps those labels.
+ *
+ * First match wins, so the order matters: the narrow labels ("Home Improvement",
+ * "Office Supplies") sit above the broad ones that would otherwise swallow them.
  */
 const BANK_CATEGORY_PATTERNS: { match: RegExp; category: Category }[] = [
   { match: /grocer|supermarket/, category: 'groceries' },
@@ -17,10 +20,16 @@ const BANK_CATEGORY_PATTERNS: { match: RegExp; category: Category }[] = [
   { match: /rent|mortgage|housing/, category: 'rent' },
   { match: /bill|utilit|phone|internet|cable|wireless/, category: 'utilities' },
   { match: /health|wellness|medical|pharmac|fitness|gym|drug/, category: 'health' },
-  { match: /entertain|movie|stream|music|game|hobby/, category: 'entertainment' },
-  { match: /shop|merchandise|retail|department|clothing|apparel/, category: 'shopping' },
+  { match: /entertain|movie|stream|music|game|hobb/, category: 'entertainment' },
+  { match: /subscription|dues|online service|software/, category: 'subscriptions' },
+  { match: /home improvement|home repair|household|furnish/, category: 'home' },
+  { match: /electronic|office suppl|shop|merchandise|retail|department|clothing|apparel/, category: 'shopping' },
   { match: /payroll|salary|paycheck|income|interest/, category: 'income' },
-  { match: /transfer|withdrawal|fee/, category: 'transfers' },
+  // Fees before transfers: "Service Charges/Fees" is a cost, not money moving
+  // between your own accounts, and routing it to an excluded category hid it
+  // from every total.
+  { match: /\bfee|charge/, category: 'fees' },
+  { match: /transfer|withdrawal/, category: 'transfers' },
 ]
 
 /** Best-effort match of a free-text category cell to one of our categories. */
@@ -110,9 +119,14 @@ export function rowsToTransactions(
       continue
     }
 
-    const category =
-      coerceCategory(m.category ? row[m.category] : undefined) ??
-      categorize(description, amount)
+    // A confident keyword match beats the bank's own column, which is often
+    // wrong in ways ours isn't: BofA files a Claude subscription and a landlord
+    // tool under "Restaurants". The column is the fallback for rows our
+    // keywords don't recognize at all.
+    const guess = categorizeMatch(description, amount)
+    const category = guess.matched
+      ? guess.category
+      : (coerceCategory(m.category ? row[m.category] : undefined) ?? guess.category)
 
     out.push({ id: newId(), date, description, amount, category, sourceId: opts.sourceId })
   }
