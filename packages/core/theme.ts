@@ -10,6 +10,13 @@
  * forest — the brand green (provision, growth; income & primary actions).
  * honey  — amber-gold (manna; gamification warmth, spending series).
  * cream  — the card surface (warm white).
+ * sky    — soft dawn blue (hero backdrops, info badges). Each step matches the
+ *          brightness of Tailwind's sky step, and it replaces Tailwind's sky.
+ * coral  — a gentle "not quite" (wrong answers, over budget) instead of an
+ *          alarm red. Each step matches the brightness of Tailwind's rose
+ *          step, so swapping rose-N for coral-N keeps every contrast pair.
+ *          Both ramps are OKLCH at ~0.62x the source chroma (softer, same
+ *          contrast); theme.test.ts locks the text pairs docs/DESIGN.md uses.
  *
  * Charts: income = forest-500, spending = honey-600 (CVD-checked pair,
  * ΔE 23.6). Category identity colors live in lib/categories.ts (hex,
@@ -70,6 +77,34 @@ export const honey: ColorRamp = {
   '950': '#362108',
 }
 
+export const sky: ColorRamp = {
+  '50': '#f2f9fc',
+  '100': '#e5f2f8',
+  '200': '#c8e3f3',
+  '300': '#9ad0ec',
+  '400': '#68b9e2',
+  '500': '#4ea7d1',
+  '600': '#3487ad',
+  '700': '#286b8b',
+  '800': '#275a73',
+  '900': '#234a5e',
+  '950': '#15303d',
+}
+
+export const coral: ColorRamp = {
+  '50': '#fbf3f1',
+  '100': '#f7e6e3',
+  '200': '#f1d3cb',
+  '300': '#e9aea0',
+  '400': '#dd806c',
+  '500': '#d56048',
+  '600': '#c75039',
+  '700': '#a7422f',
+  '800': '#8a3727',
+  '900': '#733022',
+  '950': '#3f170e',
+}
+
 /**
  * Chart chrome (gridlines, axis ticks, hover cursor) per mode. On web these
  * become plain `:root` / `.dark` vars (they flip with dark mode, so they
@@ -93,6 +128,8 @@ export const themeTokens = {
   linen,
   forest,
   honey,
+  sky,
+  coral,
   chartChrome,
   chartSeries,
 } as const

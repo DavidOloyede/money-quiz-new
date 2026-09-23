@@ -7,7 +7,7 @@
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-const { fonts, cream, linen, forest, honey, chartChrome } = await import(
+const { fonts, cream, linen, forest, honey, sky, coral, chartChrome } = await import(
   '../packages/core/theme.ts'
 )
 
@@ -31,6 +31,10 @@ ${ramp('linen', linen)}
 ${ramp('forest', forest)}
 
 ${ramp('honey', honey)}
+
+${ramp('sky', sky)}
+
+${ramp('coral', coral)}
 }
 
 /*
