@@ -66,6 +66,9 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
 
   if (items.length === 0) return null
 
+  // Sum of the charges actually landing on this month's calendar, for the view in question.
+  const monthChargesTotal = monthCharges.reduce((s, c) => s + c.amount, 0)
+
   // Monthly totals — the subscriptions subtotal leaves out ended ones.
   const allTotal = items.reduce((s, r) => s + r.monthlyEstimate, 0)
   const subsTotal = subs
@@ -125,7 +128,11 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
       {/* Calendar (wider) + upcoming list, side by side. */}
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <div className="mb-2 text-sm font-medium text-linen-700 dark:text-linen-200">{monthLabel}</div>
+          <div className="mb-2 flex items-baseline gap-1.5">
+            <span className="text-sm font-medium text-linen-700 dark:text-linen-200">{monthLabel}</span>
+            <span className="text-linen-300 dark:text-linen-600">·</span>
+            <span className="text-xs text-linen-400 dark:text-linen-500">{formatCurrency(monthChargesTotal)}</span>
+          </div>
           <MiniCalendar monthDate={now} charges={monthCharges} today={now.getDate()} onSelectDay={openDay} />
         </div>
 
