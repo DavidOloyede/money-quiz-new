@@ -18,6 +18,7 @@ import {
   totalRefunds,
   totalSpending,
   upcomingCharges,
+  topExpenseGroups,
 } from './analysis'
 
 let n = 0
@@ -251,5 +252,91 @@ describe('budgetStatus', () => {
     expect(s.spent).toBe(120)
     expect(s.over).toBe(true)
     expect(s.pct).toBeCloseTo(120)
+  })
+})
+
+describe('topExpenseGroups', () => {
+  const rows = (): Transaction[] => {
+    let n = 0
+    const t = (description: string, amount: number, category: string, key?: string): Transaction => ({
+      id: `g${n++}`,
+      date: '2026-07-01',
+      description,
+      amount,
+      category,
+      key: key ?? `k${n}`,
+    })
+    return [
+      // One bill repeating — the case that made the ungrouped list useless.
+      t('CEDARBROOK MTG PYMTS', -1845, 'rent'),
+      t('CEDARBROOK MTG PYMTS', -1845, 'rent'),
+      t('CEDARBROOK MTG PYMTS', -1845, 'rent'),
+      // One large single purchase.
+      t('VOLTIC ELECTRONICS', -1899, 'shopping', 'voltic'),
+      // A merchant visited often for small amounts.
+      t('CORNER COFFEE ROASTERS', -6.4, 'dining'),
+      t('CORNER COFFEE ROASTERS', -6.9, 'dining'),
+    ]
+  }
+
+  it('ranks merchants by what they cost in total, not by biggest single row', () => {
+    const groups = topExpenseGroups(rows(), 5)
+    expect(groups[0].label).toMatch(/Cedarbrook/)
+    expect(groups[0].total).toBeCloseTo(5535, 2)
+    expect(groups[0].count).toBe(3)
+    expect(groups[1].label).toMatch(/Voltic/)
+  })
+
+  it('carries the ids so a row can drill into its own charges', () => {
+    expect(topExpenseGroups(rows(), 5)[0].ids).toHaveLength(3)
+  })
+
+  it('reports the category most of the money sits in', () => {
+    expect(topExpenseGroups(rows(), 5)[0].category).toBe('rent')
+  })
+
+  it('nets an unlinked refund against its own merchant', () => {
+    const list = rows()
+    list.push({
+      id: 'r1',
+      date: '2026-07-20',
+      description: 'VOLTIC ELECTRONICS',
+      amount: 400,
+      category: 'shopping',
+      key: 'refund1',
+    })
+    const voltic = topExpenseGroups(list, 5).find((g) => /Voltic/.test(g.label))!
+    expect(voltic.total).toBeCloseTo(1499, 2)
+  })
+
+  it('nets a LINKED refund against the charge it offsets, not its own name', () => {
+    // Banks rarely describe a return the way they described the purchase.
+    const list = rows()
+    list.push({
+      id: 'r2',
+      date: '2026-07-20',
+      description: 'ONLINE RETURN CREDIT 88213',
+      amount: 400,
+      category: 'shopping',
+      key: 'refund2',
+      treatment: 'reimbursement',
+      linkedTo: 'voltic',
+    })
+    const groups = topExpenseGroups(list, 5)
+    expect(groups.find((g) => /Voltic/.test(g.label))!.total).toBeCloseTo(1499, 2)
+    expect(groups.some((g) => /Return Credit/i.test(g.label))).toBe(false)
+  })
+
+  it('drops a merchant a refund cancelled out entirely', () => {
+    const list = rows()
+    list.push({
+      id: 'r3',
+      date: '2026-07-20',
+      description: 'VOLTIC ELECTRONICS',
+      amount: 1899,
+      category: 'shopping',
+      key: 'refund3',
+    })
+    expect(topExpenseGroups(list, 5).some((g) => /Voltic/.test(g.label))).toBe(false)
   })
 })

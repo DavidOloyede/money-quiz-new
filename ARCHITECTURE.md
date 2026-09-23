@@ -349,6 +349,12 @@ the exceptions — they need a real browser.
   Linking the two says "this cancels that", so the pair nets out and you see
   what you actually spent. It also spots payment plans by itself, because
   nobody would think to go looking for them.
+- **`analysis.ts`**'s "where the most went" groups the biggest spending **by
+  shop** rather than listing the biggest single charges. A list of individual
+  charges stops being useful the moment you have a mortgage — one bill
+  repeating every month fills every slot and tells you nothing — so it adds a
+  shop's charges up, shows how many there were, and lets you click through to
+  them. Refunds come off the shop they came back from.
 - **`filter.ts`** — The one **sieve** every list uses: text, amount, category,
   source. Amounts match on size rather than direction, so you can look for "the
   $118 one" without first remembering whether it was money in or out. This

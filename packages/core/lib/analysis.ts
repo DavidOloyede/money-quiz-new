@@ -170,6 +170,91 @@ export function topExpenses(transactions: Transaction[], n = 5): ExpenseItem[] {
     .slice(0, n)
 }
 
+export interface ExpenseGroup {
+  /** Alias-aware group key (see merchant.groupKey). */
+  groupKey: string
+  label: string
+  /** What this merchant cost, net of refunds, as a positive number. */
+  total: number
+  /** How many charges make it up. */
+  count: number
+  ids: string[]
+  /** Where most of the money sits, for the colour and icon. */
+  category: Category
+}
+
+/**
+ * Biggest spends grouped by merchant, rather than the single biggest rows.
+ *
+ * A list of individual charges is useless the moment you have a mortgage: one
+ * bill repeating twelve times fills every slot and you learn nothing. Grouping
+ * answers the question actually being asked — where did the most money go —
+ * and shows the repeat count alongside.
+ *
+ * Refunds net against the merchant they came back from. A refund that was
+ * explicitly linked to a charge nets against THAT charge's merchant, since
+ * banks rarely describe a return the same way they described the purchase.
+ */
+export function topExpenseGroups(
+  transactions: Transaction[],
+  n = 5,
+  aliases: Aliases = {},
+): ExpenseGroup[] {
+  const byKey = new Map<string, Transaction>()
+  for (const t of transactions) if (t.key) byKey.set(t.key, t)
+
+  interface G {
+    label: string
+    total: number
+    count: number
+    ids: string[]
+    byCategory: Map<Category, number>
+  }
+  const map = new Map<string, G>()
+  const add = (owner: Transaction, t: Transaction) => {
+    const key = groupKey(owner.description, aliases)
+    const fresh: G = {
+      label: groupLabel(owner.description, aliases),
+      total: 0,
+      count: 0,
+      ids: [],
+      byCategory: new Map<Category, number>(),
+    }
+    const e = map.get(key) ?? fresh
+    // Expenses are negative and refunds positive, so one line does both:
+    // a charge adds its magnitude, a refund takes it away again.
+    e.total += -t.amount
+    if (t.amount < 0) {
+      e.count += 1
+      e.byCategory.set(t.category, (e.byCategory.get(t.category) ?? 0) + -t.amount)
+    }
+    e.ids.push(t.id)
+    map.set(key, e)
+  }
+
+  for (const t of transactions) {
+    if (isCountedExpense(t)) add(t, t)
+    else if (isRefund(t)) {
+      const parent = t.linkedTo ? byKey.get(t.linkedTo) : undefined
+      add(parent ?? t, t)
+    }
+  }
+
+  return [...map.entries()]
+    .map(([key, g]) => ({
+      groupKey: key,
+      label: g.label,
+      total: g.total,
+      count: g.count,
+      ids: g.ids,
+      category:
+        [...g.byCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'other',
+    }))
+    .filter((g) => g.total > 0 && g.count > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, n)
+}
+
 export interface MonthlyPoint {
   monthKey: string
   spending: number

@@ -11,7 +11,7 @@ import {
   rangeLabel,
   recurringPayments,
   spendingByCategory,
-  topExpenses,
+  topExpenseGroups,
   type TimeRange,
 } from '@moneyquiz/core/lib/analysis'
 import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
@@ -94,7 +94,9 @@ export function Dashboard({ onNavigate }: Props) {
       : rangeLabel(range)
   const stats = useMemo(() => headlineStats(filtered), [filtered])
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
-  const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
+  // Grouped by merchant, not by individual row: one mortgage repeating twelve
+  // times would otherwise fill every slot and say nothing.
+  const top5 = useMemo(() => topExpenseGroups(filtered, 5, aliases), [filtered, aliases])
   const excluded = useMemo(() => excludedSummary(filtered), [filtered])
   // Counted over ALL transactions, not the selected range: a transfer from
   // eight months ago still needs deciding, and it won't decide itself.
@@ -339,25 +341,52 @@ export function Dashboard({ onNavigate }: Props) {
               </div>
 
               <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-                <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Top 5 expenses</h3>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+                    Where the most went
+                  </h3>
+                  <span className="text-xs text-linen-400 dark:text-linen-500">
+                    By merchant · click for the charges
+                  </span>
+                </div>
                 <ul className="mt-3 divide-y divide-linen-100 dark:divide-linen-800">
                   {top5.map((e, i) => (
-                    <li key={e.id} className="flex items-center gap-3 py-2.5">
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-linen-100 dark:bg-linen-800 text-xs font-semibold text-linen-500 dark:text-linen-400">
-                        {i + 1}
-                      </span>
-                      <span aria-hidden>{categoryMeta(e.category).emoji}</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
-                          {e.description}
+                    <li key={e.groupKey}>
+                      <button
+                        onClick={() => setGroupIds(e.ids)}
+                        className="flex w-full items-center gap-3 py-2.5 text-left hover:bg-linen-50/60 dark:hover:bg-linen-800/40"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-linen-100 dark:bg-linen-800 text-xs font-semibold text-linen-500 dark:text-linen-400">
+                          {i + 1}
+                        </span>
+                        <span aria-hidden>{categoryMeta(e.category).emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
+                            {e.label}
+                          </div>
+                          <div className="text-xs text-linen-400 dark:text-linen-500">
+                            {e.count === 1 ? 'one charge' : `${e.count} charges`} ·{' '}
+                            {categoryLabel(e.category)}
+                          </div>
                         </div>
-                        <div className="text-xs text-linen-400 dark:text-linen-500">{formatDate(e.date)}</div>
-                      </div>
-                      <div className="tabular-nums text-sm font-semibold text-linen-800 dark:text-linen-100">
-                        {formatCurrency(e.amount)}
-                      </div>
+                        <div className="shrink-0 text-right">
+                          <div className="tabular-nums text-sm font-semibold text-linen-800 dark:text-linen-100">
+                            {formatCurrency(e.total)}
+                          </div>
+                          {e.count > 1 && (
+                            <div className="text-xs text-linen-400 dark:text-linen-500">
+                              ×{e.count}
+                            </div>
+                          )}
+                        </div>
+                      </button>
                     </li>
                   ))}
+                  {top5.length === 0 && (
+                    <li className="py-6 text-center text-sm text-linen-400 dark:text-linen-500">
+                      No spending in this range yet.
+                    </li>
+                  )}
                 </ul>
               </div>
             </div>
