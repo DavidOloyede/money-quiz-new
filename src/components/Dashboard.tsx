@@ -19,6 +19,8 @@ import { formatCurrency, formatDate, formatMonth, formatPercent } from '@moneyqu
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
 import { CategoryDetailModal, type DetailTarget } from './CategoryDetailModal'
+import { TransferReviewModal } from './TransferReviewModal'
+import { unreviewedTransferCount } from '@moneyquiz/core/lib/transferReview'
 import { BudgetsCard } from './BudgetsCard'
 import { GivingCard } from './GivingCard'
 import { DebtCard } from './DebtCard'
@@ -64,6 +66,7 @@ export function Dashboard({ onNavigate }: Props) {
     recurringKinds,
     paidOffDebts,
     setDebtPaidOff,
+    transferRules,
   } = useStore()
   const [range, setRange] = useState<RangeId>('thisYear')
   const [customFrom, setCustomFrom] = useState('')
@@ -72,6 +75,7 @@ export function Dashboard({ onNavigate }: Props) {
   const [sortAsc, setSortAsc] = useState(false)
   const [drill, setDrill] = useState<DetailTarget | null>(null)
   const [groupIds, setGroupIds] = useState<string[] | null>(null)
+  const [reviewing, setReviewing] = useState(false)
 
   const filtered = useMemo(
     () =>
@@ -92,6 +96,12 @@ export function Dashboard({ onNavigate }: Props) {
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
   const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
   const excluded = useMemo(() => excludedSummary(filtered), [filtered])
+  // Counted over ALL transactions, not the selected range: a transfer from
+  // eight months ago still needs deciding, and it won't decide itself.
+  const unreviewed = useMemo(
+    () => unreviewedTransferCount(transactions, transferRules),
+    [transactions, transferRules],
+  )
   // One grouping pass shared by the Recurring & subscriptions and Spending
   // habits cards (each takes its kind from the same result).
   const recurring = useMemo(
@@ -396,6 +406,25 @@ export function Dashboard({ onNavigate }: Props) {
                 Money moved between your own accounts (or paying off a card) is tracked here so it
                 doesn&apos;t distort your spending. Click one to review or recategorize.
               </p>
+              {unreviewed > 0 && (
+                <button
+                  onClick={() => setReviewing(true)}
+                  className="mt-3 flex w-full items-center gap-3 rounded-lg border border-honey-300 bg-honey-50 p-3 text-left transition-colors hover:bg-honey-100 dark:border-honey-500/40 dark:bg-honey-500/10 dark:hover:bg-honey-500/20"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-honey-100 text-base dark:bg-honey-500/20" aria-hidden>
+                    👀
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-honey-800 dark:text-honey-200">
+                      {unreviewed} transfer{unreviewed === 1 ? '' : 's'} to review
+                    </span>
+                    <span className="block text-xs text-honey-700/80 dark:text-honey-300/80">
+                      Money to and from other people — decide what each one was
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm text-honey-700 dark:text-honey-300">→</span>
+                </button>
+              )}
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {excluded.map((e) => (
                   <button
@@ -446,6 +475,8 @@ export function Dashboard({ onNavigate }: Props) {
       )}
 
       {groupIds && <GroupDetailModal ids={groupIds} onClose={() => setGroupIds(null)} />}
+
+      {reviewing && <TransferReviewModal onClose={() => setReviewing(false)} />}
     </ViewShell>
   )
 }

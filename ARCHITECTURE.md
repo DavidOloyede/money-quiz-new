@@ -342,6 +342,22 @@ the exceptions — they need a real browser.
 - **`id.ts`** — Hands out the little **name tags** (unique ids) that each
   transaction and import gets, so helpers that make data don't need to touch
   the notebook just for a tag.
+- **`links.ts`** — Lets one transaction **stand for another**. When a shop
+  refunds you, or a friend pays you back, or your card moves a purchase onto a
+  payment plan, the money comes back as a second row. On its own that row looks
+  like income, and in the payment-plan case the shop gets charged to you twice.
+  Linking the two says "this cancels that", so the pair nets out and you see
+  what you actually spent. It also spots payment plans by itself, because
+  nobody would think to go looking for them.
+- **`owner.ts`** — Knows the difference between **money you moved to yourself**
+  and money that changed hands. Zelle, Cash App and PayPal make both look the
+  same, and most people's statements are mostly the first kind. You tell it
+  your own names and account nicknames once (in Settings), and it quietly puts
+  those aside.
+- **`transferReview.ts`** — Takes what's left and **groups it by who** the
+  money went to or came from, so you can decide once per person rather than
+  once per row — and it remembers, so the same person's transfers don't ask
+  again next month.
 - **`txKey.ts`** — Gives each transaction a **fingerprint** that stays the same
   when you import the same statement again. The name tags from `id.ts` are
   handed out fresh every import, so anything you attach to one particular
