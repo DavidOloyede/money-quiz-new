@@ -541,6 +541,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTxTreatments({})
     setTxLinks({})
     setRawTransactions(tx)
+    // A few budgets so the card isn't empty, and so both states are visible:
+    // three with room left, and the mortgage deliberately set below what it
+    // actually costs — it bills on the 1st, so it reads as over all month
+    // whenever the sample is loaded.
+    setBudgets({ groceries: 400, dining: 120, transport: 150, rent: 1700 })
     setSources(
       SAMPLE_ACCOUNTS.map((a) => ({
         id: a.id,
