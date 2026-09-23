@@ -1,13 +1,52 @@
 import type { Category, Transaction } from '../types'
 
 /**
+ * A credit-card bill paid FROM a checking account, e.g. "CITI CARD ONLINE
+ * PAYMENT … WEB ID: CITICTP". The card's own statement already lists the
+ * purchases, so counting the payment too would double-count every one of them.
+ * Requires an issuer AND a payment word AND a card word (or an unambiguous
+ * epay/autopay marker), so a loan bill from the same bank — "CAPITAL ONE AUTO
+ * FINANCE PAYMENT" — is left alone for the loans rule below.
+ */
+const CARD_ISSUER_RE =
+  /\b(citi|citibank|citictp|chase|amex|american express|discover|capital one|capitalone|bofa|bank of america|barclays?|synchrony|wells fargo|usaa|us bank|apple card)\b/
+const CARD_WORD_RE = /\b(card|crd|cardmember|visa|mastercard)\b/
+const CARD_PAY_RE = /\b(payment|payments|pymt|pymts|pmt|pmts|epay|epayment|autopay)\b/
+const CARD_AUTOPAY_RE = /\b(epay|epayment|autopay)\b/
+
+function isCardBillPayment(normalized: string, amount: number): boolean {
+  // Money out only: a positive "payment" row on a card statement is the same
+  // event seen from the other side, and import drops those separately.
+  if (amount >= 0) return false
+  if (!CARD_ISSUER_RE.test(normalized) || !CARD_PAY_RE.test(normalized)) return false
+  return CARD_WORD_RE.test(normalized) || CARD_AUTOPAY_RE.test(normalized)
+}
+
+/**
  * Ordered keyword rules. The first rule whose keyword appears in the (tokenized)
  * description wins, so more specific / higher-priority categories come first.
  * Transfers and Zelle are checked first so internal money movement never looks
  * like spending or income; dining is checked before transport so "Uber Eats"
  * doesn't become a car ride.
+ *
+ * `direction` restricts a rule to one side of the ledger. It exists because a
+ * keyword can mean opposite things by sign: rent paid is housing *spending*,
+ * but rent received is *income* from a tenant — and without this, money in
+ * landed in a spending category, where `isRefund` quietly treated it as a
+ * refund that shrank your housing costs.
+ *
+ * `test` is for rules that need more than a keyword (see isCardBillPayment).
  */
-const RULES: { category: Category; keywords: string[] }[] = [
+interface Rule {
+  category: Category
+  keywords: string[]
+  /** 'out' = only negative amounts, 'in' = only positive. Default: either. */
+  direction?: 'out' | 'in'
+  /** Extra matcher, given the normalized description and the signed amount. */
+  test?: (normalized: string, amount: number) => boolean
+}
+
+const RULES: Rule[] = [
   {
     // Money moving between your own accounts or paying off a card — not real
     // spending. Checked first so a "Payment to Chase card" never looks like a
@@ -37,6 +76,21 @@ const RULES: { category: Category; keywords: string[] }[] = [
     keywords: ['zelle'],
   },
   {
+    // Paying off a credit card from checking. Checked after Zelle (so a Zelle
+    // row naming a bank can't be stolen) and before loans (the test itself
+    // refuses loan bills).
+    category: 'transfers',
+    keywords: [],
+    direction: 'out',
+    test: isCardBillPayment,
+  },
+  {
+    // NOTE: 'refund', 'reimburs' and 'cashback' deliberately do NOT live here.
+    // Landing them in the income category made `isRefund` — money in, in a
+    // *spending* category — permanently false for them, so an "AMAZON REFUND"
+    // inflated income and never netted against what it refunded. Without the
+    // keyword they fall through to the merchant's own rule (Amazon → Shopping)
+    // and net correctly. A tax refund really is income, so it stays.
     category: 'income',
     keywords: [
       'payroll',
@@ -49,10 +103,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'irs',
       'treasury',
       'treas',
-      'refund',
-      'reimburs',
       'venmo from',
-      'cashback',
       'interest paid',
     ],
   },
@@ -116,6 +167,7 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'unitedhealthcare',
       'united healthcare',
       'humana',
+      'benefits',
     ],
   },
   {
@@ -225,6 +277,15 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'caltrain',
       'amtrak',
       'toll',
+      'mta',
+      'nyct',
+      'njt',
+      'nj transit',
+      'paygo',
+      'septa',
+      'wmata',
+      'mbta',
+      'rail',
       'ez tag',
       'hctra',
       'dmv',
@@ -265,17 +326,23 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'cox communications',
       'phone bill',
       'sewer',
+      'primo water',
+      'culligan',
+      'water delivery',
     ],
   },
   {
     // HOA dues and home upkeep that isn't rent/mortgage. Checked before rent so
-    // "HOA" doesn't get swept into the rent bucket.
+    // "HOA" doesn't get swept into the rent bucket. Listing and management
+    // services for a property you own (Zillow, TurboTenant) belong here too —
+    // they're a cost of the home, not rent you pay.
     category: 'home',
     keywords: [
       'hoa',
       'homeowner',
       'home owner',
       'owners association',
+      'owners assn',
       'community association',
       'community assoc',
       'condo assoc',
@@ -285,13 +352,21 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'lawn care',
       'landscaping',
       'home warranty',
+      'turbotenant',
+      'zillow',
+      'apartments com',
     ],
   },
   {
+    // Housing you PAY for. Money in that matches these words is rent received
+    // from a tenant, which is income — see the `direction` note above.
     category: 'rent',
+    direction: 'out',
     keywords: [
       'rent',
       'mortgage',
+      'mtg',
+      'mtge',
       'landlord',
       'apartments',
       'apartment',
@@ -350,6 +425,10 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'h&m',
       'zara',
       'james avery',
+      'usps',
+      'post office',
+      'ups store',
+      'fedex',
     ],
   },
   {
@@ -498,6 +577,9 @@ const RULES: { category: Category; keywords: string[] }[] = [
       'franchise tax',
       'tax pymt',
       'taxpymt',
+      'property tax',
+      'ownwell',
+      'plan fee',
     ],
   },
   {
@@ -556,17 +638,40 @@ function normalize(text: string): string {
 const NORM_RULES = RULES.map((r) => ({
   category: r.category,
   keys: r.keywords.map(normalize),
+  direction: r.direction,
+  test: r.test,
 }))
+
+/** What `categorizeMatch` returns: the category, and whether a rule actually fired. */
+export interface CategoryGuess {
+  category: Category
+  /**
+   * True when a rule matched. False means we fell back on the sign alone, and
+   * the caller may prefer another source (e.g. a bank's own category column).
+   */
+  matched: boolean
+}
+
+/**
+ * Auto-categorize from the description and amount sign, reporting whether a
+ * rule actually matched. Import uses the `matched` flag to decide between our
+ * keywords and the bank's category column.
+ */
+export function categorizeMatch(description: string, amount: number): CategoryGuess {
+  const d = normalize(description)
+  for (const rule of NORM_RULES) {
+    if (rule.direction === 'out' && amount > 0) continue
+    if (rule.direction === 'in' && amount < 0) continue
+    if (rule.test?.(d, amount)) return { category: rule.category, matched: true }
+    if (rule.keys.some((k) => d.includes(k))) return { category: rule.category, matched: true }
+  }
+  // No rule matched: a positive amount is most likely income.
+  return { category: amount > 0 ? 'income' : 'other', matched: false }
+}
 
 /** Auto-categorize from the description and amount sign. */
 export function categorize(description: string, amount: number): Category {
-  const d = normalize(description)
-  for (const rule of NORM_RULES) {
-    if (rule.keys.some((k) => d.includes(k))) return rule.category
-  }
-  // No keyword matched: a positive amount is most likely income.
-  if (amount > 0) return 'income'
-  return 'other'
+  return categorizeMatch(description, amount).category
 }
 
 /** Normalize a description into a stable key for remembering overrides. */
