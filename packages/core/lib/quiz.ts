@@ -52,9 +52,11 @@ export interface QuizQuestion {
   /** one-sentence takeaway about the user's habits */
   takeaway: string
   /**
-   * The receipts: transaction lists behind the answer, shown after answering.
-   * Omitted for questions where a list adds nothing (net, averages,
-   * single-transaction answers).
+   * The receipts: the transaction lists behind the answer, shown wherever the
+   * question is (the quiz and the daily question both render them). Every
+   * personalized question carries at least one card — a figure the user can't
+   * check is a figure they can't act on — so this is only ever undefined for
+   * the general-knowledge questions, which have no transactions behind them.
    */
   evidence?: EvidenceCard[]
 }
@@ -294,8 +296,12 @@ function mk(
   choices: Choices,
   answerDetail: string,
   takeaway: string,
-  evidence?: EvidenceCard[],
+  evidence: EvidenceCard[],
 ): QuizQuestion {
+  // Empty cards are dropped rather than rendered as a blank list — a question
+  // whose figure is one-sided (a month with income but no spending, say) still
+  // shows the side that has rows.
+  const cards = evidence.filter((c) => c.items.length > 0)
   return {
     id: newId(),
     kind,
@@ -304,7 +310,7 @@ function mk(
     correctIndex: choices.correctIndex,
     answerDetail,
     takeaway,
-    evidence,
+    evidence: cards.length > 0 ? cards : undefined,
   }
 }
 
@@ -323,9 +329,19 @@ function txCard(title: string, txs: Transaction[]): EvidenceCard {
   return { title, items }
 }
 
-/** Counted expenses in a category — the rows behind a category total. */
-function categoryExpenses(txs: Transaction[], id: string): Transaction[] {
-  return txs.filter((t) => t.category === id && t.amount < 0 && countsTowardTotals(t))
+/**
+ * The rows behind a category total: its counted expenses plus any refunds in
+ * that category, because `spendingByCategory` credits refunds back — leaving
+ * them out would show a list that doesn't add up to the figure being asked
+ * about.
+ */
+function categoryRows(txs: Transaction[], id: string): Transaction[] {
+  return txs.filter((t) => t.category === id && (isCountedExpense(t) || isRefund(t)))
+}
+
+/** The rows behind a spending total: expenses plus the refunds credited back. */
+function spendRows(txs: Transaction[]): Transaction[] {
+  return txs.filter((t) => isCountedExpense(t) || isRefund(t))
 }
 
 // ----------------------------- generators -----------------------------
@@ -343,7 +359,7 @@ function genCategorySpend(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(choiceCat.total)} on ${label} ${rangeLabel(range)} across ${choiceCat.count} transaction${choiceCat.count === 1 ? '' : 's'}.`,
     `${label} is one of your active spending buckets — worth a glance when you trim.`,
-    [txCard(`${label} ${rangeLabel(range)}`, categoryExpenses(ctx.tx(range), choiceCat.category))],
+    [txCard(`${label} ${rangeLabel(range)}`, categoryRows(ctx.tx(range), choiceCat.category))],
   )
 }
 
@@ -367,6 +383,7 @@ function genBiggestCategory(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `${categoryLabel(winner.category)} led at ${formatCurrency(winner.total)} — about ${formatPercent(pct)} of your spending ${rangeLabel(range)}.`,
     `Your largest category is where small percentage cuts free up the most cash.`,
+    [txCard(`${categoryLabel(winner.category)} ${rangeLabel(range)}`, categoryRows(txs, winner.category))],
   )
 }
 
@@ -387,6 +404,7 @@ function genPercentToCategory(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `${label} was ${formatPercent(pct)} of your ${formatCurrency(total)} in spending ${rangeLabel(range)}.`,
     `Knowing each category's share makes it obvious where your money actually goes.`,
+    [txCard(`${label} ${rangeLabel(range)} (${formatCurrency(choiceCat.total)})`, categoryRows(txs, choiceCat.category))],
   )
 }
 
@@ -403,6 +421,7 @@ function genLargestExpenseAmount(ctx: Ctx, range: TimeRange): QuizQuestion | nul
     choices,
     `Your biggest single charge ${rangeLabel(range)} was ${formatCurrency(winner.amount)} at ${winner.description}.`,
     `One large purchase can outweigh weeks of small ones — large charges deserve scrutiny.`,
+    [txCard(`Your largest charges ${rangeLabel(range)}`, spendRows(ctx.tx(range)))],
   )
 }
 
@@ -419,6 +438,7 @@ function genLargestExpenseMerchant(ctx: Ctx, range: TimeRange): QuizQuestion | n
     choices,
     `${winner.description} was your largest expense ${rangeLabel(range)} at ${formatCurrency(winner.amount)}.`,
     `Recognizing your biggest line items is the first step to questioning them.`,
+    [txCard(`Your largest charges ${rangeLabel(range)}`, spendRows(ctx.tx(range)))],
   )
 }
 
@@ -455,6 +475,7 @@ function genAvgDaily(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You averaged ${formatCurrency(avg)} per day — ${formatCurrency(spend)} over ${spanDays(txs)} days ${rangeLabel(range)}.`,
     `A daily-spend number turns a big total into something you can feel day to day.`,
+    [txCard(`The ${formatCurrency(spend)} behind that average`, spendRows(txs))],
   )
 }
 
@@ -474,6 +495,10 @@ function genNet(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     net >= 0
       ? `You lived within your means ${rangeLabel(range)} — that surplus is what builds savings.`
       : `You spent more than you earned ${rangeLabel(range)} — a signal to watch next month.`,
+    [
+      txCard(`Income ${rangeLabel(range)} (${formatCurrency(income)})`, txs.filter(isRealIncome)),
+      txCard(`Spending ${rangeLabel(range)} (${formatCurrency(spend)})`, spendRows(txs)),
+    ],
   )
 }
 
@@ -489,7 +514,7 @@ function genTotalSpending(ctx: Ctx, range: TimeRange): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(spend)} ${rangeLabel(range)} (refunds already credited back).`,
     `Knowing your headline spend is the anchor for every budgeting decision.`,
-    [txCard(`Spending ${rangeLabel(range)}`, txs.filter((t) => isCountedExpense(t) || isRefund(t)))],
+    [txCard(`Spending ${rangeLabel(range)}`, spendRows(txs))],
   )
 }
 
@@ -562,8 +587,8 @@ function genCategoryTrend(ctx: Ctx): QuizQuestion | null {
     `${label} went ${dir} ${formatCurrency(Math.abs(delta))}: ${formatCurrency(pv)} in ${formatMonth(prevKey)} versus ${formatCurrency(cv)} in ${formatMonth(curKey)}.`,
     `Month-over-month shifts in a single category are the early warning signs of lifestyle creep.`,
     [
-      txCard(`${label} — ${formatMonth(prevKey)} (${formatCurrency(pv)})`, categoryExpenses(prev, category)),
-      txCard(`${label} — ${formatMonth(curKey)} (${formatCurrency(cv)})`, categoryExpenses(cur, category)),
+      txCard(`${label} — ${formatMonth(prevKey)} (${formatCurrency(pv)})`, categoryRows(prev, category)),
+      txCard(`${label} — ${formatMonth(curKey)} (${formatCurrency(cv)})`, categoryRows(cur, category)),
     ],
   )
 }
@@ -595,6 +620,14 @@ function genBusiestDay(ctx: Ctx): QuizQuestion | null {
     choices,
     `You spend the most on ${winner}s — ${formatCurrency(byDow[maxIdx])} in total.`,
     'Knowing your heaviest spending day can reveal habits worth a second look.',
+    [
+      txCard(
+        `Everything you spent on a ${winner}`,
+        ctx.all.filter(
+          (t) => isCountedExpense(t) && new Date(`${t.date}T00:00:00Z`).getUTCDay() === maxIdx,
+        ),
+      ),
+    ],
   )
 }
 
@@ -666,7 +699,7 @@ function genBudget(ctx: Ctx): QuizQuestion | null {
     choices,
     `You spent ${formatCurrency(choice.spend)} on ${label} last month — ${verdict} your ${formatCurrency(choice.budget)} budget.`,
     'Comparing real spend to your budget is where intentions meet reality.',
-    [txCard(`${label} last month`, categoryExpenses(lastTx, choice.cat))],
+    [txCard(`${label} last month`, categoryRows(lastTx, choice.cat))],
   )
 }
 
@@ -700,7 +733,7 @@ function genTitheGiving(ctx: Ctx): QuizQuestion | null {
       '“Honor the LORD with your substance, with the first fruits of all your increase.” (Proverbs 3:9)',
       '“Let each man give according as he has determined in his heart… for God loves a cheerful giver.” (2 Corinthians 9:7)',
     ]),
-    [txCard(`Tithes & offerings ${label}`, categoryExpenses(txs, 'tithes'))],
+    [txCard(`Tithes & offerings ${label}`, categoryRows(txs, 'tithes'))],
   )
 }
 
@@ -718,6 +751,10 @@ function genTithePercent(ctx: Ctx): QuizQuestion | null {
     choices,
     `Tithes & offerings were ${formatPercent(pct)} of your ${formatCurrency(income)} in income ${label}.`,
     'A tithe is traditionally a tenth (Leviticus 27:30) — a simple yardstick for giving off the top.',
+    [
+      txCard(`Tithes & offerings ${label} (${formatCurrency(tithes)})`, categoryRows(txs, 'tithes')),
+      txCard(`Income ${label} (${formatCurrency(income)})`, txs.filter(isRealIncome)),
+    ],
   )
 }
 
@@ -737,7 +774,7 @@ function genDebtPayments(ctx: Ctx): QuizQuestion | null {
       '“Owe no one anything, except to love one another.” (Romans 13:8)',
       'Knocking out debt frees future income to save and to give — momentum compounds.',
     ]),
-    [txCard(`Loan & debt payments ${label}`, categoryExpenses(txs, 'loans'))],
+    [txCard(`Loan & debt payments ${label}`, categoryRows(txs, 'loans'))],
   )
 }
 

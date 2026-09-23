@@ -48,6 +48,46 @@ describe('generateQuiz', () => {
     }
   })
 
+  it('gives every question its receipts — the rows behind the figure', () => {
+    // The daily question reuses these, and a figure the user can't check is a
+    // figure they can't act on: no generator may ship without evidence.
+    const seen = new Set<string>()
+    for (let i = 0; i < 40; i++) {
+      for (const q of generateQuiz(richFixture(), { now: NOW })) {
+        seen.add(q.kind.split(':')[0])
+        expect(q.evidence, `${q.kind} has no evidence`).toBeDefined()
+        expect(q.evidence!.length).toBeGreaterThan(0)
+        for (const card of q.evidence!) {
+          expect(card.title).toBeTruthy()
+          expect(card.items.length).toBeGreaterThan(0)
+          for (const item of card.items) expect(item.label).toBeTruthy()
+        }
+      }
+    }
+    // Guards the guard: if the loop above stopped exercising the generators,
+    // it would pass vacuously.
+    expect(seen.size).toBeGreaterThanOrEqual(15)
+  })
+
+  it('shows evidence that adds up to the figure asked about, refunds included', () => {
+    const txs = [
+      tx('2026-03-01', 3000, 'income', 'Paycheck'),
+      tx('2026-03-08', -220, 'loans', 'Student Loan Payment'),
+      tx('2026-04-08', -220, 'loans', 'Student Loan Payment'),
+      tx('2026-04-20', 20, 'loans', 'Loan Servicer Refund'),
+      tx('2026-04-10', -150, 'groceries', 'Safeway'),
+      tx('2026-04-12', -45, 'dining', 'Chipotle'),
+    ]
+    const q = findQuestion(txs, 'debtPayments')
+    expect(q).toBeDefined()
+    // $220 + $220 - $20 refunded back = the $420 the question asks about.
+    expect(q!.answerDetail).toContain('$420.00')
+    const rows = q!.evidence![0].items
+    expect(rows.length).toBe(3)
+    const sum = rows.reduce((acc, r) => acc - (r.amount ?? 0), 0)
+    expect(sum).toBeCloseTo(420, 2)
+  })
+
   it('asks the tithe question when giving dominates the data (eventually — generation shuffles)', () => {
     const txs = [
       tx('2026-03-01', 3000, 'income', 'Paycheck'),
