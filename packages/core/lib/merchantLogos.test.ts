@@ -9,6 +9,8 @@ describe('brandSlugFor', () => {
     ['Mcdonald', 'mcdonalds'],
     ['NETFLIX.COM 866-579-7172', 'netflix'],
     ['Spotify USA', 'spotify'],
+    ['HULU 877-8244858 CA', 'hulu'],
+    ['Hulu', 'hulu'],
     ['APPLE.COM/BILL 866-712-7753 CA', 'apple'],
     ['SHELL OIL 57442', 'shell'],
     ['TARGET 00012345 AUSTIN TX', 'target'],
@@ -16,6 +18,9 @@ describe('brandSlugFor', () => {
     ['UBER *TRIP HELP.UBER.COM', 'uber'],
     ['UBER EATS', 'ubereats'],
     ['DELTA AIR LINES 0062', 'delta'],
+    ['HBO MAX', 'max'],
+    ['MAX.COM', 'max'],
+    ['HBO NOW', 'hbo'],
     ['CHASE CREDIT CRD AUTOPAY', 'chase'],
   ])('%s → %s', (description, slug) => {
     expect(brandSlugFor(description)).toBe(slug)
@@ -119,6 +124,9 @@ describe('brandSlugFor: the way banks really print them', () => {
     // Food, shopping, phone, utilities, travel, money
     ['KFC #B123 AUSTIN TX', 'kfc'],
     ['KENTUCKY FRIED CHICKEN', 'kfc'],
+    ['CHICK-FIL-A #01234', 'chickfila'],
+    ['CHICKFILA 00123', 'chickfila'],
+    ['CHICK FIL A DRIVE THRU', 'chickfila'],
     ["MACY'S #0123", 'macys'],
     ['MACYS.COM', 'macys'],
     ["SAM'S CLUB #6543", 'samsclub'],
@@ -250,7 +258,6 @@ describe('brandSlugFor: the way banks really print them', () => {
       'AMAZON PRIME*1A2B3C',
       'H-E-B #482 AUSTIN TX',
       'DISNEY PLUS 888-905-7888 CA',
-      'HULU 877-8244858 CA',
       'ADOBE *CREATIVE CLOUD',
       'MICROSOFT*MICROSOFT 365 MSBILL.INFO',
       'COSTCO WHSE #0123',
@@ -266,7 +273,6 @@ describe('brandSlugFor: the way banks really print them', () => {
       'DUNKIN #345678',
       'SUBWAY 12345',
       'PANERA BREAD #4567',
-      'CHICK-FIL-A #01234',
       'T-MOBILE AUTOPAY',
       'EXXONMOBIL 4567',
     ]) {

@@ -23,6 +23,7 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bstarbucks\b/, 'starbucks'],
   [/\bmc ?donald/, 'mcdonalds'],
   [/\bkfc\b|\bkentucky fried\b/, 'kfc'],
+  [/\bchick[- ]?fil[- ]?a\b/, 'chickfila'],
   [/\bburger king\b/, 'burgerking'],
   [/\btaco bell\b/, 'tacobell'],
   [/\bdoordash\b|\bdd \*?doordash/, 'doordash'],
@@ -55,6 +56,7 @@ const RULES: [RegExp, BrandSlug][] = [
   // Streaming, music, apps
   [/\bnetflix\b/, 'netflix'],
   [/\bspotify\b/, 'spotify'],
+  [/\bhulu\b/, 'hulu'],
   [/\byoutube ?tv\b/, 'youtubetv'],
   [/\byoutube\b/, 'youtube'],
   [/\bapple music\b/, 'applemusic'],
@@ -65,6 +67,7 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bapple\.com\b|\bapple (store|one|tv|arcade)\b|\bitunes\b|^apple( inc\.?)?$/, 'apple'],
   [/\bparamount ?(\+|plus)/, 'paramountplus'],
   [/\bhbo ?max\b|\bmax\.com\b/, 'max'],
+  [/\bhbo\b/, 'hbo'],
   [/\baudible\b/, 'audible'],
   [/\bplaystation\b|\bsony interactive\b/, 'playstation'],
   [/\bduolingo\b/, 'duolingo'],

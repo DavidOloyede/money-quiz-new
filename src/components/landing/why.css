@@ -3,8 +3,10 @@
  * useReplayInView: `armed` snaps each moving piece to its start pose (still
  * fully visible, just displaced), `play` runs it home, and `rest` (the
  * default, and all reduced motion ever sees) is the finished picture. Each
- * plays once per pass and resolves in one direction, except the falling
- * manna, which loops while it's on screen.
+ * plays once per pass and resolves in one direction, except the loops that
+ * run while their picture is on screen: the falling manna, and the account's
+ * guard (the lock breathing, a ring easing out, knocks from outside pushed
+ * back, sync dots flowing both ways, the last drawn with SMIL in the TSX).
  */
 .why-scene svg * {
   transform-box: view-box;
@@ -25,6 +27,75 @@
   }
 }
 
+@keyframes why-breathe {
+  from {
+    opacity: 0.18;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 0.55;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes why-halo {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* A knock drifts in, meets the barrier, is pushed back out, and fades. */
+@keyframes why-probe {
+  0% {
+    opacity: 0;
+    transform: translate(var(--why-px), var(--why-py));
+  }
+  12% {
+    opacity: 1;
+  }
+  40% {
+    transform: translate(0, 0);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--why-px) * 0.7), calc(var(--why-py) * 0.7));
+  }
+}
+
+/* The barrier lights up just where the knock lands. */
+@keyframes why-flash {
+  0%,
+  36% {
+    opacity: 0;
+  }
+  42% {
+    opacity: 1;
+  }
+  64%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The still picture (and reduced motion): the knock held at the barrier. */
+.why-halo {
+  opacity: 0;
+  transform-origin: 220px 93px;
+}
+.why-glow {
+  opacity: 0.35;
+  transform-origin: 220px 98px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /*
    * Manna keeps falling into the bowl for as long as the picture is on
@@ -43,6 +114,26 @@
   .why-heap {
     transform-origin: 220px 272px;
   }
+
+  /* The account's guard, running only while the picture is in view. */
+  .why-glow {
+    animation: why-breathe 2.4s ease-in-out infinite alternate;
+  }
+  .why-halo {
+    animation: why-halo 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  .why-probe {
+    animation: why-probe 5.6s ease-in infinite;
+  }
+  .why-flash {
+    animation: why-flash 5.6s ease-out infinite;
+  }
+  :is(.why-glow, .why-halo, .why-probe, .why-flash) {
+    animation-play-state: paused;
+  }
+  .why-scene[data-motion='play'] :is(.why-glow, .why-halo, .why-probe, .why-flash) {
+    animation-play-state: running;
+  }
   .why-scene[data-motion='armed'] .why-heap {
     transform: scale(0.8);
   }
@@ -53,12 +144,13 @@
 
   /*
    * Pieces that travel to their place: the giving slice eases out of the
-   * circle, and each sync pulse runs from the account to its device.
+   * circle. The sync pulses only rest here; while playing, the looping dots
+   * take their place.
    */
   .why-scene[data-motion='armed'] :is(.why-slice, .why-pulse) {
     transform: translate(var(--why-dx), var(--why-dy));
   }
-  .why-scene[data-motion='play'] :is(.why-slice, .why-pulse) {
+  .why-scene[data-motion='play'] .why-slice {
     transform: translate(var(--why-dx), var(--why-dy));
     animation: why-home 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: calc(0.2s + var(--why-delay, 0s));

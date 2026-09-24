@@ -207,8 +207,17 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   phone, when you tap it or scroll it to the middle): the bank links, a
   category opens to show its purchases, and the Year Sheet's numbers ripple
   in from the top-right corner before the "Net" row glows. Below the tiles
-  come the two daily habits: the question of the day (with the streak it
-  grows) and simple budgets, whose bars stay green while you're under. The
+  come three rows. First the question of the day (with the streak it
+  grows). Then **every subscription, every habit**: not just subscriptions,
+  but bills whose amount changes (like the electric bill) and habits (like a
+  weekly Chick-fil-A run). A "Recurring" card shows what they cost a month and what's
+  due next, circled by the logos of things people pay for again and again
+  (Netflix, Hulu, Chick-fil-A, AT&T, Walmart+, DoorDash, HBO, Uber, a gym and more).
+  The logos drift in and settle around the card, then the ring turns very
+  slowly, always the same way. Pointing at a logo makes it grow (the ring
+  keeps turning) until you move away. Walmart+ is drawn as its
+  name on its brand colour, because we don't carry its logo. Last come
+  simple budgets, whose bars stay green while you're under. The
   same two buttons open and close the page: **Create a free account** (the
   main one) and **Try it with sample data**. The first opens the Account
   screen already set to sign-up; the second loads the sample year and jumps
@@ -220,7 +229,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   if your device asks for less motion. The closing phone starts at zero (0
   out of 5, nothing around it) and builds up to the finished celebration, so
   you never catch it half done. In "why Manna", the manna keeps falling into
-  its bowl for as long as it's on your screen. At the top, manna falls from morning
+  its bowl for as long as it's on your screen, and in "safe, and yours" the
+  lock glows softly while little knocks from outside bounce off a barrier
+  around it and your numbers keep flowing between the account and each
+  device. At the top, manna falls from morning
   clouds into a bowl drawn like the one in the logo; at the bottom it falls
   into the same bowl in front of the celebrating phone. Omer, the mascot,
   takes the bowl's place once his artwork exists.
