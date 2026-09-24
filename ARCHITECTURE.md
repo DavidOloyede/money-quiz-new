@@ -229,7 +229,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   if your device asks for less motion. The closing phone starts at zero (0
   out of 5, nothing around it) and builds up to the finished celebration, so
   you never catch it half done. In "why Manna", the manna keeps falling into
-  its bowl for as long as it's on your screen. At the top, manna falls from morning
+  its bowl for as long as it's on your screen, and in "safe, and yours" the
+  lock glows softly while little knocks from outside bounce off a barrier
+  around it and your numbers keep flowing between the account and each
+  device. At the top, manna falls from morning
   clouds into a bowl drawn like the one in the logo; at the bottom it falls
   into the same bowl in front of the celebrating phone. Omer, the mascot,
   takes the bowl's place once his artwork exists.

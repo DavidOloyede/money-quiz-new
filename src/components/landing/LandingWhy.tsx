@@ -215,7 +215,7 @@ function GivingSlice() {
   )
 }
 
-/* ---------- Safe, and yours: one locked account, the same numbers on each device ---------- */
+/* ---------- Safe, and yours: one guarded account, the same numbers on each device ---------- */
 
 /** Rows without words, the same notebook on every screen. */
 function Rows({ x, end, ys, widths }: { x: number; end: number; ys: number[]; widths: [number, number][] }) {
@@ -251,6 +251,34 @@ const PULSES: [number, number, number, number][] = [
   [364, 198, -144, -32],
 ]
 
+/** The two sync lines, each drawn from the account down to its device. */
+const LINES = ['M204 166C180 190 150 196 135 214', 'M236 166C290 184 350 180 364 198']
+
+/** Middle of the shield: the barrier arcs are drawn around it. */
+const SHIELD = { x: 220, y: 93, r: 84 }
+
+/**
+ * Knocks from outside: each comes in toward the shield at an angle, meets
+ * the barrier there, and is pushed back out. `from` is where it starts,
+ * relative to that point on the barrier.
+ */
+const PROBES: { angle: number; from: [number, number]; delay: string }[] = [
+  { angle: 190, from: [-112, -10], delay: '0s' },
+  { angle: 345, from: [110, -16], delay: '2.8s' },
+]
+
+function onBarrier(deg: number) {
+  const a = (deg * Math.PI) / 180
+  return [SHIELD.x + SHIELD.r * Math.cos(a), SHIELD.y + SHIELD.r * Math.sin(a)] as const
+}
+
+/** A short stretch of the barrier centred on `deg`, where a knock lands. */
+function barrierArc(deg: number, spread = 22) {
+  const [x0, y0] = onBarrier(deg - spread)
+  const [x1, y1] = onBarrier(deg + spread)
+  return `M${x0.toFixed(1)} ${y0.toFixed(1)}A${SHIELD.r} ${SHIELD.r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`
+}
+
 function AccountScene() {
   const [ref, motion] = useReplayInView<HTMLDivElement>()
   const device = 'fill-cream stroke-linen-400 dark:fill-linen-900 dark:stroke-linen-600'
@@ -264,15 +292,84 @@ function AccountScene() {
     >
       <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
         <g fill="none" strokeWidth="4" strokeLinecap="round" className="stroke-sky-500 dark:stroke-sky-400">
-          <path d="M204 166C180 190 150 196 135 214" />
-          <path d="M236 166C290 184 350 180 364 198" />
+          {LINES.map((d) => (
+            <path key={d} d={d} />
+          ))}
         </g>
+
+        {/*
+          While the picture is in view, sync keeps flowing both ways on each
+          line: one dot up to the account, one down to the device. They're
+          drawn under the shield and devices so they tuck in at each end.
+          SMIL shares one document clock, so the offsets hold whenever this
+          mounts; reduced motion never reaches 'play', so it never mounts.
+        */}
+        {motion === 'play' &&
+          LINES.flatMap((d, i) =>
+            (['0;1', '1;0'] as const).map((points, j) => (
+              <circle key={`${i}${j}`} r="7" className="fill-sky-600 dark:fill-sky-400">
+                <animateMotion
+                  path={d}
+                  dur="3s"
+                  begin={`${-(i * 0.7 + j * 1.5)}s`}
+                  repeatCount="indefinite"
+                  keyPoints={points}
+                  keyTimes="0;1"
+                  calcMode="spline"
+                  keySplines="0.45 0 0.55 1"
+                />
+              </circle>
+            )),
+          )}
+
+        {/* Knocks from outside meet the barrier and are pushed back. */}
+        {PROBES.map((p) => {
+          const [x, y] = onBarrier(p.angle)
+          const vars = {
+            '--why-px': `${p.from[0]}px`,
+            '--why-py': `${p.from[1]}px`,
+            animationDelay: p.delay,
+          } as CSSProperties
+          return (
+            <g key={p.angle}>
+              <path
+                d={barrierArc(p.angle)}
+                fill="none"
+                strokeWidth="5"
+                strokeLinecap="round"
+                className="why-flash stroke-sky-400 dark:stroke-sky-300"
+                style={{ animationDelay: p.delay }}
+              />
+              <g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+                <g className="why-probe" style={vars}>
+                  <circle r="11" className="fill-coral-400 dark:fill-coral-500" />
+                  <path
+                    d="M-4 -4L4 4M4 -4L-4 4"
+                    strokeWidth="2.6"
+                    strokeLinecap="round"
+                    className="stroke-cream dark:stroke-linen-950"
+                  />
+                </g>
+              </g>
+            </g>
+          )
+        })}
+
+        {/* A ring that keeps easing out from the shield: it's on guard. */}
+        <path
+          d="M220 16L282 38V92C282 132 255 158 220 170C185 158 158 132 158 92V38Z"
+          fill="none"
+          strokeWidth="3"
+          className="why-halo stroke-sky-400 dark:stroke-sky-300"
+        />
 
         {/* Your account: a solid sky shield, the app's "synced" color. */}
         <path
           d="M220 16L282 38V92C282 132 255 158 220 170C185 158 158 132 158 92V38Z"
           className="fill-sky-600 dark:fill-sky-500"
         />
+        {/* The lock's glow breathes in and out behind it. */}
+        <circle cx="220" cy="98" r="30" className="why-glow fill-sky-300 dark:fill-sky-300" />
         <g
           fill="none"
           strokeWidth="6"
@@ -311,7 +408,8 @@ function AccountScene() {
           ]}
         />
 
-        {PULSES.map(([x, y, dx, dy], i) => (
+        {motion !== 'play' &&
+          PULSES.map(([x, y, dx, dy], i) => (
           <circle
             key={x}
             cx={x}
@@ -322,7 +420,7 @@ function AccountScene() {
               { '--why-dx': `${dx}px`, '--why-dy': `${dy}px`, '--why-delay': `${i * 0.12}s` } as CSSProperties
             }
           />
-        ))}
+          ))}
       </svg>
     </div>
   )
