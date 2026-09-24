@@ -134,11 +134,14 @@ export default function DashboardScreen() {
             />
             <StatTile label="Transactions" value={String(stats.count)} />
           </View>
-          <Button
-            variant="outline"
-            title={`Browse all ${transactions.length} transactions`}
-            onPress={() => router.push('/transactions')}
-          />
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="outline" title="All transactions" onPress={() => router.push('/transactions')} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="outline" title="Year Sheet" onPress={() => router.push('/year')} />
+            </View>
+          </View>
 
           {/* Spending by category */}
           <Card>
