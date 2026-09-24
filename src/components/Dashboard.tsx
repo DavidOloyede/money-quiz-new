@@ -18,6 +18,7 @@ import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatCurrency, formatDate, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
 import { CategoryDonut } from './charts/CategoryDonut'
 import { MonthlyTrend } from './charts/MonthlyTrend'
+import { MerchantLogo } from './MerchantLogo'
 import { CategoryDetailModal, type DetailTarget } from './CategoryDetailModal'
 import { TransferReviewModal } from './TransferReviewModal'
 import { unreviewedTransferCount } from '@moneyquiz/core/lib/transferReview'
@@ -359,7 +360,11 @@ export function Dashboard({ onNavigate }: Props) {
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-linen-100 dark:bg-linen-800 text-xs font-semibold text-linen-500 dark:text-linen-400">
                           {i + 1}
                         </span>
-                        <span aria-hidden>{categoryMeta(e.category).emoji}</span>
+                        <MerchantLogo
+                          brand={e.brand}
+                          logoUrl={e.logoUrl}
+                          fallback={categoryMeta(e.category).emoji}
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
                             {e.label}

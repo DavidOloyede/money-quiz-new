@@ -183,6 +183,10 @@ export interface ExpenseGroup {
   ids: string[]
   /** Where most of the money sits, for the colour and icon. */
   category: Category
+  /** Plaid's logo for this merchant, when any of its rows came with one. */
+  logoUrl?: string
+  /** The company behind it, when it's one we carry a logo for. */
+  brand?: BrandSlug
 }
 
 /**
@@ -207,6 +211,9 @@ export function topExpenseGroups(
 
   interface G {
     label: string
+    /** The bank's own text, kept because the cleaned label can drop details. */
+    raw: string
+    logoUrl?: string
     total: number
     count: number
     ids: string[]
@@ -217,6 +224,7 @@ export function topExpenseGroups(
     const key = groupKey(owner.description, aliases)
     const fresh: G = {
       label: groupLabel(owner.description, aliases),
+      raw: owner.description,
       total: 0,
       count: 0,
       ids: [],
@@ -226,6 +234,7 @@ export function topExpenseGroups(
     // Expenses are negative and refunds positive, so one line does both:
     // a charge adds its magnitude, a refund takes it away again.
     e.total += -t.amount
+    e.logoUrl ??= t.logoUrl
     if (t.amount < 0) {
       e.count += 1
       e.byCategory.set(t.category, (e.byCategory.get(t.category) ?? 0) + -t.amount)
@@ -243,15 +252,20 @@ export function topExpenseGroups(
   }
 
   return [...map.entries()]
-    .map(([key, g]) => ({
-      groupKey: key,
-      label: g.label,
-      total: g.total,
-      count: g.count,
-      ids: g.ids,
-      category:
-        [...g.byCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'other',
-    }))
+    .map(([key, g]) => {
+      const brand = brandSlugForAny(g.label, g.raw)
+      return {
+        groupKey: key,
+        label: g.label,
+        total: g.total,
+        count: g.count,
+        ids: g.ids,
+        category:
+          [...g.byCategory.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'other',
+        ...(g.logoUrl && { logoUrl: g.logoUrl }),
+        ...(brand && { brand }),
+      }
+    })
     .filter((g) => g.total > 0 && g.count > 0)
     .sort((a, b) => b.total - a.total)
     .slice(0, n)

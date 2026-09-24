@@ -330,6 +330,29 @@ describe('topExpenseGroups', () => {
     expect(topExpenseGroups(rows(), 5)[0].ids).toHaveLength(3)
   })
 
+  it('names the company behind a merchant so the list can show its logo', () => {
+    const list: Transaction[] = [
+      { id: 'a1', date: '2026-07-01', description: 'Apple', amount: -900, category: 'shopping' },
+      { id: 'a2', date: '2026-07-02', description: 'APPLE.COM/BILL 866-712-7753 CA', amount: -300, category: 'subscriptions' },
+      { id: 'c1', date: '2026-07-03', description: 'Jpmorganchase', amount: -500, category: 'utilities' },
+      { id: 'l1', date: '2026-07-04', description: 'CORNER COFFEE ROASTERS', amount: -50, category: 'dining' },
+    ]
+    const byLabel = Object.fromEntries(topExpenseGroups(list, 5).map((g) => [g.label, g]))
+    expect(byLabel['Apple'].brand).toBe('apple')
+    expect(byLabel['Jpmorganchase'].brand).toBe('chase')
+    expect(byLabel['Corner Coffee Roasters'].brand).toBeUndefined()
+  })
+
+  it('carries Plaid’s own logo when a merchant has no bundled one', () => {
+    const list: Transaction[] = [
+      { id: 'p1', date: '2026-07-01', description: 'HEB #482', amount: -80, category: 'groceries', logoUrl: 'https://example.test/heb.png' },
+      { id: 'p2', date: '2026-07-05', description: 'HEB #482', amount: -60, category: 'groceries' },
+    ]
+    const [g] = topExpenseGroups(list, 5)
+    expect(g.logoUrl).toBe('https://example.test/heb.png')
+    expect(g.brand).toBeUndefined()
+  })
+
   it('reports the category most of the money sits in', () => {
     expect(topExpenseGroups(rows(), 5)[0].category).toBe('rent')
   })
