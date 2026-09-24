@@ -1,8 +1,9 @@
 # Landing page redesign: handoff
 
-*Written 2026-09-24 at the end of the first design-loop run. Branch
-`feature/design-loop-landing`, last commit `7c8b766`. Read this first if you're
-picking up the landing page, restyling it, or running another design loop.*
+*Written 2026-09-24 at the end of the first design-loop run, and updated the
+same day after David's review of the rounds (see "David's round review" below).
+Branch `feature/design-loop-landing`. Read this first if you're picking up the
+landing page, restyling it, or running another design loop.*
 
 ## What exists now
 
@@ -20,13 +21,16 @@ signed out with no data.
 | --- | --- |
 | `src/components/landing/Landing.tsx` | Page shell and the `LandingActions` props (`onSignUp`, `onTrySample`, `onImport`, `onSignIn`). |
 | `LandingHero.tsx` + `hero.css` | Headline, subheadline, `CtaPair`, and the visual: morning clouds with a sun behind them, manna falling into a bowl, beside a phone showing "Correct! +10 XP". |
-| `LandingHowItWorks.tsx` + `how.css` | "From bank to budget": three alternating rows (connect your bank / one question a day / steady budgets + small wins). Bank tiles come from one `BANKS` array of neutral placeholders; swap each `mark` for a real bank SVG later. |
-| `LandingWhy.tsx` + `why.css` | "Why Manna?" story (Fraunces softened, body size) and feature blocks: a pause each morning (verse of the day, optional), room to give, safe and yours. |
-| `LandingFinal.tsx` + `final.css` | Short FAQ ("Before you try it"), then the finale on its own dawn band: closing headline, `CtaPair`, import link, and the celebration (phone showing Quiz complete 4/5, Nice work, +50 XP, streak chip, level progress, Continue; confetti burst, medal, check; small logo dropping manna into the bowl). Footer with wordmark and Sign in. |
+| `LandingHowItWorks.tsx` + `how.css` | "From bank to budget": intro, the three step tiles (`HowSteps`), then two alternating rows: **One question a day** (the streak lives on this card, since answering daily is what grows it) and **Simple, steady budgets** (bars are forest green while under budget, as on the real Budgets card). |
+| `HowSteps.tsx` + `steps.css` | The three small steps in round 2's tile style: connect your bank, see your categories (a list that opens onto Groceries' transactions), plan your whole year (the round-1 Year Sheet card; numbers ripple in ring by ring from the top-right cell, then the Net row swells and brightens). Each tile plays **on hover or keyboard focus**; on touch screens it plays when centred and a tap replays it. Bank tiles come from one `BANKS` array of neutral placeholders; swap each `mark` for a real bank SVG later. |
+| `LandingWhy.tsx` + `why.css` | "Why Manna?" story (round-1 text in the storyteller voice, and the round-1 picture: manna falling into a honey bowl on a dawn disc), then room to give and safe and yours. |
+| `LandingFinal.tsx` + `final.css` | Short FAQ ("Before you try it"), then the finale on its own dawn band: closing headline, `CtaPair`, import link, and the round-4 celebration: the phone centred (Quiz complete 4/5 counting up, Nice work, +50 XP and streak chips, level bar, Continue), confetti, medal and check bursting out, and `MannaBowl` in front of the phone's foot (where round 4's hands were) catching falling manna. Footer with wordmark and Sign in. |
+| `ThemeSwitch.tsx` | The sun/moon pair in the hero's top bar. It sets the store's `theme`, the same setting as the app's own switch. |
 | `CtaPair.tsx` | The shared button stack, so the hero and finale always match. Without accounts configured, sample data becomes the only (primary) button. |
 | `PressButton.tsx` | The chunky press-in button (DESIGN.md recipe; the dark-mode edge steps up to forest-700 so it shows). |
 | `MannaBowl.tsx` | The bowl the manna lands in (the logo's closed bowl, drawn large). This is **Omer's spot**: when his art exists he replaces it, in the hero and the finale. |
-| `useReplayInView.ts` | Scroll motion: `rest` / `armed` / `play` phases. Plays when the element reaches the **middle band** of the screen (centre 30%), replays every time it comes back, and stays at `rest` under reduced motion. The start pose must still show all content. |
+| `useReplayInView.ts` | Scroll motion: `rest` / `armed` / `play` phases. Plays only once the element's **middle reaches the middle of the screen** (within 12% of the viewport height); an element taller than the screen plays once it covers the middle, and at the very top or bottom of the page being fully on screen is enough. Replays every time it comes back, and stays at `rest` under reduced motion. The start pose must still show all content. |
+| `useHoverPlay.ts` | The step tiles' trigger: the same phases, driven by hover/focus, falling back to `useReplayInView` plus tap-to-replay on touch screens. |
 | `styles.ts` | The shared type scale and rhythm: `DISPLAY` (36/64px), `HEADING` (34/48px), `BODY` (17/18px, linen-500), `SECTION`, `COLUMN` (990px). |
 
 Also changed outside the landing folder: **the logo** (`MannaLogo` in
@@ -59,6 +63,21 @@ language.
 - **Bank logos:** real SVG logos come later; placeholders for now.
 - **Mascot:** Omer isn't drawn. Don't generate characters (and don't use
   Higgsfield). The bowl holds his spot.
+- **Finale:** round 4's layout (phone centred, rewards around it) with the
+  bowl in the hands' spot. The phone keeps one of each thing: score, verdict,
+  XP and streak, level bar, Continue. The "You found your top expense…" line
+  and "Next question tomorrow" were cut as redundant.
+- **How it works:** the three setup steps are connect → categories → Year
+  Sheet, as hover tiles in round 2's style. The streak goes with the daily
+  question, never with budgets (they're separate features). Budget bars are
+  green while under budget.
+- **Why Manna:** round 1's story text ("Manna came each morning, just enough
+  for the day…") and round 1's bowl. It speaks to anyone rather than one
+  faith. "A pause each morning" was removed, mainly so the page never
+  suggests skipping the verse ("skip straight past").
+- **Motion timing:** scroll animations wait until the thing is in the middle
+  of the screen, not when it first peeks in.
+- **Theme switch:** a small sun/moon pair at the top of the page.
 
 Design-system calls made during the loop (from docs/DESIGN.md):
 
@@ -76,7 +95,28 @@ Design-system calls made during the loop (from docs/DESIGN.md):
   account, bank tokens are encrypted, and no screen shows anyone else your
   finances.
 
-## Known open issues (from the round-5 critics; not yet fixed)
+## David's round review (after round 5)
+
+David picked pieces from different rounds; these are now built:
+
+| Piece | Now |
+| --- | --- |
+| Hero | Unchanged, plus the sun/moon theme switch in the top bar. |
+| How it works | Round 2's three-tile layout for connect → categories → Year Sheet (hover to play), then the question-of-the-day row (with its streak) and a green budgets row. |
+| Why Manna | Round 1's text and bowl; the Year Sheet moved into How it works; "A pause each morning" removed. |
+| Final | Round 4's layout and motion with the bowl instead of hands; the current phone content, trimmed. |
+
+These haven't been through the critics. Current renders are the
+`<piece>-now.jpg` files.
+
+## Known open issues (from the round-5 critics; some since fixed)
+
+Fixed since: "Linked securely" is sky; step 3's two-ideas problem (the streak
+card is gone from budgets); the budget mockup no longer shows a "$X left" line
+the real card doesn't have; Why Manna now avoids the faith-heavy verse block,
+and the Year Sheet (the money-planning feature) is on the page in How it works;
+the two ~36px-cornered tiles and the dark night-blue story fill went with the
+old Why pictures.
 
 The run stopped at David's 5-round checkpoint. No section passed all three
 critics, but **Hero, How it works and Final pass the brief critic**.
@@ -126,7 +166,8 @@ out these checkpoints:
 | `e4991c2` | End of round 5 for every piece, after the bank-first and sign-up direction; open hands in Omer's spot. |
 | `1f7db25` | Hands removed, three-flake logo, round-3 celebration restored. |
 | `f4ead08` | Closed-bowl logo, clouds and bowl in the hero, fuller finale phone. |
-| `7c8b766` | Current: sun behind the clouds, mid-screen scroll trigger. |
+| `7c8b766` | Sun behind the clouds, mid-screen scroll trigger. |
+| `8a791b3` | Current: David's round review: step tiles, round-1 Why, round-4 finale with the bowl, theme switch, centred scroll trigger. |
 
 To look at one without touching your working copy, use a git worktree:
 
@@ -194,6 +235,10 @@ across rounds) plus three fresh critics per piece:
      `--prod` for its renders.
    - Replay checks need a second visit (`--revisit`), and the hero needs
      `--topwait 0` because it replays the instant you're back at the top.
+   - Since the scroll trigger waits for the middle of the screen, `--tall`
+     (which stretches the viewport to the whole section) leaves rows in their
+     start pose. Add `--reduced` for a still of the finished state. The step
+     tiles only play on hover; check them with Playwright's `hover()`.
    - Parallel builders must own separate files. Put shared pieces (buttons,
      type scale, hooks) in files the orchestrator owns.
 7. **Usage limits:** 4 builders + 12 critics per round is heavy, and the run hit
@@ -223,10 +268,9 @@ across rounds) plus three fresh critics per piece:
 ## Suggested next steps
 
 1. Fix the objective leftovers in one pass: link color, dark dawn in the finale,
-   the 36px tile corners, the pie label, the "Linked securely" color, the finale
-   headline color.
-2. Give Why Manna a real money-planning feature and one consistent visual
-   treatment.
+   the pie label, the finale headline color.
+2. Give Why Manna's remaining pictures one consistent treatment (the round-1
+   bowl disc, the pie and the device scene are three styles).
 3. Drop in real bank logos (`BANKS` in LandingHowItWorks.tsx).
 4. When Omer's art lands, replace `MannaBowl` in the hero and finale (look for
    the "Omer's spot" comments).
