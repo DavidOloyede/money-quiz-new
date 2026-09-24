@@ -206,6 +206,14 @@ export function topExpenseGroups(
   n = 5,
   aliases: Aliases = {},
 ): ExpenseGroup[] {
+  return expenseGroups(transactions, aliases).slice(0, n)
+}
+
+/**
+ * Every merchant you spent with, grouped and netted the same way as
+ * topExpenseGroups, biggest first: the full list behind "View all".
+ */
+export function expenseGroups(transactions: Transaction[], aliases: Aliases = {}): ExpenseGroup[] {
   const byKey = new Map<string, Transaction>()
   for (const t of transactions) if (t.key) byKey.set(t.key, t)
 
@@ -268,7 +276,6 @@ export function topExpenseGroups(
     })
     .filter((g) => g.total > 0 && g.count > 0)
     .sort((a, b) => b.total - a.total)
-    .slice(0, n)
 }
 
 export interface MonthlyPoint {

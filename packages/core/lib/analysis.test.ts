@@ -21,6 +21,7 @@ import {
   totalSpending,
   upcomingCharges,
   topExpenseGroups,
+  expenseGroups,
 } from './analysis'
 
 let n = 0
@@ -328,6 +329,16 @@ describe('topExpenseGroups', () => {
 
   it('carries the ids so a row can drill into its own charges', () => {
     expect(topExpenseGroups(rows(), 5)[0].ids).toHaveLength(3)
+  })
+
+  it('keeps only the top n, while expenseGroups returns every merchant in the same order', () => {
+    const all = expenseGroups(rows())
+    expect(all.map((g) => g.label)).toEqual([
+      expect.stringMatching(/Cedarbrook/),
+      expect.stringMatching(/Voltic/),
+      expect.stringMatching(/Corner Coffee/),
+    ])
+    expect(topExpenseGroups(rows(), 2)).toEqual(all.slice(0, 2))
   })
 
   it('names the company behind a merchant so the list can show its logo', () => {
