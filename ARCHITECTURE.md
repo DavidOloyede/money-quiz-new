@@ -584,7 +584,11 @@ the exceptions — they need a real browser.
   when we don't have one. Most small or local shops have no logo, and that's
   fine: the screen just shows what it showed before (the category's little
   picture, or nothing). Logos appear in the recurring & subscriptions list,
-  the upcoming charges, top merchants, and the transactions table.
+  the upcoming charges, top merchants, the Dashboard's "Where the most went"
+  list, and the transactions table. Budgeting apps like Empower tidy bank
+  lines before you export them ("APPLE.COM/BILL" becomes just "Apple",
+  "JPMORGANCHASE" loses its space), so the spotter also recognises those
+  tidied-up names, but only when the whole name is the company.
 
 And in **`packages/core/data/`**: **`sampleData.ts`** is a pretend year of money for a made-up
 person, spread over three pretend accounts (checking, savings, a credit card)

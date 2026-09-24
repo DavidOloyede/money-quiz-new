@@ -163,6 +163,19 @@ describe('brandSlugFor: the way banks really print them', () => {
     ['BMW FINANCIAL SERVICES', 'bmw'],
     ['VW CREDIT INC', 'volkswagen'],
     ['AUTOZONE #1234', 'autozone'],
+    // Cleaned names, the way aggregators like Empower export them
+    ['Apple', 'apple'],
+    ['Jpmorgan Chase & Co', 'chase'],
+    ['Jpmorganchase', 'chase'],
+    ['JPMORGANCHASE', 'chase'],
+    ['Facebook', 'facebook'],
+    ['FACEBK *AB12CD3', 'facebook'],
+    ['Groupon', 'groupon'],
+    ['GROUPON INC', 'groupon'],
+    ['Gofundme Bring Tonton Sergofundme.com Ca', 'gofundme'],
+    ['Claude', 'claude'],
+    ['Github', 'github'],
+    ['Anthropic* Claude Sub Anthropic.comca', 'claude'],
   ])('%s → %s', (description, slug) => {
     expect(brandSlugFor(description)).toBe(slug)
   })
@@ -216,6 +229,10 @@ describe('brandSlugFor: the way banks really print them', () => {
       'WISE OWL BOOKS',
       'USPSTAIRS CAFE',
       'ALDI 72055',
+      'APPLE ORCHARD 0042', // "Apple" only counts as the whole label
+      'APPLE VALLEY DENTAL',
+      'CLAUDE MONET GALLERY',
+      'Claude Dupont',
     ]) {
       expect(brandSlugFor(d), d).toBeNull()
     }

@@ -60,7 +60,9 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bapple music\b/, 'applemusic'],
   [/\bicloud\b/, 'icloud'],
   [/\bapple ?tv\b/, 'appletv'],
-  [/\bapple\.com\b|\bapple (store|one|tv|arcade)\b|\bitunes\b/, 'apple'],
+  // A label that is only "Apple" counts too: aggregators like Empower clean
+  // "APPLE.COM/BILL" down to that. Whole-label only, so "Apple Orchard" doesn't.
+  [/\bapple\.com\b|\bapple (store|one|tv|arcade)\b|\bitunes\b|^apple( inc\.?)?$/, 'apple'],
   [/\bparamount ?(\+|plus)/, 'paramountplus'],
   [/\bhbo ?max\b|\bmax\.com\b/, 'max'],
   [/\baudible\b/, 'audible'],
@@ -92,7 +94,7 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bexpress ?vpn\b/, 'expressvpn'],
   [/\bpatreon\b/, 'patreon'],
   [/\bsubstack\b/, 'substack'],
-  [/\banthropic\b|\bclaude\.ai\b/, 'claude'],
+  [/\banthropic\b|\bclaude\.ai\b|^claude( ai)?$/, 'claude'],
   [/\bquickbooks\b/, 'quickbooks'],
   [/\bintuit\b|\bturbotax\b/, 'intuit'],
   [/\bcoursera\b/, 'coursera'],
@@ -102,6 +104,9 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bstrava\b/, 'strava'],
   [/\btinder\b(?! box)/, 'tinder'],
   [/\bdiscord\b/, 'discord'],
+  [/\bfacebook\b|\bfacebk\b/, 'facebook'],
+  [/\bgroupon\b/, 'groupon'],
+  [/\bgofundme\b/, 'gofundme'],
   [/\bticketmaster\b/, 'ticketmaster'],
   [/\bstubhub\b/, 'stubhub'],
   [/\bseat ?geek\b/, 'seatgeek'],
@@ -149,7 +154,7 @@ const RULES: [RegExp, BrandSlug][] = [
   [/\bexpedia\b/, 'expedia'],
   [/\btripadvisor\b/, 'tripadvisor'],
   // Banks and card issuers (card payments, bank fees)
-  [/\bchase\b/, 'chase'],
+  [/\bchase\b|\bjp ?morgan ?chase\b/, 'chase'],
   [/\bbank of america\b|\bbofa\b/, 'bankofamerica'],
   [/\bwells fargo\b/, 'wellsfargo'],
   [/\bamerican express\b|\bamex\b/, 'americanexpress'],
@@ -195,7 +200,7 @@ export function brandSlugFor(description: string): BrandSlug | null {
  * The first brand any of these names points to. Callers pass the name the
  * user sees first (an alias they chose wins) and the raw bank descriptor
  * after it, which keeps details a cleaned label drops ("APPLE.COM/BILL" →
- * plain "Apple", too generic to match on its own).
+ * plain "Apple", which only matches when it is the whole label).
  */
 export function brandSlugForAny(...names: (string | undefined)[]): BrandSlug | null {
   for (const name of names) {
