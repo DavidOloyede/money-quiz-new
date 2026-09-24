@@ -5,7 +5,8 @@ import { useAuth } from '../auth'
 import { plaidApi, plaidNeedsSignIn, type PlaidHealth } from '@moneyquiz/core/lib/plaid'
 import { openPlaidLink } from '../lib/plaidLink'
 import { track } from '../lib/track'
-import { CheckIcon, LinkIcon, XIcon } from './icons'
+import { CheckIcon, LinkIcon, SparkIcon, XIcon } from './icons'
+import { DemoBankModal } from './DemoBankModal'
 
 type Status =
   | { kind: 'loading' }
@@ -14,7 +15,7 @@ type Status =
   | { kind: 'down' }
   | { kind: 'ready'; health: PlaidHealth }
 
-export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => void }) {
+export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account' | 'dashboard') => void }) {
   const { addPlaidSource, syncPlaidSource } = useStore()
   const { loading: authLoading, session } = useAuth()
   const [status, setStatus] = useState<Status>({ kind: 'loading' })
@@ -23,6 +24,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
+  const [demoOpen, setDemoOpen] = useState(false)
 
   const signedIn = !!session
   useEffect(() => {
@@ -198,6 +200,22 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
             </div>
           )}
 
+          {/* The offline walk-through works in every state above: no account,
+              no server, nothing sent anywhere. */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-linen-100 pt-3 dark:border-linen-800">
+            <button
+              onClick={() => setDemoOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-linen-300 px-3 py-1.5 text-sm font-medium text-linen-700 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-200 dark:hover:bg-linen-800"
+            >
+              <SparkIcon className="h-4 w-4 text-honey-500" />
+              Try a demo bank
+            </button>
+            <span className="text-xs text-linen-500 dark:text-linen-400">
+              See how connecting works with pretend Chase, Citi and Ally accounts. Nothing leaves
+              this device.
+            </span>
+          </div>
+
           {done && (
             <div className="mt-3 flex items-center gap-2 text-sm text-forest-700 dark:text-forest-300">
               <CheckIcon className="h-4 w-4 shrink-0" /> {done}
@@ -210,6 +228,12 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account') => voi
           )}
         </div>
       </div>
+      {demoOpen && (
+        <DemoBankModal
+          onClose={() => setDemoOpen(false)}
+          onViewDashboard={onNavigate ? () => onNavigate('dashboard') : undefined}
+        />
+      )}
     </div>
   )
 }

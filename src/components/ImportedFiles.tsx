@@ -75,7 +75,7 @@ export function ImportedFiles({ sources, onRemove, onSync, onSelect }: Props) {
                   )}
                   {isPlaid && (
                     <span className="shrink-0 rounded-full bg-forest-50 dark:bg-forest-500/10 px-2 py-0.5 text-[10px] font-medium text-forest-700 dark:text-forest-300">
-                      Connected
+                      {s.demo ? 'Demo connection' : 'Connected'}
                     </span>
                   )}
                   <span
