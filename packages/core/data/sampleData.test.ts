@@ -13,6 +13,7 @@ import {
 import { generateQuiz } from '../lib/quiz'
 import { buildYearSheet } from '../lib/yearly'
 import { guessMapping, rowsToTransactions } from '../lib/importCsv'
+import { brandSlugFor } from '../lib/merchantLogos'
 
 // A fixed "now" so every expectation is reproducible. Deliberately mid-month
 // and mid-week, so the current month is partial the way a real export is.
@@ -68,7 +69,7 @@ describe('coverage', () => {
   it('shows off the patterns the dashboard looks for', () => {
     const count = (re: RegExp) => tx.filter((t) => re.test(t.description)).length
     // A frequent merchant, and one clear largest purchase.
-    expect(count(/CORNER COFFEE/)).toBeGreaterThan(20)
+    expect(count(/STARBUCKS/)).toBeGreaterThan(20)
     const biggest = tx.filter((t) => t.amount < 0).sort((a, b) => a.amount - b.amount)[0]
     expect(biggest.description).toMatch(/VOLTIC/)
     // A big repeating bill, so grouped top-expenses has an "x N" to show.
@@ -79,6 +80,18 @@ describe('coverage', () => {
     expect(count(/FLEX PAY/)).toBe(2)
     const willow = tx.filter((t) => /WILLOW BEND/.test(t.description))
     expect(new Set(willow.map((t) => t.amount)).size).toBe(2)
+  })
+
+  it('mixes merchants we have logos for with ones we don’t', () => {
+    // Real chains show their logo; invented local names show none — both
+    // should be visible in dining, subscriptions and the recurring bills.
+    const withLogo = (category: string, logo: boolean) =>
+      tx.some((t) => t.category === category && !!brandSlugFor(t.description) === logo)
+    for (const category of ['dining', 'subscriptions', 'transport', 'utilities']) {
+      expect(withLogo(category, true)).toBe(true)
+      expect(withLogo(category, false)).toBe(true)
+    }
+    expect(tx.some((t) => /NETFLIX/.test(t.description) && t.category === 'entertainment')).toBe(true)
   })
 
   it('puts the duplex costs on the Business / Rental ledger', () => {

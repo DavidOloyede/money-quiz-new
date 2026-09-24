@@ -21,7 +21,11 @@
  * in both directions, and one merchant name used for two different bills at
  * two different amounts.
  *
- * Everything here is invented. Never copy rows from a real statement into it.
+ * The merchants are a deliberate mix: well-known chains (Starbucks, Netflix,
+ * Target…) so the app's company logos have something to show, beside invented
+ * local names that have no logo — the honest picture of a real statement.
+ * The rows themselves are all invented. Never copy rows from a real statement
+ * into it.
  */
 import type { AccountType, Transaction } from '../types'
 import { categorize } from '../lib/categorize'
@@ -149,7 +153,7 @@ const MONTHLY: MonthlyBill[] = [
   { description: 'WILLOW BEND OWNERS ASSOCIATION', account: 'sample-checking', amount: -118, day: 3, spread: 0 },
   { description: 'BRIGHTLINE ENERGY', account: 'sample-checking', amount: -104.5, day: 12, spread: 0.3 },
   { description: 'CLEARWAVE INTERNET', account: 'sample-checking', amount: -79.99, day: 14, spread: 0 },
-  { description: 'NORTHSTAR WIRELESS', account: 'sample-checking', amount: -85, day: 17, spread: 0 },
+  { description: 'VERIZON WIRELESS', account: 'sample-checking', amount: -85, day: 17, spread: 0 },
   { description: 'SENTINEL AUTO INSURANCE', account: 'sample-checking', amount: -142.3, day: 8, spread: 0 },
   { description: 'MERIDIAN STUDENT LOAN PAYMENT', account: 'sample-checking', amount: -312.6, day: 20, spread: 0 },
 
@@ -158,9 +162,12 @@ const MONTHLY: MonthlyBill[] = [
 
   // --- Subscriptions (one ends partway through, one starts late) -----
   { description: 'LUMEN NOTES SUBSCRIPTION', account: 'sample-credit', amount: -12, day: 6, spread: 0 },
-  { description: 'PIXELFORGE SUBSCRIPTION', account: 'sample-credit', amount: -19.99, day: 11, spread: 0 },
+  { description: 'APPLE.COM/BILL', account: 'sample-credit', amount: -2.99, day: 15, spread: 0 },
   { description: 'ATLAS VPN SUBSCRIPTION', account: 'sample-credit', amount: -4.99, day: 24, spread: 0, until: 6 },
   { description: 'BEACON FITNESS SUBSCRIPTION', account: 'sample-credit', amount: -29, day: 19, spread: 0, from: 5 },
+  // Streaming bills monthly too, but the app files it under Entertainment.
+  { description: 'NETFLIX.COM', account: 'sample-credit', amount: -15.49, day: 11, spread: 0 },
+  { description: 'SPOTIFY USA', account: 'sample-credit', amount: -11.99, day: 27, spread: 0 },
 
   // --- Transfers & Zelle --------------------------------------------
   { description: 'Online Transfer to SAV 4821', account: 'sample-checking', amount: -400, day: 2, spread: 0 },
@@ -192,14 +199,18 @@ interface Habit {
 
 const HABITS: Habit[] = [
   // The frequent merchant — the one the dashboard singles out.
-  { description: 'CORNER COFFEE ROASTERS', account: 'sample-credit', amount: -6.4, times: 4, spread: 0.2 },
+  { description: 'STARBUCKS STORE 13390', account: 'sample-credit', amount: -6.4, times: 4, spread: 0.2 },
+  { description: 'CORNER COFFEE ROASTERS', account: 'sample-credit', amount: -5.25, times: 1, spread: 0.2 },
+  { description: "MCDONALD'S F12345", account: 'sample-credit', amount: -9.8, times: 1, spread: 0.25 },
   { description: 'NORTHSIDE GROCERY CO', account: 'sample-credit', amount: -78.5, times: 3, spread: 0.25 },
   { description: 'GREENLEAF SUPERMARKET', account: 'sample-credit', amount: -41.2, times: 1, spread: 0.3 },
   { description: 'BASIL & BRICK PIZZA', account: 'sample-credit', amount: -24.8, times: 1, spread: 0.3 },
   { description: 'SOL TACO KITCHEN', account: 'sample-credit', amount: -16.75, times: 1, spread: 0.3 },
-  { description: 'SUMMIT FUEL STOP', account: 'sample-credit', amount: -44.3, times: 2, spread: 0.25 },
+  { description: 'SHELL OIL 57442', account: 'sample-credit', amount: -41.8, times: 1, spread: 0.25 },
+  { description: 'SUMMIT FUEL STOP', account: 'sample-credit', amount: -44.3, times: 1, spread: 0.25 },
   { description: 'CITY TRANSIT PAYGO', account: 'sample-credit', amount: -2.9, times: 2, spread: 0.1 },
   { description: 'RIVERMARK CLOTHING CO', account: 'sample-credit', amount: -63.4, times: 1, spread: 0.4 },
+  { description: 'TARGET T-1846', account: 'sample-credit', amount: -48.6, times: 1, spread: 0.35 },
   { description: 'WELLSPRING PHARMACY', account: 'sample-credit', amount: -22.15, times: 1, spread: 0.3 },
 ]
 
@@ -231,6 +242,10 @@ const ONE_OFFS: OneOff[] = [
   // Education.
   { month: 3, day: 6, description: 'BRIGHTPATH TUITION CENTER', account: 'sample-credit', amount: -320 },
   { month: 9, day: 6, description: 'BRIGHTPATH TUITION CENTER', account: 'sample-credit', amount: -320 },
+  // A few rides.
+  { month: 2, day: 14, description: 'UBER *TRIP HELP.UBER.COM', account: 'sample-credit', amount: -18.4 },
+  { month: 7, day: 3, description: 'UBER *TRIP HELP.UBER.COM', account: 'sample-credit', amount: -23.75 },
+  { month: 10, day: 22, description: 'UBER *TRIP HELP.UBER.COM', account: 'sample-credit', amount: -16.9 },
   // Entertainment.
   { month: 1, day: 21, description: 'STARLIGHT CINEMA', account: 'sample-credit', amount: -34.5 },
   { month: 4, day: 14, description: 'RIVERFRONT CONCERT HALL', account: 'sample-credit', amount: -128 },

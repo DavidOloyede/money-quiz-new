@@ -532,8 +532,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    * per-source filtering, something to show.
    *
    * ★-flag the mortgage so the Recurring & subscriptions card has a headline
-   * bill out of the box; the subscription rows carry the word "subscription",
-   * so they categorize themselves and need no merchant overrides.
+   * bill out of the box. The invented subscriptions carry the word
+   * "subscription" and APPLE.COM/BILL is a known one, so they categorize
+   * themselves and need no merchant overrides.
    */
   const loadSample = useCallback(() => {
     const now = new Date()
@@ -542,7 +543,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setRecurringMerchants({ [mortgage]: true })
     setGroupMeta({
       [merchantKey('LUMEN NOTES SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 6 },
-      [merchantKey('PIXELFORGE SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 11 },
+      [merchantKey('APPLE.COM/BILL')]: { cadence: 'monthly', billingDay: 15 },
       [merchantKey('BEACON FITNESS SUBSCRIPTION')]: { cadence: 'monthly', billingDay: 19 },
       [merchantKey('SKYVAULT STORAGE SUBSCRIPTION')]: { cadence: 'annual' },
     })
