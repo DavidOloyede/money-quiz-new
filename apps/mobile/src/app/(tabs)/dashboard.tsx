@@ -30,6 +30,7 @@ import { useChargesSheet } from '@/components/ChargesSheet'
 import { TopMerchantsCard } from '@/components/Merchants'
 import { DebtCard, TransfersCard, TrendsCard } from '@/components/MoreCards'
 import { RecurringCard } from '@/components/RecurringCard'
+import { useTransactionEditor } from '@/components/TransactionSheet'
 import { TxListModal } from '@/components/TxListModal'
 import { VerseCard } from '@/components/VerseCard'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, Segmented } from '@/components/ui'
@@ -75,6 +76,7 @@ export default function DashboardScreen() {
   const bills = useMemo(() => recurring.filter((r) => r.kind === 'bill'), [recurring])
   const habits = useMemo(() => recurring.filter((r) => r.kind === 'habit'), [recurring])
   const charges = useChargesSheet()
+  const editor = useTransactionEditor()
   const budgetMonth = range === 'lastMonth' ? prevMonthKey() : currentMonthKey()
   const budgetItems = useMemo(
     () => budgetStatus(transactions, budgets, budgetMonth),
@@ -144,6 +146,11 @@ export default function DashboardScreen() {
             />
             <StatTile label="Transactions" value={String(stats.count)} />
           </View>
+          <Button
+            variant="outline"
+            title={`Browse all ${transactions.length} transactions`}
+            onPress={() => router.push('/transactions')}
+          />
 
           {/* Spending by category */}
           <Card>
@@ -314,7 +321,10 @@ export default function DashboardScreen() {
           }`}
           transactions={drillTx}
           onClose={() => setDrill(null)}
-        />
+          onPressRow={editor.open}
+        >
+          {editor.node}
+        </TxListModal>
       )}
     </Screen>
   )

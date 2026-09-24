@@ -20,15 +20,19 @@ export function TxListModal({
   transactions,
   onClose,
   onPressRow,
-  header,
+  children,
 }: {
   title: string
   subtitle?: string
   transactions: Transaction[]
   onClose: () => void
   onPressRow?: (t: Transaction) => void
-  /** Extra controls above the list (e.g. a merchant's recurring star). */
-  header?: ReactNode
+  /**
+   * Rendered inside this sheet's Modal: a sheet opened from a row (the
+   * transaction editor) must be presented from here, since iOS won't show
+   * two sibling modals at once.
+   */
+  children?: ReactNode
 }) {
   const { colors } = useAppTheme()
   return (
@@ -71,7 +75,6 @@ export function TxListModal({
             </Text>
           </Pressable>
         </View>
-        {header && <View style={{ paddingHorizontal: spacing.md, paddingBottom: spacing.sm }}>{header}</View>}
         <FlatList
           data={transactions}
           keyExtractor={(t) => t.id}
@@ -79,6 +82,7 @@ export function TxListModal({
           renderItem={({ item }) => <TxRow t={item} onPress={onPressRow} />}
         />
       </View>
+      {children}
     </Modal>
   )
 }
