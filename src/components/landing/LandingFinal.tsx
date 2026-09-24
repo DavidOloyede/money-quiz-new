@@ -80,7 +80,7 @@ const FAQS: { q: string; a: ReactNode }[] = [
 
 export function LandingFinal(actions: LandingActions) {
   const { onImport, onSignIn } = actions
-  const [ref, phase] = useReplayInView<HTMLDivElement>(0.3)
+  const [ref, phase] = useReplayInView<HTMLDivElement>()
   return (
     <section id="landing-final">
       <div className={`${SECTION} pb-20 lg:pb-20`}>
@@ -108,7 +108,6 @@ export function LandingFinal(actions: LandingActions) {
        * warming toward the bottom.
        */}
       <div
-        ref={ref}
         data-motion={phase}
         className="final-scene relative isolate overflow-hidden bg-[linear-gradient(to_bottom,var(--color-linen-50),var(--color-honey-100)_5rem,var(--color-sky-100)_68%,var(--color-sky-200))] dark:bg-[linear-gradient(to_bottom,var(--color-linen-950),var(--color-sky-950)_5rem,var(--color-sky-900)_72%,var(--color-honey-950))]"
       >
@@ -120,7 +119,11 @@ export function LandingFinal(actions: LandingActions) {
           <button type="button" onClick={onImport} className={`${QUIET_LINK} mt-1.5 text-base`}>
             Or import your own CSV
           </button>
-          <FinishedStage />
+          {/* Watch the phone itself: the band is taller than a screen, so its
+              celebration should fire when the phone, not the headline, is centred. */}
+          <div ref={ref}>
+            <FinishedStage />
+          </div>
         </div>
 
         <footer className="px-4 pb-4 sm:px-6">

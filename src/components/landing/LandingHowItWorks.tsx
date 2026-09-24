@@ -53,7 +53,7 @@ export function LandingHowItWorks() {
 }
 
 function Step(props: { title: string; body: string; label: string; visual: ReactNode; flip?: boolean }) {
-  const [ref, phase] = useReplayInView<HTMLLIElement>(0.4)
+  const [ref, phase] = useReplayInView<HTMLLIElement>()
   return (
     <li ref={ref} data-motion={phase} className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
       <div className="text-center md:text-left">

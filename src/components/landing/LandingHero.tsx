@@ -87,10 +87,32 @@ const FLAKES: { x: number; size: number; dur: number; delay: number; tone: strin
   { x: 106, size: 9, dur: 6.5, delay: -5.6, tone: 'bg-honey-200' },
 ]
 
-/** Two soft morning clouds, flat-shaded; the manna comes from under them. */
+/* The sun's eight rays; the clouds, drawn on top, hide the lower ones. */
+const SUN = { cx: 130, cy: 16, r: 22 }
+const RAYS = Array.from({ length: 8 }, (_, i) => {
+  const a = (i * Math.PI) / 4
+  const [c, sn] = [Math.cos(a), Math.sin(a)]
+  return {
+    x1: SUN.cx + c * (SUN.r + 7),
+    y1: SUN.cy + sn * (SUN.r + 7),
+    x2: SUN.cx + c * (SUN.r + 15),
+    y2: SUN.cy + sn * (SUN.r + 15),
+  }
+})
+
+/**
+ * Two soft morning clouds with a bright little sun peeking out behind them
+ * (the ⛅ idea); the manna comes from under the clouds.
+ */
 function Clouds({ className }: { className: string }) {
   return (
-    <svg className={className} viewBox="0 0 240 130" aria-hidden>
+    <svg className={className} viewBox="0 -20 240 150" aria-hidden>
+      <g className="stroke-honey-400 dark:stroke-honey-300/80" strokeWidth="4" strokeLinecap="round">
+        {RAYS.map((r, i) => (
+          <line key={i} {...r} />
+        ))}
+      </g>
+      <circle {...SUN} className="fill-honey-300 stroke-honey-400 dark:fill-honey-300/90 dark:stroke-honey-400/80" strokeWidth="2" />
       <g className="fill-sky-100 dark:fill-sky-950">
         <circle cx="170" cy="50" r="26" />
         <circle cx="198" cy="60" r="20" />
@@ -111,7 +133,7 @@ function Clouds({ className }: { className: string }) {
 /**
  * One object on a fixed 480×600 stage, scaled whole on smaller screens so it
  * keeps its shape at every width. The phone is the centre; beside its top,
- * morning clouds let manna fall into the logo's own bowl on the ground by the
+ * morning clouds (a little sun behind them) let manna fall into the logo's own bowl on the ground by the
  * phone's base (where Omer will later stand, once his art exists).
  */
 function HeroVisual() {
@@ -145,7 +167,7 @@ function HeroVisual() {
           ))}
         </div>
 
-        <Clouds className="absolute top-[40px] left-[-20px] h-[146px] w-[270px] drop-shadow-sm" />
+        <Clouds className="absolute top-[18px] left-[-20px] h-[168px] w-[270px] drop-shadow-sm" />
 
         <QuizPhone className="absolute top-0 right-0" />
 
