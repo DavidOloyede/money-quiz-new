@@ -1,3 +1,4 @@
+import Papa from 'papaparse'
 import type { AccountType, Category, ColumnMapping, CsvRow, Transaction } from '../types'
 import { allCategories } from './categories'
 import { parseAmount, parseDate } from './parse'
@@ -198,4 +199,23 @@ export function mappingFitsHeaders(m: ColumnMapping, headers: string[]): boolean
   if (!headers.includes(m.date) || !headers.includes(m.description)) return false
   if (m.amountMode === 'single') return !!m.amount && headers.includes(m.amount)
   return has(m.debit) && has(m.credit) && (!!m.debit || !!m.credit)
+}
+
+export type CsvParseResult =
+  | { ok: true; headers: string[]; rows: CsvRow[] }
+  | { ok: false; error: string }
+
+/**
+ * Read a CSV file's text into its header names and rows. Shared by the web
+ * (a dropped file) and the phone (a file picked from Files), so both accept
+ * exactly the same files. Blank header cells and blank lines are dropped.
+ */
+export function parseCsv(text: string): CsvParseResult {
+  const res = Papa.parse<CsvRow>(text, { header: true, skipEmptyLines: 'greedy' })
+  const headers = (res.meta.fields ?? []).filter((f) => f && f.trim() !== '')
+  const rows = res.data.filter((r) => r && Object.keys(r).length > 0)
+  if (headers.length === 0 || rows.length === 0) {
+    return { ok: false, error: 'That file didn’t look like a CSV with a header row. Please try another file.' }
+  }
+  return { ok: true, headers, rows }
 }

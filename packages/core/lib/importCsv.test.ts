@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { ColumnMapping, CsvRow } from '../types'
-import { guessAccountType, guessMapping, isCardPayment, mappingFitsHeaders, rowsToTransactions } from './importCsv'
+import {
+  guessAccountType,
+  guessMapping,
+  isCardPayment,
+  mappingFitsHeaders,
+  parseCsv,
+  rowsToTransactions,
+} from './importCsv'
 
 /**
  * Invented rows only — the header *shapes* mirror real exports (single-amount,
@@ -203,5 +210,30 @@ describe('mappingFitsHeaders', () => {
 
   it('rejects headers that lost one', () => {
     expect(mappingFitsHeaders(m, ['Date', 'Description'])).toBe(false)
+  })
+})
+
+describe('parseCsv', () => {
+  it('reads headers and rows, skipping blank lines and blank header cells', () => {
+    const res = parseCsv('Date,Description,Amount,\n09/01/2026,STARBUCKS,-6.40,\n\n09/02/2026,"TARGET, INC",-48.60,\n')
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    expect(res.headers).toEqual(['Date', 'Description', 'Amount'])
+    expect(res.rows).toHaveLength(2)
+    expect(res.rows[1].Description).toBe('TARGET, INC')
+  })
+
+  it('turns a file with no data rows into a friendly error', () => {
+    const res = parseCsv('Date,Description,Amount\n')
+    expect(res.ok).toBe(false)
+  })
+
+  it('round-trips the sample CSVs through the guessed mapping', async () => {
+    const { SAMPLE_ACCOUNTS, sampleCsv } = await import('../data/sampleData')
+    const res = parseCsv(sampleCsv(SAMPLE_ACCOUNTS[0].id))
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    const out = rowsToTransactions(res.rows, guessMapping(res.headers))
+    expect(out.transactions.length).toBeGreaterThan(50)
   })
 })

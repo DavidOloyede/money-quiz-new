@@ -5,6 +5,9 @@
   "type": "module",
   "main": "./index.ts",
   "types": "./index.ts",
+  "dependencies": {
+    "papaparse": "^5.4.1"
+  },
   "peerDependencies": {
     "react": "^19.1.0"
   }
