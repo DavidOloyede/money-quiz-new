@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Category, Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
-import { merchantKey, groupLabel, sharesName, displayDescription } from '@moneyquiz/core/lib/merchant'
+import { categoryCandidates, merchantKey, groupLabel, displayDescription } from '@moneyquiz/core/lib/merchant'
 import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatAbs, formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import { CheckIcon, XIcon } from './icons'
@@ -47,13 +47,7 @@ export function useApplyToSimilar() {
     setCategory(id, category)
     const t = transactions.find((x) => x.id === id)
     if (!t) return
-    const key = merchantKey(t.description)
-    const others = transactions.filter((x) => x.id !== id && x.category !== category)
-
-    const sameAmount = others.filter(
-      (x) => x.amount === t.amount && sharesName(x.description, t.description),
-    )
-    const sameMerchant = others.filter((x) => merchantKey(x.description) === key)
+    const { sameAmount, sameMerchant } = categoryCandidates(t, transactions, category)
     const label = groupLabel(t.description, aliases)
 
     const merchantOption: Option = {
