@@ -2,7 +2,7 @@
  * Motion for the landing hero (LandingHero.tsx). Kept out of index.css so the
  * hero owns its own keyframes. Every loop drifts one way (down) and runs well
  * over 2s a cycle, per the landing bar; reduce-motion drops it all and leaves
- * the resting logo and the finished quiz moment.
+ * the logo and the finished quiz moment.
  */
 
 /* Ambient manna: each flake gets its position, size, speed and delay inline. */
@@ -39,9 +39,11 @@ svg.hero-logo.manna-logo .manna-bowl {
 }
 
 /*
- * The quiz "Correct!" moment plays once on load with the reward overshoot
- * from DESIGN.md. Only `from` frames are defined, so the resting (reduced
- * motion) state is the finished moment rather than a blank answer.
+ * The quiz "Correct!" moment, driven by useReplayInView's data-motion phase
+ * on the section: `armed` (hero fully off screen) snaps to the start pose,
+ * `play` runs the reward overshoot from DESIGN.md back to the finished state,
+ * and `rest` is that finished state. Every start pose still shows its content
+ * (no opacity 0), because a full-page capture can land on it.
  */
 @keyframes hero-pop {
   from {
@@ -50,33 +52,44 @@ svg.hero-logo.manna-logo .manna-bowl {
 }
 @keyframes hero-xp-rise {
   from {
-    transform: translateY(14px) scale(0.8);
-    opacity: 0;
+    transform: translateY(6px) scale(0.8);
   }
 }
 @keyframes hero-panel-up {
   from {
-    transform: translateY(100%);
+    transform: translateY(16px);
   }
 }
 
-.hero-pop {
+[data-motion='armed'] .hero-pop {
+  transform: scale(0.94);
+}
+[data-motion='armed'] .hero-xp {
+  transform: translateY(6px) scale(0.8);
+}
+[data-motion='armed'] .hero-panel {
+  transform: translateY(16px);
+}
+
+[data-motion='play'] .hero-pop {
   animation: hero-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
 }
-.hero-xp {
+[data-motion='play'] .hero-xp {
   animation: hero-xp-rise 900ms cubic-bezier(0.34, 1.56, 0.64, 1) 800ms both;
 }
-.hero-panel {
+[data-motion='play'] .hero-panel {
   animation: hero-panel-up 450ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
 }
 
+/* The hook already stays at `rest` under reduced motion; this is belt and braces. */
 @media (prefers-reduced-motion: reduce) {
   .hero-flake {
     display: none;
   }
-  .hero-pop,
-  .hero-xp,
-  .hero-panel {
+  [data-motion] .hero-pop,
+  [data-motion] .hero-xp,
+  [data-motion] .hero-panel {
+    transform: none;
     animation: none;
   }
 }

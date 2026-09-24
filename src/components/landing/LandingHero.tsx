@@ -6,24 +6,31 @@
  */
 import type { CSSProperties } from 'react'
 import type { LandingActions } from './Landing'
-import { PressButton } from './PressButton'
+import { CtaPair } from './CtaPair'
+import { MannaHands } from './MannaHands'
+import { useReplayInView } from './useReplayInView'
 import { BODY, COLUMN, DISPLAY } from './styles'
 import { CheckIcon, MannaLogo } from '../icons'
 import './hero.css'
 
-/** Just wide enough for the headline to sit on two lines beside the visual. */
-const HERO_COLUMN = `${COLUMN} lg:max-w-[1120px]`
+/** Just wide enough for the two-line headline beside a visual that outweighs it. */
+const HERO_COLUMN = `${COLUMN} lg:max-w-[1160px]`
 
-export function LandingHero({ onTrySample, onSignIn }: LandingActions) {
+export function LandingHero(actions: LandingActions) {
+  const { onSignIn } = actions
+  // Replays the quiz moment on every scroll back to the top, not just once.
+  const [ref, phase] = useReplayInView<HTMLElement>()
   return (
     <section
+      ref={ref}
       id="landing-hero"
-      className="relative isolate flex flex-col bg-linear-to-b from-cream via-honey-100 to-sky-100 px-4 pb-16 sm:px-6 lg:min-h-svh lg:pb-24 dark:from-linen-950 dark:via-honey-950/50 dark:to-sky-950"
+      data-motion={phase}
+      className="relative isolate flex flex-col bg-linear-to-b from-cream via-honey-100 via-60% to-sky-100 px-4 pb-16 sm:px-6 lg:min-h-svh lg:pb-24 dark:from-linen-950 dark:via-honey-950/50 dark:to-sky-950"
     >
       {/* Melts the dawn into the page so the next section has no hard seam. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-linear-to-b from-transparent to-linen-50 dark:to-linen-950"
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-12 bg-linear-to-b from-transparent to-linen-50 dark:to-linen-950"
       />
 
       <header className={`${HERO_COLUMN} flex h-16 items-center justify-between`}>
@@ -37,7 +44,7 @@ export function LandingHero({ onTrySample, onSignIn }: LandingActions) {
           <button
             type="button"
             onClick={onSignIn}
-            className="-mr-3 inline-flex h-11 min-w-11 items-center justify-center rounded-xl px-3 font-rounded text-base font-bold text-forest-700 transition-colors duration-150 hover:bg-forest-600/10 dark:text-forest-300 dark:hover:bg-forest-300/10"
+            className="inline-flex h-11 items-center rounded-xl bg-forest-600/[0.06] px-4 font-sans font-semibold text-forest-700 underline decoration-forest-700/30 underline-offset-4 transition-colors duration-150 hover:bg-forest-600/12 hover:decoration-forest-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-600 dark:bg-forest-300/[0.07] dark:text-forest-300 dark:decoration-forest-300/40 dark:hover:bg-forest-300/12 dark:hover:decoration-forest-300"
           >
             Sign in
           </button>
@@ -57,11 +64,9 @@ export function LandingHero({ onTrySample, onSignIn }: LandingActions) {
           </h1>
           <p className={`${BODY} mx-auto mt-4 max-w-[520px] lg:mx-0 lg:mt-6`}>
             Manna Money turns your real transactions into 2-minute questions, simple budgets and
-            small wins worth celebrating. Free, private, no bank login needed.
+            small wins worth celebrating. Free and private.
           </p>
-          <div className="mt-7 lg:mt-10">
-            <PressButton onClick={onTrySample}>Try it with sample data</PressButton>
-          </div>
+          <CtaPair {...actions} className="mt-7 lg:mt-10" />
         </div>
       </div>
     </section>
@@ -69,39 +74,38 @@ export function LandingHero({ onTrySample, onSignIn }: LandingActions) {
 }
 
 /*
- * Manna, in stage pixels: flakes fall from the top of the stage, past the
- * logo tile, and fade out just above Omer's spot, all one way, each on its
- * own slow clock so they never fall in step.
+ * Manna, in stage pixels: flakes slip out from under the logo tile and fade
+ * into the open hands in Omer's spot, all one way, each on its own slow clock
+ * so they never fall in step. Starting below the tile (never over the glyph)
+ * keeps them reading as manna leaving the logo rather than as features.
  */
 const FLAKES: { x: number; size: number; dur: number; delay: number; tone: string }[] = [
-  { x: 14, size: 14, dur: 7, delay: -1.2, tone: 'bg-honey-400' },
-  { x: 58, size: 11, dur: 8, delay: -4.8, tone: 'bg-honey-300' },
-  { x: 104, size: 16, dur: 7.5, delay: -3.1, tone: 'bg-honey-400' },
-  { x: 36, size: 12, dur: 8.5, delay: -6.3, tone: 'bg-honey-300' },
-  { x: 132, size: 13, dur: 6.5, delay: -0.3, tone: 'bg-honey-400' },
-  { x: 80, size: 10, dur: 9, delay: -2.4, tone: 'bg-honey-300' },
-  { x: 150, size: 11, dur: 8, delay: -5.6, tone: 'bg-honey-300' },
+  { x: 8, size: 13, dur: 5, delay: -1.2, tone: 'bg-honey-400' },
+  { x: 44, size: 11, dur: 5.5, delay: -3.6, tone: 'bg-honey-300' },
+  { x: 76, size: 14, dur: 4.5, delay: -2.3, tone: 'bg-honey-400' },
+  { x: 26, size: 10, dur: 6, delay: -4.8, tone: 'bg-honey-300' },
+  { x: 62, size: 12, dur: 5, delay: -0.2, tone: 'bg-honey-300' },
 ]
 
 /**
  * One object on a fixed 480×600 stage, scaled whole on smaller screens so it
- * keeps its shape at every width. The phone is the centre; the logo tile
- * clips onto its top corner; manna falls past the tile toward Omer's spot on
- * the ground beside the phone's base. With the spot empty the flakes simply
- * fade above the ground, so the unit still reads as whole.
+ * keeps its shape at every width. The phone is the centre; the logo sits
+ * flat and square beside its top, as the brand mark it is (a tilt or sticker
+ * shadow makes the glyph read as a character); manna falls past the tile into the open hands
+ * (later Omer) on the ground beside the phone's base.
  */
 function HeroVisual() {
   return (
     <div
       role="img"
       aria-label="Manna falling past the Manna Money logo beside a phone showing a quiz question, “Which category did you spend the most on in August?”, answered correctly with Dining out for plus 10 XP."
-      className="relative mx-auto h-[288px] w-[230px] sm:h-[390px] sm:w-[312px] xl:h-[600px] xl:w-[480px]"
+      className="relative mx-auto h-[288px] w-[230px] sm:h-[390px] sm:w-[312px] xl:h-[648px] xl:w-[518px]"
     >
-      <div className="absolute top-0 left-0 h-[600px] w-[480px] origin-top-left scale-[0.48] sm:scale-[0.65] xl:scale-100">
+      <div className="absolute top-0 left-0 h-[600px] w-[480px] origin-top-left scale-[0.48] sm:scale-[0.65] xl:scale-[1.08]">
         {/* The ground the whole unit stands on. */}
         <div className="absolute bottom-0 left-[4px] h-[28px] w-[470px] rounded-[50%] bg-forest-900/10 blur-md dark:bg-linen-950/80" />
 
-        <div className="absolute top-0 left-[12px] h-[420px] w-[170px] overflow-hidden">
+        <div className="absolute top-[226px] left-[32px] h-[300px] w-[110px] overflow-hidden">
           {FLAKES.map((f, i) => (
             <span
               key={i}
@@ -113,7 +117,7 @@ function HeroVisual() {
                   height: f.size,
                   '--dur': `${f.dur}s`,
                   '--delay': `${f.delay}s`,
-                  '--fall': '400px',
+                  '--fall': '290px',
                   '--drift': `${Math.round(f.size / 3)}px`,
                 } as CSSProperties
               }
@@ -123,30 +127,18 @@ function HeroVisual() {
 
         {/*
          * Omer stands here, on the ground beside the phone's base where the
-         * manna is headed. The mascot (a honey-gold manna bowl, see "Omer, the
-         * mascot" in docs/DESIGN.md) catches the flakes; drop the idle pose
-         * from public/mascot/ into this box when the art arrives. The space is
-         * held in production; only dev builds outline it so nobody forgets it.
+         * manna falls. The mascot (a honey-gold manna bowl, see "Omer, the
+         * mascot" in docs/DESIGN.md) replaces this wrapper's contents when his
+         * art arrives; until then open hands receive the flakes, so the unit
+         * is complete either way.
          */}
-        <div
-          data-slot="omer"
-          aria-hidden
-          className={`absolute bottom-[12px] left-[8px] h-[160px] w-[160px] ${
-            import.meta.env.DEV
-              ? 'rounded-2xl border-2 border-dashed border-forest-600/50 dark:border-forest-300/50'
-              : ''
-          }`}
-        >
-          {import.meta.env.DEV && (
-            <span className="absolute inset-x-0 top-2 text-center font-rounded text-[20px] font-bold text-forest-700 dark:text-forest-300">
-              Omer
-            </span>
-          )}
+        <div data-slot="omer" className="absolute bottom-0 left-[-54px] h-[264px] w-[270px]">
+          <MannaHands className="h-full w-full" />
         </div>
 
         <QuizPhone className="absolute top-0 right-0" />
 
-        <div className="absolute top-[56px] left-[20px] h-[170px] w-[170px] -rotate-6 drop-shadow-xl drop-shadow-forest-900/30">
+        <div className="absolute top-[56px] left-[10px] h-[170px] w-[170px]">
           <MannaLogo className="hero-logo h-full w-full" />
         </div>
       </div>

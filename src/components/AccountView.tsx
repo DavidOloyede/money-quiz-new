@@ -35,9 +35,9 @@ function GoogleMark({ className }: { className?: string }) {
 const inputCls =
   'w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-2 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none'
 
-function SignInCard() {
+function SignInCard({ initialMode }: { initialMode: 'signin' | 'signup' }) {
   const { signUpWithPassword, signInWithPassword, signInWithGoogle } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -223,7 +223,8 @@ function ProfileCard() {
   )
 }
 
-export function AccountView() {
+/** `initialMode` lets the landing page's "Create a free account" open straight to sign-up. */
+export function AccountView({ initialMode = 'signin' }: { initialMode?: 'signin' | 'signup' }) {
   const { enabled, loading, session } = useAuth()
 
   return (
@@ -240,7 +241,7 @@ export function AccountView() {
       ) : session ? (
         <ProfileCard />
       ) : (
-        <SignInCard />
+        <SignInCard initialMode={initialMode} />
       )}
     </div>
   )

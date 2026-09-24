@@ -1,31 +1,89 @@
 /*
- * Motion for the landing page's "How it works". Only the quiz step moves (it
- * is the one playful moment; the money steps stay still), and every keyframe
- * starts and ends at the resting look, so the mockup is complete before,
- * during and after the animation, and reduced motion loses nothing.
+ * Motion for the landing page's "How it works", keyed off each row's
+ * data-motion phase from useReplayInView: `rest` is the finished look,
+ * `armed` snaps to a start pose that still shows everything, and `play` runs
+ * back to rest. So the motion replays on every pass and always ends on the
+ * same finished picture. The budget itself never moves (money stays calm);
+ * the bank link, the right answer and the streak get the motion.
  */
 
-[data-play] .how-hop {
-  animation: how-hop 900ms cubic-bezier(0.34, 1.56, 0.64, 1) 350ms both;
+/* Step 1: the chosen bank tile presses, then its check and "Linked" land. */
+[data-motion='armed'] .how-press { transform: scale(0.96); }
+[data-motion='armed'] .how-check { transform: scale(0.7); }
+[data-motion='armed'] .how-linked { transform: translateY(8px); }
+
+[data-motion='play'] .how-press {
+  animation: how-press 350ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both;
+}
+[data-motion='play'] .how-check {
+  animation: how-grow 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
+  --how-from: 0.7;
+}
+[data-motion='play'] .how-linked {
+  animation: how-lift 350ms cubic-bezier(0.22, 1, 0.36, 1) 250ms both;
 }
 
-[data-play] .how-cheer {
-  animation: how-cheer 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
+/* Step 2: the right answer pops and the XP chip bounces in beside it. */
+[data-motion='armed'] .how-answer { transform: scale(0.96); }
+[data-motion='armed'] .how-xp { transform: translateY(6px) scale(0.8); }
+
+[data-motion='play'] .how-answer {
+  animation: how-grow 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 50ms both;
+  --how-from: 0.96;
+}
+[data-motion='play'] .how-xp {
+  animation: how-xp 550ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
 }
 
-@keyframes how-hop {
-  0%, 100% { transform: translateY(0) scale(1); }
-  40% { transform: translateY(-4px) scale(1.06); }
+/* Step 3: the streak card rises, its flame grows and the XP bar fills. */
+[data-motion='armed'] .how-win { transform: translateY(16px); }
+[data-motion='armed'] .how-flame { transform: scale(0.8); }
+[data-motion='armed'] .how-fill { transform: scaleX(0.6); }
+
+[data-motion='play'] .how-win {
+  animation: how-lift 450ms cubic-bezier(0.22, 1, 0.36, 1) 0ms both;
+  --how-rise: 16px;
+}
+[data-motion='play'] .how-flame {
+  animation: how-grow 550ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
+  --how-from: 0.8;
+}
+[data-motion='play'] .how-fill {
+  animation: how-fill 600ms cubic-bezier(0.22, 1, 0.36, 1) 200ms both;
 }
 
-@keyframes how-cheer {
-  0%, 100% { transform: scale(1); }
-  45% { transform: scale(1.04); }
+.how-flame { transform-origin: 50% 90%; }
+.how-fill { transform-origin: left center; }
+
+@keyframes how-press {
+  from { transform: scale(0.94); }
+  to { transform: scale(1); }
 }
 
+@keyframes how-grow {
+  from { transform: scale(var(--how-from, 0.6)); }
+  to { transform: scale(1); }
+}
+
+@keyframes how-lift {
+  from { transform: translateY(var(--how-rise, 8px)); }
+  to { transform: translateY(0); }
+}
+
+@keyframes how-xp {
+  from { transform: translateY(6px) scale(0.8); }
+  to { transform: translateY(0) scale(1); }
+}
+
+@keyframes how-fill {
+  from { transform: scaleX(0.6); }
+  to { transform: scaleX(1); }
+}
+
+/* The hook already holds reduced motion at rest; this is a second guard. */
 @media (prefers-reduced-motion: reduce) {
-  [data-play] .how-hop,
-  [data-play] .how-cheer {
-    animation: none;
+  :is(.how-press, .how-check, .how-linked, .how-answer, .how-xp, .how-win, .how-flame, .how-fill) {
+    animation: none !important;
+    transform: none !important;
   }
 }

@@ -1,0 +1,27 @@
+/*
+ * Motion for MannaHands: a few flakes drift down into the open palms on a
+ * slow loop. Each flake's resting spot is its drawn position, so with motion
+ * off (reduced-motion, or animate={false}) the flakes simply sit in the palms.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .mh-animate .mh-fall {
+    animation: mh-fall 6.4s linear infinite both;
+  }
+  .mh-animate .mh-fall-1 { animation-delay: -0.4s; --mh-dx: -5px; }
+  .mh-animate .mh-fall-2 { animation-delay: -2s; --mh-dx: 4px; }
+  .mh-animate .mh-fall-3 { animation-delay: -3.6s; --mh-dx: -2px; }
+  .mh-animate .mh-fall-4 { animation-delay: -5.2s; --mh-dx: 6px; }
+}
+
+/* Fall (a touch of ease as it settles), rest a beat in the palms, then fade. */
+@keyframes mh-fall {
+  0% {
+    transform: translate(var(--mh-dx, 0px), -136px);
+    opacity: 0;
+    animation-timing-function: cubic-bezier(0.3, 0.1, 0.45, 1);
+  }
+  12% { opacity: 1; }
+  58% { transform: translate(0, 0); opacity: 1; }
+  86% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 0; }
+}

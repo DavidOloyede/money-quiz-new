@@ -1,7 +1,7 @@
 /**
  * The signed-out welcome page. App.tsx shows it in place of the app shell
- * when a visitor is signed out and has no data; trying the sample data (or
- * choosing to import or sign in) drops them into the real app. It never
+ * when a visitor is signed out and has no data; creating an account, trying
+ * the sample data, importing or signing in drops them into the real app. It never
  * changes the URL.
  */
 import { LandingHero } from './LandingHero'
@@ -10,7 +10,12 @@ import { LandingWhy } from './LandingWhy'
 import { LandingFinal } from './LandingFinal'
 
 export interface LandingActions {
-  /** Load the sample year and open the dashboard. The page's one CTA. */
+  /**
+   * Open account creation. The page's primary CTA; absent when accounts
+   * aren't configured, in which case sample data takes the primary slot.
+   */
+  onSignUp?: () => void
+  /** Load the sample year and open the dashboard. The secondary CTA. */
   onTrySample: () => void
   /** Leave the landing page for the CSV import screen. */
   onImport: () => void

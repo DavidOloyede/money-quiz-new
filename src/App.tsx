@@ -126,6 +126,7 @@ function Shell() {
   // Once a visitor picks "import" or "sign in" from the landing page, stay in
   // the app for this visit even though they still have no data.
   const [leftLanding, setLeftLanding] = useState(false)
+  const [accountMode, setAccountMode] = useState<'signin' | 'signup'>('signin')
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
   const showLanding = !hasData && !session && !authLoading && !leftLanding
@@ -152,7 +153,22 @@ function Shell() {
           setView('dashboard')
         }}
         onImport={() => leaveTo('import')}
-        onSignIn={accountsEnabled ? () => leaveTo('account') : undefined}
+        onSignUp={
+          accountsEnabled
+            ? () => {
+                setAccountMode('signup')
+                leaveTo('account')
+              }
+            : undefined
+        }
+        onSignIn={
+          accountsEnabled
+            ? () => {
+                setAccountMode('signin')
+                leaveTo('account')
+              }
+            : undefined
+        }
       />
     )
   }
@@ -196,8 +212,8 @@ function Shell() {
               />
             )}
             {view === 'settings' && <SettingsView onClear={() => setConfirmClear(true)} />}
-            {view === 'account' && <AccountView />}
-            {view === 'admin' && (isAdmin ? <AdminView /> : <AccountView />)}
+            {view === 'account' && <AccountView initialMode={accountMode} />}
+            {view === 'admin' && (isAdmin ? <AdminView /> : <AccountView initialMode={accountMode} />)}
           </Suspense>
         </div>
       </main>

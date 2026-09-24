@@ -1,47 +1,45 @@
 /**
  * The landing page's "Why Manna" story and what grows out of it. The story
- * (bread given each morning, a lesson in trust) is the one place on the page
- * for the storyteller voice; the sections after it carry that posture into
- * the app: a small word each morning, a calm month-by-month plan, room to
- * give, and a notebook that stays yours. "How it works" already covers
- * importing, the daily question, budgets and streaks, so none of that
- * repeats here. The pictures are wordless shapes: nothing to read, no
- * numbers that could pass for stats, no scripture (that lives in the app).
- * No buttons: the call to action lives only in the hero and the closing
- * section.
+ * (bread given each morning, a daily lesson in trust, for any faith or none)
+ * is the one place on the page for the storyteller voice; the blocks after it
+ * carry that daily posture into the app: a moment of perspective each
+ * morning, room to give, and an account that keeps it all safe on every
+ * device. "How it works" already covers importing, the daily question,
+ * budgets and streaks, so none of that repeats here. The pictures are
+ * wordless shapes with no numbers and no scripture. No buttons: the call to
+ * action lives only in the hero and the closing section.
  */
-import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { BODY, COLUMN, HEADING, SECTION } from './styles'
+import { useReplayInView } from './useReplayInView'
 import './why.css'
 
 export function LandingWhy() {
   return (
-    <div id="landing-why">
-      <Feature id="why-manna" heading="Why “Manna”?" visual={<MannaGround />} storyteller>
-        Manna was bread given each morning in the wilderness, a daily lesson in trust. So here: steward what
-        today brings, and plan ahead without the worry.
-      </Feature>
+    // One SECTION's rhythm wraps the run, and the blocks sit a fixed gap apart,
+    // so four blocks read as one steady sequence rather than four full sections.
+    <div id="landing-why" className={SECTION}>
+      <div className={`${COLUMN} space-y-24 lg:space-y-32`}>
+        <Feature id="why-manna" heading="Why “Manna”?" visual={<MannaMorning />} storyteller>
+          Manna was bread given each morning in the wilderness, a daily lesson in trust. For any faith or
+          none: tend today well, and plan without worry.
+        </Feature>
 
-      <Feature id="why-morning" heading="A word each morning" visual={<MorningScene />} flip>
-        Each day opens with a short verse on money, giving or stewardship, fresh at midnight. A small portion
-        for the day, before you look at a single number.
-      </Feature>
+        <Feature id="why-morning" heading="A pause each morning" visual={<MorningWindow />} flip>
+          Each day opens with a moment of perspective, a short verse on money or generosity, before any
+          numbers. Linger over it, or skip straight past.
+        </Feature>
 
-      <Feature id="why-year" heading="A steady year" visual={<YearScene />}>
-        Every month sits side by side, and the months ahead are sketched from your own habits and budgets, so
-        next month is a plan, not a guess.
-      </Feature>
+        <Feature id="why-give" heading="Room to give" visual={<GivingSlice />}>
+          Enough for today leaves room to share. See what you give as a share of your income, and set a goal
+          if you’d like one: 10%, or whatever fits.
+        </Feature>
 
-      <Feature id="why-give" heading="Room to give" visual={<GivingScene />} flip>
-        Generosity has a place here. See what you give as a share of your income, and set a goal if you’d like
-        one: 10%, or whatever fits.
-      </Feature>
-
-      <Feature id="why-yours" heading="Stays with you" visual={<PrivacyScene />}>
-        No account needed. Your numbers stay on this device, and they only reach the cloud if you sign in to
-        sync.
-      </Feature>
+        <Feature id="why-yours" heading="Safe, and yours" visual={<AccountScene />} flip>
+          Sign in and your numbers follow you to every device. Connect a bank through Plaid or upload a CSV.
+          No one else, admins included, can pull up your finances.
+        </Feature>
+      </div>
     </div>
   )
 }
@@ -63,144 +61,124 @@ function Feature({
   children: ReactNode
 }) {
   return (
-    <section aria-labelledby={id} className={SECTION}>
-      <div className={`${COLUMN} grid items-center gap-12 md:grid-cols-2 md:gap-16`}>
-        <div className={`text-center md:text-left ${flip ? 'md:order-2' : ''}`}>
-          <h2 id={id} className={HEADING}>
-            {heading}
-          </h2>
-          <p
-            className={`${BODY} mx-auto mt-5 max-w-[470px] text-pretty md:mx-0 ${
-              storyteller ? 'font-display font-soft' : ''
-            }`}
-          >
-            {children}
-          </p>
-        </div>
-        <div className={`flex justify-center ${flip ? 'md:order-1' : ''}`}>{visual}</div>
+    <section aria-labelledby={id} className="grid items-center gap-10 md:grid-cols-2 md:gap-16">
+      <div className={`text-center md:text-left ${flip ? 'md:order-2' : ''}`}>
+        <h2 id={id} className={HEADING}>
+          {heading}
+        </h2>
+        <p
+          className={`${BODY} mx-auto mt-5 max-w-[470px] text-pretty md:mx-0 ${
+            storyteller ? 'font-display font-soft' : ''
+          }`}
+        >
+          {children}
+        </p>
       </div>
+      <div className={`flex justify-center ${flip ? 'md:order-1' : ''}`}>{visual}</div>
     </section>
   )
 }
 
-/** True once the element is mostly on screen, so a one-time animation plays where it's seen. */
-function useSeenOnce<T extends Element>() {
-  const ref = useRef<T>(null)
-  const [seen, setSeen] = useState(false)
-  useEffect(() => {
-    const el = ref.current
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      setSeen(true)
-      return
-    }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) {
-          setSeen(true)
-          io.disconnect()
-        }
-      },
-      { threshold: 0.4 },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [])
-  return [ref, seen] as const
-}
+/** Every picture shares one footprint, so the run keeps an even height. */
+const FRAME = 'why-scene aspect-[440/420] w-full max-w-[440px]'
 
-/* ---------- Why Manna: the morning's manna settling on the ground ---------- */
+/* ---------- Why Manna: manna settling on the ground at first light ---------- */
 
-/** Height of the ground's top edge at x (a gentle hill across the 400-wide scene). */
-function groundY(x: number) {
-  const t = x / 400
-  return 300 - 140 * t * (1 - t)
-}
-
-// [x, depth below the ground's edge, radius, color]. Scattered like dew:
-// small, many, and spread out rather than heaped, since none of it is hoarded.
-const GROUND_FLAKES: [number, number, number, string][] = [
-  [92, 10, 7, 'fill-honey-300'],
-  [130, 30, 9, 'fill-honey-400'],
-  [168, 8, 6, 'fill-honey-200'],
-  [205, 26, 10, 'fill-honey-300'],
-  [242, 6, 7, 'fill-honey-400'],
-  [280, 22, 8, 'fill-honey-200'],
-  [316, 10, 6, 'fill-honey-300'],
-  [110, 58, 8, 'fill-honey-200'],
-  [186, 60, 7, 'fill-honey-400'],
-  [262, 56, 9, 'fill-honey-300'],
-  [150, 88, 6, 'fill-honey-300'],
-  [226, 92, 8, 'fill-honey-200'],
+// [x, y, radius, color]. Resting on the ground, spread out like dew rather
+// than heaped: nothing here is gathered into a container.
+const RESTING: [number, number, number, string][] = [
+  [58, 346, 8, 'fill-honey-300'],
+  [104, 322, 10, 'fill-honey-400'],
+  [150, 356, 7, 'fill-honey-300'],
+  [196, 316, 9, 'fill-honey-300'],
+  [238, 350, 11, 'fill-honey-400'],
+  [284, 318, 8, 'fill-honey-300'],
+  [326, 360, 9, 'fill-honey-400'],
+  [372, 330, 10, 'fill-honey-300'],
+  [124, 392, 9, 'fill-honey-300'],
+  [270, 394, 8, 'fill-honey-400'],
+  [400, 386, 7, 'fill-honey-300'],
+]
+// Still on the way down, in the morning air.
+const FALLING: [number, number, number][] = [
+  [90, 150, 6],
+  [168, 220, 7],
+  [226, 120, 5],
+  [300, 196, 7],
+  [356, 132, 6],
+  [138, 270, 5],
+  [330, 262, 6],
 ]
 
-function MannaGround() {
-  const [ref, seen] = useSeenOnce<HTMLDivElement>()
+function MannaMorning() {
+  const [ref, motion] = useReplayInView<HTMLDivElement>()
   return (
     <div
       ref={ref}
-      data-play={seen}
+      data-motion={motion}
       role="img"
-      aria-label="Small flakes of manna scattered on the ground in the morning"
-      className="why-scene w-full max-w-[420px]"
+      aria-label="Flakes of manna falling at first light and settling on the ground"
+      className={`${FRAME} overflow-hidden rounded-[40px] bg-sky-700 dark:bg-sky-900`}
     >
-      <svg viewBox="0 0 400 400" className="w-full" aria-hidden>
-        <defs>
-          <clipPath id="why-ground-clip">
-            <circle cx="200" cy="200" r="198" />
-          </clipPath>
-        </defs>
-        <g clipPath="url(#why-ground-clip)">
-          <rect width="400" height="400" className="fill-linen-100 dark:fill-linen-900" />
-          <path d="M0 300Q200 230 400 300V400H0Z" className="fill-linen-200 dark:fill-linen-800" />
-          {GROUND_FLAKES.map(([x, depth, r, color], i) => {
-            const y = groundY(x) + depth
-            return (
-              <circle
-                key={x}
-                cx={x}
-                cy={y}
-                r={r}
-                className={`why-flake ${color}`}
-                style={{ '--why-drop': `${40 - y}px`, '--why-delay': `${i * 0.07}s` } as CSSProperties}
-              />
-            )
-          })}
-        </g>
+      <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
+        <circle cx="220" cy="-30" r="190" className="fill-sky-600/70 dark:fill-sky-800/80" />
+        <path d="M0 300Q220 252 440 300V420H0Z" className="fill-linen-100 dark:fill-linen-800" />
+        {FALLING.map(([x, y, r], i) => (
+          <circle
+            key={`f${x}`}
+            cx={x}
+            cy={y}
+            r={r}
+            className="why-flake fill-honey-200"
+            style={{ '--why-delay': `${i * 0.06}s` } as CSSProperties}
+          />
+        ))}
+        {RESTING.map(([x, y, r, color], i) => (
+          <circle
+            key={`r${x}`}
+            cx={x}
+            cy={y}
+            r={r}
+            className={`why-flake ${color}`}
+            style={{ '--why-delay': `${0.2 + i * 0.05}s` } as CSSProperties}
+          />
+        ))}
       </svg>
     </div>
   )
 }
 
-/* ---------- A word each morning: the sun coming up over an open book ---------- */
+/* ---------- A pause each morning: the sun coming up in an arched window ---------- */
 
-function MorningScene() {
+function MorningWindow() {
+  const [ref, motion] = useReplayInView<HTMLDivElement>()
+  const page = 'fill-cream stroke-linen-400 dark:fill-linen-700 dark:stroke-linen-500'
   return (
     <div
+      ref={ref}
+      data-motion={motion}
       role="img"
-      aria-label="The morning sun rising behind an open book"
-      className="w-full max-w-[360px] overflow-hidden rounded-[40px] bg-sky-100 dark:bg-sky-950/60"
+      aria-label="The sun rising in an arched window over an open book"
+      className={`${FRAME} overflow-hidden rounded-t-[50%] rounded-b-[40px] bg-sky-200 dark:bg-sky-900`}
     >
-      <svg viewBox="0 0 400 480" className="w-full" aria-hidden>
-        <circle cx="200" cy="262" r="118" className="fill-honey-100/70 dark:fill-honey-500/10" />
-        <circle cx="200" cy="262" r="78" className="fill-honey-200 dark:fill-honey-300/80" />
-        <path d="M0 272Q200 242 400 272V480H0Z" className="fill-linen-100 dark:fill-linen-900" />
+      <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
+        <g className="why-sun">
+          <circle cx="220" cy="262" r="128" className="fill-cream/45 dark:fill-linen-100/10" />
+          <circle cx="220" cy="262" r="84" className="fill-cream dark:fill-linen-100" />
+        </g>
+        <path d="M0 276Q110 236 230 266T440 252V420H0Z" className="fill-linen-300 dark:fill-linen-700" />
+        <path d="M0 318Q220 282 440 318V420H0Z" className="fill-linen-100 dark:fill-linen-800" />
 
         <g strokeWidth="3" strokeLinejoin="round">
-          <path
-            d="M200 338C170 324 110 322 60 332V430C110 420 170 422 200 436Z"
-            className="fill-cream stroke-linen-300 dark:fill-linen-800 dark:stroke-linen-600"
-          />
-          <path
-            d="M200 338C230 324 290 322 340 332V430C290 420 230 422 200 436Z"
-            className="fill-cream stroke-linen-300 dark:fill-linen-800 dark:stroke-linen-600"
-          />
+          <path d="M220 330C188 316 124 314 72 324V404C124 396 188 398 220 410Z" className={page} />
+          <path d="M220 330C252 316 316 314 368 324V404C316 396 252 398 220 410Z" className={page} />
         </g>
         {/* Lines of text, never words: the verse itself stays in the app. */}
-        <g strokeWidth="7" strokeLinecap="round" className="stroke-linen-200 dark:stroke-linen-700">
-          {[362, 384, 406].map((y, i) => (
+        <g strokeWidth="6" strokeLinecap="round" className="stroke-linen-300 dark:stroke-linen-500">
+          {[352, 372, 390].map((y, i) => (
             <g key={y}>
-              <path d={`M86 ${y}H${[176, 168, 150][i]}`} />
-              <path d={`M224 ${y}H${[314, 300, 306][i]}`} />
+              <path d={`M96 ${y}H${[196, 186, 168][i]}`} />
+              <path d={`M244 ${y}H${[344, 330, 336][i]}`} />
             </g>
           ))}
         </g>
@@ -209,181 +187,163 @@ function MorningScene() {
   )
 }
 
-/* ---------- A steady year: months side by side, the rest sketched in ---------- */
+/* ---------- Room to give: a slice of your income set out to share ---------- */
 
-// Each month's net, relative. Steady on purpose: the picture is a calm
-// rhythm, not a pile growing, and never a "not quite" month without a next step.
-const MONTHS = [0.62, 0.7, 0.58, 0.66, 0.72, 0.6, 0.68, 0.64, 0.7, 0.66, 0.66, 0.66]
-/** October onward is sketched from habits and budgets. */
-const FIRST_PROJECTED = 9
-
-function YearScene() {
-  return (
-    <div
-      role="img"
-      aria-label="Twelve months side by side: nine filled in, the last three sketched ahead as a plan"
-      className="w-full max-w-[440px]"
-    >
-      <div className="flex h-72 items-end gap-2 sm:h-96 sm:gap-3">
-        {MONTHS.map((h, i) => (
-          <div
-            key={i}
-            className={`flex-1 rounded-t-xl ${
-              i >= FIRST_PROJECTED
-                ? 'border-[3px] border-b-0 border-dashed border-forest-300 dark:border-forest-500/60'
-                : 'bg-forest-500 dark:bg-forest-400'
-            }`}
-            style={{ height: `${h * 100}%` }}
-          />
-        ))}
-      </div>
-      <div className="h-[3px] rounded-full bg-linen-200 dark:bg-linen-800" />
-    </div>
-  )
+const CX = 206
+const CY = 214
+const RADIUS = 172
+/** Where the pie's edge is at a given angle (degrees, counter-clockwise from 3 o'clock). */
+function edge(deg: number, dx = 0, dy = 0) {
+  const a = (deg * Math.PI) / 180
+  return `${(CX + dx + RADIUS * Math.cos(a)).toFixed(1)} ${(CY + dy - RADIUS * Math.sin(a)).toFixed(1)}`
 }
+// The given share: a tenth of the circle, pulled out along its middle.
+const SLICE_FROM = 18
+const SLICE_TO = 54
+const PULL = 30
+const PULL_X = PULL * Math.cos((36 * Math.PI) / 180)
+const PULL_Y = -PULL * Math.sin((36 * Math.PI) / 180)
 
-/* ---------- Room to give: a portion passed from one heap to another ---------- */
-
-const R = 20
-// The larger heap is yours; one flake travels to the smaller heap beside it.
-const OWN_HEAP: [number, number, string][] = [
-  [50, 330, 'fill-honey-300'],
-  [90, 330, 'fill-honey-400'],
-  [130, 330, 'fill-honey-300'],
-  [170, 330, 'fill-honey-400'],
-  [70, 296, 'fill-honey-200'],
-  [110, 296, 'fill-honey-300'],
-  [150, 296, 'fill-honey-200'],
-  [90, 262, 'fill-honey-300'],
-  [130, 262, 'fill-honey-400'],
-  [110, 228, 'fill-honey-200'],
-]
-const SHARED_HEAP: [number, number, string][] = [
-  [290, 330, 'fill-honey-300'],
-  [330, 330, 'fill-honey-400'],
-  [310, 296, 'fill-honey-200'],
-]
-
-function GivingScene() {
+function GivingSlice() {
+  const [ref, motion] = useReplayInView<HTMLDivElement>()
   return (
     <div
+      ref={ref}
+      data-motion={motion}
       role="img"
-      aria-label="A flake of manna passed from a larger heap to a smaller one beside it"
-      className="w-full max-w-[440px]"
+      aria-label="A circle of income with one slice pulled out to give"
+      className={FRAME}
     >
-      <svg viewBox="0 40 380 330" className="w-full" aria-hidden>
-        <path d="M20 352H360" strokeWidth="3" strokeLinecap="round" className="stroke-linen-200 dark:stroke-linen-800" />
+      <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
+        {/* Forest is income: the whole circle is what came in. */}
         <path
-          d="M118 200C170 60 280 60 310 262"
-          fill="none"
-          strokeWidth="4"
-          strokeDasharray="1 12"
-          strokeLinecap="round"
-          className="stroke-linen-300 dark:stroke-linen-600"
+          d={`M${CX} ${CY}L${edge(SLICE_TO)}A${RADIUS} ${RADIUS} 0 1 0 ${edge(SLICE_FROM)}Z`}
+          className="fill-forest-600 dark:fill-forest-500"
         />
-        {[...OWN_HEAP, ...SHARED_HEAP].map(([x, y, color]) => (
-          <circle key={`${x}-${y}`} cx={x} cy={y} r={R} className={color} />
-        ))}
-        {/* The flake on its way: outlined so it reads as moving, not resting. */}
-        <circle
-          cx="222"
-          cy="103"
-          r={R}
-          strokeWidth="5"
-          className="fill-honey-400 stroke-linen-50 dark:stroke-linen-950"
+        <path
+          d={`M${CX + PULL_X} ${CY + PULL_Y}L${edge(SLICE_FROM, PULL_X, PULL_Y)}A${RADIUS} ${RADIUS} 0 0 0 ${edge(
+            SLICE_TO,
+            PULL_X,
+            PULL_Y,
+          )}Z`}
+          strokeWidth="6"
+          strokeLinejoin="round"
+          className="why-slice fill-forest-200 stroke-linen-50 dark:fill-forest-300 dark:stroke-linen-950"
+          style={{ '--why-dx': `${-PULL_X}px`, '--why-dy': `${-PULL_Y}px` } as CSSProperties}
         />
       </svg>
     </div>
   )
 }
 
-/* ---------- Stays with you: this device, the cloud behind a switch that's off ---------- */
+/* ---------- Safe, and yours: one locked account, the same numbers on each device ---------- */
 
-function PrivacyScene() {
+/** Rows without words, the same notebook on every screen. */
+function Rows({ x, end, ys, widths }: { x: number; end: number; ys: number[]; widths: [number, number][] }) {
+  return (
+    <>
+      {ys.map((y, i) => (
+        <g key={y}>
+          <rect
+            x={x}
+            y={y}
+            width={widths[i][0]}
+            height="16"
+            rx="8"
+            className="fill-linen-200 dark:fill-linen-700"
+          />
+          <rect
+            x={end - widths[i][1]}
+            y={y}
+            width={widths[i][1]}
+            height="16"
+            rx="8"
+            className="fill-linen-300 dark:fill-linen-600"
+          />
+        </g>
+      ))}
+    </>
+  )
+}
+
+// Each sync pulse rests at its device; armed, it sits back at the account.
+const PULSES: [number, number, number, number][] = [
+  [135, 214, 85, -48],
+  [364, 198, -144, -32],
+]
+
+function AccountScene() {
+  const [ref, motion] = useReplayInView<HTMLDivElement>()
+  const device = 'fill-cream stroke-linen-400 dark:fill-linen-900 dark:stroke-linen-600'
   return (
     <div
+      ref={ref}
+      data-motion={motion}
       role="img"
-      aria-label="Your numbers locked on this device, with the connection to the cloud switched off until you sign in"
-      className="w-full max-w-[440px]"
+      aria-label="One locked account keeping the same numbers in step on a laptop and a phone"
+      className={FRAME}
     >
-      <svg viewBox="0 0 440 370" className="w-full" aria-hidden>
-        {/* The device: a screen holding the notebook, rows without words. */}
-        <rect
-          x="16"
-          y="120"
-          width="280"
-          height="200"
-          rx="26"
-          strokeWidth="3"
-          className="fill-cream stroke-linen-200 dark:fill-linen-900 dark:stroke-linen-700"
-        />
-        <rect x="126" y="330" width="60" height="10" rx="5" className="fill-linen-200 dark:fill-linen-700" />
-        {[162, 202, 242, 282].map((y, i) => (
-          <g key={y}>
-            <rect
-              x="48"
-              y={y}
-              width={[130, 100, 150, 112][i]}
-              height="16"
-              rx="8"
-              className="fill-linen-100 dark:fill-linen-800"
-            />
-            <rect
-              x={[212, 222, 206, 216][i]}
-              y={y}
-              width={[52, 42, 58, 48][i]}
-              height="16"
-              rx="8"
-              className="fill-linen-200 dark:fill-linen-700"
-            />
-          </g>
-        ))}
-
-        {/* The seal: this notebook is locked to this device. */}
-        <circle
-          cx="286"
-          cy="126"
-          r="34"
-          strokeWidth="3"
-          className="fill-cream stroke-linen-200 dark:fill-linen-900 dark:stroke-linen-700"
-        />
-        <g
-          strokeWidth="5"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="stroke-forest-600 dark:stroke-forest-300"
-        >
-          <rect x="271" y="124" width="30" height="22" rx="5" />
-          <path d="M277 124v-6a9 9 0 0 1 18 0v6" />
+      <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
+        <g fill="none" strokeWidth="4" strokeLinecap="round" className="stroke-sky-500 dark:stroke-sky-400">
+          <path d="M204 166C180 190 150 196 135 214" />
+          <path d="M236 166C290 184 350 180 364 198" />
         </g>
 
-        {/* The road to the cloud is dashed and quiet, behind a switch that's off. */}
+        {/* Your account: a solid sky shield, the app's "synced" color. */}
         <path
-          d="M300 228C370 228 372 170 372 102"
+          d="M220 16L282 38V92C282 132 255 158 220 170C185 158 158 132 158 92V38Z"
+          className="fill-sky-600 dark:fill-sky-500"
+        />
+        <g
           fill="none"
-          strokeWidth="3"
-          strokeDasharray="2 9"
+          strokeWidth="6"
           strokeLinecap="round"
-          className="stroke-linen-300 dark:stroke-linen-600"
-        />
-        <rect
-          x="336"
-          y="178"
-          width="52"
-          height="28"
-          rx="14"
-          strokeWidth="3"
-          className="fill-linen-50 stroke-linen-300 dark:fill-linen-950 dark:stroke-linen-600"
-        />
-        <circle cx="351" cy="192" r="8" className="fill-linen-300 dark:fill-linen-600" />
-        <path
-          d="M332 98h58a22 22 0 0 0 1-44 30 30 0 0 0-57-6 24 24 0 0 0-2 50Z"
-          strokeWidth="3"
-          strokeDasharray="7 7"
           strokeLinejoin="round"
-          className="fill-sky-50/60 stroke-sky-400 dark:fill-sky-500/10 dark:stroke-sky-500/70"
+          className="stroke-cream dark:stroke-linen-950"
+        >
+          <rect x="202" y="86" width="36" height="28" rx="6" />
+          <path d="M209 86v-8a11 11 0 0 1 22 0v8" />
+        </g>
+
+        <rect x="10" y="216" width="250" height="160" rx="22" strokeWidth="4" className={device} />
+        <rect x="0" y="382" width="270" height="14" rx="7" className="fill-linen-400 dark:fill-linen-600" />
+        <Rows
+          x={40}
+          end={230}
+          ys={[250, 286, 322]}
+          widths={[
+            [120, 44],
+            [90, 34],
+            [136, 50],
+          ]}
         />
+
+        <rect x="300" y="200" width="128" height="210" rx="26" strokeWidth="4" className={device} />
+        <rect x="344" y="214" width="40" height="7" rx="3.5" className="fill-linen-300 dark:fill-linen-600" />
+        <Rows
+          x={320}
+          end={408}
+          ys={[244, 280, 316, 352]}
+          widths={[
+            [56, 22],
+            [42, 16],
+            [62, 26],
+            [48, 20],
+          ]}
+        />
+
+        {PULSES.map(([x, y, dx, dy], i) => (
+          <circle
+            key={x}
+            cx={x}
+            cy={y}
+            r="8"
+            className="why-pulse fill-sky-600 dark:fill-sky-400"
+            style={
+              { '--why-dx': `${dx}px`, '--why-dy': `${dy}px`, '--why-delay': `${i * 0.12}s` } as CSSProperties
+            }
+          />
+        ))}
       </svg>
     </div>
   )
