@@ -7,6 +7,7 @@ import {
   mappingFitsHeaders,
   rowsToTransactions,
 } from '@moneyquiz/core/lib/importCsv'
+import { detectBankFormat } from '@moneyquiz/core/lib/bankFormats'
 import { formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 
 interface Props {
@@ -56,8 +57,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: Props) {
+  const usedRemembered = !!initial && mappingFitsHeaders(initial, headers)
+  // A known bank layout knows things the headers can't say, like Amex writing
+  // purchases as positive numbers. The user's own saved mapping still wins.
+  const detected = useMemo(() => (usedRemembered ? null : detectBankFormat(headers)), [usedRemembered, headers])
   const [mapping, setMapping] = useState<ColumnMapping>(() => {
-    if (initial && mappingFitsHeaders(initial, headers)) return initial
+    if (usedRemembered && initial) return initial
+    if (detected) return detected.mapping
     return { ...guessMapping(headers), accountType: guessAccountType(headers, rows) }
   })
 
@@ -72,7 +78,6 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
   const full = useMemo(() => rowsToTransactions(rows, mapping), [rows, mapping])
 
   const valid = full.transactions.length > 0
-  const usedRemembered = !!initial && mappingFitsHeaders(initial, headers)
 
   return (
     <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
@@ -86,6 +91,11 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
         {usedRemembered && (
           <span className="rounded-full bg-forest-50 dark:bg-forest-500/10 px-2.5 py-1 text-xs font-medium text-forest-700 dark:text-forest-300">
             Using your saved mapping
+          </span>
+        )}
+        {detected && (
+          <span className="rounded-full bg-forest-50 dark:bg-forest-500/10 px-2.5 py-1 text-xs font-medium text-forest-700 dark:text-forest-300">
+            Recognised: {detected.format.label}
           </span>
         )}
       </div>
