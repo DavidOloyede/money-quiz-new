@@ -7,7 +7,6 @@
 import type { CSSProperties } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
-import { MannaHands } from './MannaHands'
 import { useReplayInView } from './useReplayInView'
 import { BODY, COLUMN, DISPLAY } from './styles'
 import { CheckIcon, MannaLogo } from '../icons'
@@ -91,8 +90,8 @@ const FLAKES: { x: number; size: number; dur: number; delay: number; tone: strin
  * One object on a fixed 480×600 stage, scaled whole on smaller screens so it
  * keeps its shape at every width. The phone is the centre; the logo sits
  * flat and square beside its top, as the brand mark it is (a tilt or sticker
- * shadow makes the glyph read as a character); manna falls past the tile into the open hands
- * (later Omer) on the ground beside the phone's base.
+ * shadow makes the glyph read as a character); manna falls past the tile to
+ * the ground beside the phone's base, where Omer will later stand.
  */
 function HeroVisual() {
   return (
@@ -103,7 +102,7 @@ function HeroVisual() {
     >
       <div className="absolute top-0 left-0 h-[600px] w-[480px] origin-top-left scale-[0.48] sm:scale-[0.65] xl:scale-[1.08]">
         {/* The ground the whole unit stands on. */}
-        <div className="absolute bottom-0 left-[4px] h-[28px] w-[470px] rounded-[50%] bg-forest-900/10 blur-md dark:bg-linen-950/80" />
+        <div className="absolute bottom-0 left-[150px] h-[28px] w-[330px] rounded-[50%] bg-forest-900/10 blur-md dark:bg-linen-950/80" />
 
         <div className="absolute top-[226px] left-[32px] h-[300px] w-[110px] overflow-hidden">
           {FLAKES.map((f, i) => (
@@ -126,15 +125,10 @@ function HeroVisual() {
         </div>
 
         {/*
-         * Omer stands here, on the ground beside the phone's base where the
-         * manna falls. The mascot (a honey-gold manna bowl, see "Omer, the
-         * mascot" in docs/DESIGN.md) replaces this wrapper's contents when his
-         * art arrives; until then open hands receive the flakes, so the unit
-         * is complete either way.
+         * Omer's spot: when his art arrives (a honey-gold manna bowl, see
+         * "Omer, the mascot" in docs/DESIGN.md), he stands on the ground here,
+         * left of the phone's base, catching the falling manna.
          */}
-        <div data-slot="omer" className="absolute bottom-0 left-[-54px] h-[264px] w-[270px]">
-          <MannaHands className="h-full w-full" />
-        </div>
 
         <QuizPhone className="absolute top-0 right-0" />
 

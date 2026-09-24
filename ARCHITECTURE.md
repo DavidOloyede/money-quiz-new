@@ -169,6 +169,23 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   Dashboard and Year Sheet are loaded lazily so the chart library doesn't slow
   down the first page load. It also pops up the "Are you sure?" box when you
   clear data and the "Leave the quiz?" warning when you navigate away mid-quiz.
+  If you're **signed out and have no data yet**, it shows the welcome page
+  (below) instead of the menu. The web address never changes; it's the same
+  page, just showing a different picture.
+- **`landing/`** — The **welcome page** a first-time visitor sees. It's four
+  parts stacked top to bottom: the opening ("Enough for today. A plan for
+  tomorrow." beside a phone showing a right quiz answer), **how it works**
+  (connect your bank, answer a quick question, keep simple budgets), **why
+  "Manna"** (the story behind the name, plus what's inside), and a short list
+  of questions and answers ending in a closing celebration. The same two
+  buttons open and close the page: **Create a free account** (the main one)
+  and **Try it with sample data**. The first opens the Account screen already
+  set to sign-up; the second loads the sample year and jumps to the
+  Dashboard. There's also a small "import your own CSV" link and a Sign in
+  link. The little animations (the quiz answer popping green, the confetti)
+  play again every time you scroll back to them, and they stay still if
+  your device asks for less motion. A spot beside the phones is saved for
+  Omer, the mascot, once his artwork exists.
 - **`Nav.tsx`** — The menu (on the side for computers, on top for phones). Also
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.

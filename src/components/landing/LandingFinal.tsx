@@ -3,14 +3,13 @@
  * cautious first-timer, then the finale on its own dawn band. The finale is
  * one centred column sized to fit a 900px screen: the promise restated, the
  * same CTA pair as the hero, and right under it the payoff, a phone showing
- * the quiz finished with open hands at its base catching the manna. The FAQ
+ * the quiz finished with confetti bursting around it. The FAQ
  * comes first so the CTAs close the page, as they open it
  * (docs/design/landing/bar.md #5).
  */
 import type { CSSProperties, ReactNode } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
-import { MannaHands } from './MannaHands'
 import { useReplayInView } from './useReplayInView'
 import { MannaLogo } from '../icons'
 import { BODY, COLUMN, DISPLAY, HEADING, SECTION } from './styles'
@@ -144,24 +143,36 @@ export function LandingFinal(actions: LandingActions) {
 }
 
 /*
- * The rewards fanning out from the finished quiz, hugging the phone's top
- * half. [left, top, size, depth, piece]: "back" pieces sit behind the phone,
- * "front" pieces overlap its edge. Confetti is forest and cream; the medal is
- * the one honey reward mark outside the screen, so honey stays scarce.
- * Particles (confetti, sparkle) are skipped under reduced motion.
+ * Manna in stage pixels: a short stream from under the small logo down to the
+ * ground at the phone's base. One direction, each flake on its own slow clock.
  */
-type Piece = 'medal' | 'check' | 'sparkle' | 'strip-forest' | 'strip-cream'
-const REWARDS: [number, number, number, 'back' | 'front', Piece][] = [
-  [176, 0, 28, 'back', 'strip-forest'],
-  [352, 2, 26, 'back', 'strip-cream'],
-  [398, 118, 26, 'back', 'strip-forest'],
-  [110, 74, 24, 'back', 'strip-cream'],
-  [120, 150, 46, 'front', 'check'],
-  [334, 20, 64, 'front', 'medal'],
-  [390, 196, 24, 'front', 'sparkle'],
+const FLAKES = [
+  { x: 30, size: 10, dur: 6.5, delay: -1.1, tone: 'bg-honey-300' },
+  { x: 58, size: 8, dur: 7.5, delay: -4.6, tone: 'bg-honey-200' },
+  { x: 44, size: 11, dur: 7, delay: -2.9, tone: 'bg-honey-400' },
+  { x: 72, size: 9, dur: 8, delay: -6.2, tone: 'bg-honey-300' },
 ]
-const PARTICLES = new Set<Piece>(['sparkle', 'strip-forest', 'strip-cream'])
-const PHONE_CENTER = { x: 260, y: 180 }
+
+/*
+ * The rewards that burst out of the finished quiz, gathered around the
+ * phone. [left, top, size, depth, piece]: "back" pieces sit behind the phone,
+ * smaller and softer; "front" pieces overlap it. Confetti stays in DESIGN.md's
+ * honey, forest and cream; honey is only the medal and one strip, so it stays
+ * the scarce reward colour. Particles are skipped under reduced motion.
+ */
+type Piece = 'medal' | 'check' | 'sparkle' | 'strip-forest' | 'strip-cream' | 'strip-honey' | 'dot-forest'
+const REWARDS: [number, number, number, 'back' | 'front', Piece][] = [
+  [212, 0, 30, 'back', 'strip-forest'],
+  [494, 140, 26, 'back', 'strip-cream'],
+  [500, 430, 24, 'back', 'strip-honey'],
+  [40, 318, 18, 'back', 'dot-forest'],
+  [14, 116, 30, 'front', 'sparkle'],
+  [22, 206, 54, 'front', 'check'],
+  [438, 8, 70, 'front', 'medal'],
+  [486, 318, 32, 'front', 'strip-cream'],
+]
+const PARTICLES = new Set<Piece>(['sparkle', 'strip-forest', 'strip-cream', 'strip-honey', 'dot-forest'])
+const PHONE_CENTER = { x: 364, y: 254 }
 
 function RewardPiece({ piece, size }: { piece: Piece; size: number }) {
   switch (piece) {
@@ -201,10 +212,13 @@ function RewardPiece({ piece, size }: { piece: Piece; size: number }) {
           <path d="M12 0c.9 6.6 5.4 11.1 12 12-6.6.9-11.1 5.4-12 12-.9-6.6-5.4-11.1-12-12C6.6 11.1 11.1 6.6 12 0z" />
         </svg>
       )
+    case 'dot-forest':
+      return <span className="block rounded-full bg-forest-300" style={{ width: size, height: size }} />
     default: {
       const tone = {
         'strip-forest': 'bg-forest-400 -rotate-[22deg]',
-        'strip-cream': 'bg-cream ring-1 ring-linen-300 rotate-[30deg] dark:ring-linen-500',
+        'strip-cream': 'bg-cream ring-1 ring-linen-300 rotate-[28deg] dark:ring-linen-500',
+        'strip-honey': 'bg-honey-300 rotate-[62deg]',
       }[piece]
       return <span className={`block rounded-[4px] ${tone}`} style={{ width: size * 0.45, height: size }} />
     }
@@ -216,15 +230,15 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
     <span
       key={`${piece}-${left}`}
       className={`final-burst absolute ${PARTICLES.has(piece) ? 'final-particle' : ''} ${
-        depth === 'back' ? 'opacity-85' : 'drop-shadow-md'
+        depth === 'back' ? 'opacity-80 blur-[0.5px]' : 'drop-shadow-md'
       }`}
       style={
         {
           left,
           top,
-          '--fx': `${Math.round((PHONE_CENTER.x - left - size / 2) * 0.6)}px`,
-          '--fy': `${Math.round((PHONE_CENTER.y - top - size / 2) * 0.6)}px`,
-          '--d': `${i * 45}ms`,
+          '--fx': `${Math.round((PHONE_CENTER.x - left - size / 2) * 0.7)}px`,
+          '--fy': `${Math.round((PHONE_CENTER.y - top - size / 2) * 0.7)}px`,
+          '--d': `${i * 50}ms`,
         } as CSSProperties
       }
     >
@@ -234,33 +248,54 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
 }
 
 /**
- * The finale's single container, on a fixed 520×460 stage scaled whole on
- * smaller screens so it keeps its shape. One silhouette on one patch of
- * ground: the phone in the middle, rewards around its top, and the open
- * hands in front of its base catching the manna.
+ * The closing picture, on a fixed 520×520 stage scaled whole on smaller
+ * screens (like the hero's) so it keeps its shape at every width: the
+ * finished-quiz phone, rewards bursting around it, and the small logo up
+ * high letting manna fall to the ground at the phone's base.
  */
 function FinishedStage() {
   return (
     <div
       role="img"
-      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it, and open hands in front of it catching falling manna."
-      className="relative mt-4 h-[285px] w-[322px] sm:h-[345px] sm:w-[390px] xl:h-[460px] xl:w-[520px]"
+      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling from the Manna Money logo."
+      className="relative mt-4 h-[322px] w-[322px] sm:h-[390px] sm:w-[390px] xl:h-[520px] xl:w-[520px]"
     >
-      <div className="absolute top-0 left-0 h-[460px] w-[520px] origin-top-left scale-[0.62] sm:scale-75 xl:scale-100">
+      <div className="absolute top-0 left-0 h-[520px] w-[520px] origin-top-left scale-[0.62] sm:scale-75 xl:scale-100">
         {/* Morning light behind the phone; fades out well inside the stage, so it never shows an edge. */}
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(closest-side,var(--color-cream),transparent)] dark:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-sky-700)_45%,transparent),transparent)]" />
-        <div className="absolute bottom-[4px] left-[70px] h-[26px] w-[380px] rounded-[50%] bg-forest-900/15 blur-md dark:bg-linen-950/80" />
+        <div className="absolute -inset-6 rounded-full bg-[radial-gradient(closest-side,var(--color-cream),transparent)] dark:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-sky-700)_45%,transparent),transparent)]" />
+        <div className="absolute bottom-[2px] left-[40px] h-[28px] w-[460px] rounded-[50%] bg-forest-900/15 blur-md dark:bg-linen-950/80" />
 
         <Rewards depth="back" />
+
+        <div className="absolute top-[128px] left-[112px] h-[372px] w-[100px] overflow-hidden">
+          {FLAKES.map((f) => (
+            <span
+              key={f.x}
+              className={`final-flake absolute top-0 rounded-full ${f.tone}`}
+              style={
+                {
+                  left: f.x,
+                  width: f.size,
+                  height: f.size,
+                  '--dur': `${f.dur}s`,
+                  '--delay': `${f.delay}s`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+
         <FinishedPhone />
 
         {/*
-         * Omer's spot: the mascot (a honey-gold manna bowl, see "Omer, the
-         * mascot" in docs/DESIGN.md) will stand here in front of the phone's
-         * base, catching the manna. Until his art exists, open hands do.
+         * Omer's spot: when his art arrives (a honey-gold manna bowl, see
+         * "Omer, the mascot" in docs/DESIGN.md), he stands on the ground here
+         * at the phone's base, cheering the finished quiz and catching the
+         * manna.
          */}
-        <div data-slot="omer" className="absolute bottom-0 left-[110px] h-[294px] w-[300px]">
-          <MannaHands className="h-full w-full" />
+
+        <div className="absolute top-[40px] left-[118px] h-[84px] w-[84px] -rotate-6 drop-shadow-lg drop-shadow-forest-900/25">
+          <MannaLogo className="h-full w-full" />
         </div>
 
         <Rewards depth="front" />
@@ -269,63 +304,75 @@ function FinishedStage() {
   )
 }
 
-const RING = 2 * Math.PI * 44
+const RING = 2 * Math.PI * 52
 
 /**
  * The quiz-finished screen from DESIGN.md's celebration table: the score
- * counted up, the XP earned. Everything that matters sits in the top half,
- * above the hands. A generic frame with a browser address bar, because today
- * the app lives in the phone's browser, not an app store.
+ * counted up, the XP earned. A generic frame with a browser address bar,
+ * because today the app lives in the phone's browser, not an app store.
  */
 function FinishedPhone() {
   return (
     <div
       aria-hidden
-      className="absolute top-[12px] left-[150px] h-[410px] w-[220px] rounded-[36px] bg-linen-900 p-[8px] shadow-2xl shadow-linen-900/40 ring-1 ring-linen-700 dark:bg-linen-950 dark:ring-linen-600"
+      className="absolute top-[14px] right-[36px] h-[480px] w-[240px] rounded-[40px] bg-linen-900 p-[9px] shadow-2xl shadow-linen-900/40 ring-1 ring-linen-700 dark:bg-linen-950 dark:ring-linen-600"
     >
-      <div className="flex h-full flex-col items-center overflow-hidden rounded-[29px] bg-cream text-center dark:bg-linen-900">
-        <span className="mt-3 h-[16px] w-[110px] shrink-0 rounded-full bg-linen-100 dark:bg-linen-800" />
+      <div className="relative flex h-full flex-col overflow-hidden rounded-[32px] bg-cream dark:bg-linen-900">
+        <span className="mx-auto mt-3 h-[16px] w-[120px] shrink-0 rounded-full bg-linen-100 dark:bg-linen-800" />
 
-        <div className="mt-4 font-rounded text-[10px] font-bold tracking-wide text-linen-500 uppercase dark:text-linen-400">
-          Quiz complete
-        </div>
+        <div className="flex flex-1 flex-col items-center px-5 pt-5 text-center">
+          <div className="font-rounded text-[10px] font-bold tracking-wide text-linen-500 uppercase dark:text-linen-400">
+            Quiz complete
+          </div>
 
-        <div className="relative mt-2 h-[104px] w-[104px]">
-          <svg viewBox="0 0 104 104" className="h-full w-full -rotate-90">
-            <circle
-              cx="52"
-              cy="52"
-              r="44"
-              className="fill-none stroke-linen-200 dark:stroke-linen-700"
-              strokeWidth="10"
-            />
-            <circle
-              cx="52"
-              cy="52"
-              r="44"
-              className="final-ring fill-none stroke-forest-500"
-              strokeWidth="10"
-              strokeLinecap="round"
-              strokeDasharray={RING}
-              style={{ '--ring': RING, '--ring-to': RING * 0.2 } as CSSProperties}
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-rounded text-[36px] leading-none font-black text-forest-700 tabular-nums dark:text-forest-300">
-              <span className="final-score" />
-              <span className="text-[16px] text-linen-500 dark:text-linen-400">/5</span>
+          <div className="relative mt-3 h-[124px] w-[124px]">
+            <svg viewBox="0 0 124 124" className="h-full w-full -rotate-90">
+              <circle
+                cx="62"
+                cy="62"
+                r="52"
+                className="fill-none stroke-linen-200 dark:stroke-linen-700"
+                strokeWidth="11"
+              />
+              <circle
+                cx="62"
+                cy="62"
+                r="52"
+                className="final-ring fill-none stroke-forest-500"
+                strokeWidth="11"
+                strokeLinecap="round"
+                strokeDasharray={RING}
+                style={{ '--ring': RING, '--ring-to': RING * 0.2 } as CSSProperties}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-rounded text-[40px] leading-none font-black text-forest-700 tabular-nums dark:text-forest-300">
+                <span className="final-score" />
+                <span className="text-[18px] text-linen-500 dark:text-linen-400">/5</span>
+              </span>
+              <span className="mt-1 text-[11px] font-semibold text-linen-500 dark:text-linen-400">right</span>
+            </div>
+          </div>
+
+          <div className="mt-4 font-rounded text-[22px] font-black text-linen-900 dark:text-linen-100">
+            Nice work!
+          </div>
+          <div className="mt-1 text-[12px] leading-snug text-linen-600 dark:text-linen-300">
+            You found your top expense and your biggest bill.
+          </div>
+
+          <div className="mt-4 flex items-center gap-2">
+            <span className="rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900">
+              +50 XP
+            </span>
+            <span className="rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
+              3-day streak
             </span>
           </div>
         </div>
 
-        {/* Verdict and reward on one line, clear of the hands below. */}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="font-rounded text-[20px] font-black text-linen-900 dark:text-linen-100">
-            Nice work!
-          </span>
-          <span className="rounded-full bg-honey-400 px-2 py-0.5 font-rounded text-[12px] font-black text-linen-900">
-            +50 XP
-          </span>
+        <div className="px-4 pb-5 text-center text-[12px] font-semibold text-linen-500 dark:text-linen-400">
+          Next question tomorrow
         </div>
       </div>
     </div>

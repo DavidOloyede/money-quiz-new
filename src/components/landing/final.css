@@ -78,3 +78,31 @@
     display: none;
   }
 }
+
+/* Manna drifting down from the small logo to the ground at the phone's base. */
+@keyframes final-flake-fall {
+  0% {
+    transform: translate3d(0, -20px, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(4px, 356px, 0);
+    opacity: 0;
+  }
+}
+
+.final-flake {
+  animation: final-flake-fall var(--dur, 7s) linear var(--delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-flake {
+    display: none;
+  }
+}

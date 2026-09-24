@@ -201,7 +201,6 @@ export function MannaLogo({ className }: IconProps) {
     <svg className={`manna-logo ${className ?? 'w-8 h-8'}`} viewBox="0 0 32 32" fill="none">
       <rect width="32" height="32" rx="9" fill="#1c5a32" />
       <circle className="manna-flake" cx="10.6" cy="8.4" r="1.6" fill="#f5dfa3" />
-      <circle className="manna-flake" cx="16" cy="6.6" r="1.6" fill="#eecb6b" />
       <circle className="manna-flake" cx="21.4" cy="8.4" r="1.6" fill="#f5dfa3" />
       <circle className="manna-flake" cx="16" cy="12.6" r="2.1" fill="#e5b13c" />
       <path
