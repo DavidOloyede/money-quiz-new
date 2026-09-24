@@ -9,6 +9,7 @@ import { QuizView } from './components/QuizView'
 import { SettingsView } from './components/SettingsView'
 import { AccountView } from './components/AccountView'
 import { TrashIcon } from './components/icons'
+import { Landing } from './components/landing/Landing'
 
 // The dashboard pulls in Recharts; load it on demand to keep the initial bundle small.
 const Dashboard = lazy(() =>
@@ -117,14 +118,18 @@ function ConfirmLeaveQuiz({
 }
 
 function Shell() {
-  const { clearAll, hasData, theme, setTheme } = useStore()
-  const { enabled: accountsEnabled, isAdmin } = useAuth()
+  const { clearAll, hasData, loadSample, theme, setTheme } = useStore()
+  const { enabled: accountsEnabled, isAdmin, session, loading: authLoading } = useAuth()
   const sync = useSync()
   const [view, setView] = useState<View>(() => (hasData ? 'dashboard' : 'import'))
   const [confirmClear, setConfirmClear] = useState(false)
+  // Once a visitor picks "import" or "sign in" from the landing page, stay in
+  // the app for this visit even though they still have no data.
+  const [leftLanding, setLeftLanding] = useState(false)
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  useEffect(() => track('nav.view', { view }), [view])
+  const showLanding = !hasData && !session && !authLoading && !leftLanding
+  useEffect(() => track('nav.view', { view: showLanding ? 'landing' : view }), [view, showLanding])
 
   // Guard against losing a quiz in progress: QuizView reports "dirty" while
   // mid-quiz, and navigating away first asks for confirmation.
@@ -133,6 +138,23 @@ function Shell() {
   const navigate = (v: View) => {
     if (quizDirtyRef.current && view === 'quiz' && v !== 'quiz') setPendingView(v)
     else setView(v)
+  }
+
+  if (showLanding) {
+    const leaveTo = (v: View) => {
+      setLeftLanding(true)
+      setView(v)
+    }
+    return (
+      <Landing
+        onTrySample={() => {
+          loadSample()
+          setView('dashboard')
+        }}
+        onImport={() => leaveTo('import')}
+        onSignIn={accountsEnabled ? () => leaveTo('account') : undefined}
+      />
+    )
   }
 
   return (
