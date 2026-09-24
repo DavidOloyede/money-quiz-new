@@ -9,6 +9,14 @@
  * one-line label, and the numbers are made up.
  */
 import type { CSSProperties, ReactNode } from 'react'
+import {
+  siAmericanexpress,
+  siBankofamerica,
+  siChase,
+  siDiscover,
+  siWellsfargo,
+  type SimpleIcon,
+} from 'simple-icons'
 import { CheckIcon, LinkIcon, UploadIcon } from '../icons'
 import { BODY } from './styles'
 import { useHoverPlay } from './useHoverPlay'
@@ -21,7 +29,7 @@ export function HowSteps() {
         n={1}
         title="Connect your bank"
         body="Link it through Plaid. You sign in inside Plaid, so we never see your password. Or upload a CSV."
-        label="Choosing a bank from a grid and seeing it linked securely."
+        label="Choosing Chase from a grid of banks and seeing it linked securely."
         visual={<BankTile />}
       />
       <StepTile
@@ -73,17 +81,19 @@ const CARD =
 /* ---------- 1. Picking a bank and seeing it linked ---------- */
 
 /**
- * Placeholder bank tiles. Swap each `mark` for a real logo SVG later; the
- * `linked` one is the tile the mockup shows connecting.
+ * The banks in the picker; `linked` is the one the mockup shows connecting.
+ * Logos are Simple Icons (CC0 artwork); the marks belong to their banks and
+ * are here only to show what connecting looks like, not to imply endorsement.
  */
-const BANKS: { id: string; mark: ReactNode; linked?: boolean }[] = [
-  { id: 'bank-a', mark: 'A' },
-  { id: 'bank-b', mark: 'B', linked: true },
-  { id: 'bank-c', mark: 'C' },
-  { id: 'bank-d', mark: 'D' },
-  { id: 'bank-e', mark: 'E' },
-  { id: 'bank-f', mark: 'F' },
+const BANKS: { icon: SimpleIcon; linked?: boolean }[] = [
+  { icon: siChase, linked: true },
+  { icon: siBankofamerica },
+  { icon: siWellsfargo },
+  { icon: siAmericanexpress },
+  { icon: siDiscover },
 ]
+
+const BANK_CELL = 'relative flex aspect-[5/4] items-center justify-center rounded-xl'
 
 function BankTile() {
   return (
@@ -101,21 +111,18 @@ function BankTile() {
       <div className="mt-3.5 grid grid-cols-3 gap-2">
         {BANKS.map((b) => (
           <div
-            key={b.id}
-            className={`relative flex aspect-[5/4] items-center justify-center rounded-xl ${
+            key={b.icon.slug}
+            className={`${BANK_CELL} ${
               b.linked
                 ? 'step-bank border-2 border-forest-500 bg-forest-50 dark:bg-forest-500/15'
                 : 'border border-linen-200 bg-linen-50 dark:border-linen-600 dark:bg-linen-900/60'
             }`}
           >
-            <span
-              className={`flex h-8 w-8 items-center justify-center rounded-full font-rounded text-[14px] font-extrabold ${
-                b.linked
-                  ? 'bg-forest-600 text-white'
-                  : 'bg-linen-200 text-linen-600 dark:bg-linen-700 dark:text-linen-200'
-              }`}
-            >
-              {b.mark}
+            {/* A white chip keeps each brand's own colour legible in dark mode. */}
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-[0_1px_2px_rgb(0_0_0/0.12)]">
+              <svg viewBox="0 0 24 24" className="h-8 w-8">
+                <path d={b.icon.path} fill={`#${b.icon.hex}`} />
+              </svg>
             </span>
             {b.linked && (
               <span className="step-check absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-forest-600 text-white ring-3 ring-cream dark:ring-linen-800">
@@ -124,6 +131,12 @@ function BankTile() {
             )}
           </div>
         ))}
+        {/* Plaid reaches thousands of banks; the grid only shows a handful. */}
+        <div
+          className={`${BANK_CELL} border border-dashed border-linen-300 font-rounded text-[13px] font-bold text-linen-500 dark:border-linen-600 dark:text-linen-400`}
+        >
+          + more
+        </div>
       </div>
 
       {/* Sky is the app's "synced" colour; a status line, not an action. */}
