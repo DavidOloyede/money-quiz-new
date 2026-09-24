@@ -28,6 +28,7 @@ import { givingGoalStatus, givingStats } from '@moneyquiz/core/lib/giving'
 
 import { useChargesSheet } from '@/components/ChargesSheet'
 import { TopMerchantsCard } from '@/components/Merchants'
+import { DebtCard, TransfersCard, TrendsCard } from '@/components/MoreCards'
 import { RecurringCard } from '@/components/RecurringCard'
 import { TxListModal } from '@/components/TxListModal'
 import { VerseCard } from '@/components/VerseCard'
@@ -293,6 +294,14 @@ export default function DashboardScreen() {
               <Note>Nothing given in this range yet — tithes and charity land here.</Note>
             )}
           </Card>
+
+          <DebtCard onOpen={(title, ids) => charges.open(title, ids)} />
+          <TrendsCard transactions={transactions} />
+          <TransfersCard
+            filtered={filtered}
+            onOpenCategory={(category) => setDrill({ kind: 'category', category })}
+            onOpen={(title, ids) => charges.open(title, ids)}
+          />
         </>
       )}
 
