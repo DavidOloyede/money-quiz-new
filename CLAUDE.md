@@ -21,6 +21,7 @@ npm test           # vitest — the core math & logic suite; keep it green
 npm run lint       # typechecks the app, packages/core (tsc -b), server/, and apps/mobile
 npm run build      # typecheck + production build into dist/
 npm run gen:theme  # regenerate src/theme.css from packages/core/theme.ts
+npm run gen:brands # regenerate core data/brandIcons.ts (company logos) from Simple Icons
 
 # Mobile (run from apps/mobile; see apps/mobile/AGENTS.md for the rules)
 npm run ios        # build + launch the dev client on the iOS Simulator
@@ -131,6 +132,10 @@ lives in the roadmap's "code-sharing rule" section. The short version:
   (`server/src/plaid/crypto.ts`) and must never reach the browser.
 - Activity logging (`track.ts`) records event names/counts only — never
   descriptions, merchants, or amounts. Sentry is scrubbed the same way.
+- Company logos are bundled (`packages/core/data/brandIcons.ts`, matched by
+  `lib/merchantLogos.ts`) or come from Plaid's own `logo_url`. Don't add a
+  hotlinked logo API (logo.dev, Brandfetch, favicon services): the browser
+  would hand a third party every merchant the user pays.
 - Signed out, the app must work 100% locally — every cloud feature checks
   `cloudEnabled` and hides itself. Don't add hard network dependencies.
 

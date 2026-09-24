@@ -563,6 +563,16 @@ the exceptions — they need a real browser.
   quiz", "imported a file — 214 rows") sent to `POST /api/events` for the admin
   activity log. It never records store names or amounts, and records nothing
   when you're signed out.
+- **`merchantLogos.ts`** — The **logo spotter**. It reads a bank line like
+  "STARBUCKS STORE 13390" or "NETFLIX.COM" and says which company it is,
+  when it's one of the few dozen well-known companies we have a logo for.
+  The logos themselves (`data/brandIcons.ts`) are packed inside the app, so
+  spotting one never sends a store name anywhere. For bank-linked accounts,
+  Plaid also sends its own logo with many purchases, and the app uses that
+  when we don't have one. Most small or local shops have no logo, and that's
+  fine: the screen just shows what it showed before (the category's little
+  picture, or nothing). Logos appear in the recurring & subscriptions list,
+  the upcoming charges, top merchants, and the transactions table.
 
 And in **`packages/core/data/`**: **`sampleData.ts`** is a pretend year of money for a made-up
 person, spread over three pretend accounts (checking, savings, a credit card)
@@ -571,6 +581,10 @@ small donations for the giving features, one very frequent coffee shop, one
 clear biggest purchase, a mortgage that repeats every month, subscriptions
 (monthly, yearly, and one that stopped), refunds, transfers and Zelle both
 ways, and one shop name used for two different bills at two different amounts.
+Its shops are a deliberate mix of real chains (Starbucks, Netflix, Target,
+Shell…) and made-up local names, so you can see both what a logo looks like
+and what a row without one looks like. The purchases themselves are all
+invented.
 Its dates are **counted back from today** rather than written down, so "this
 month" is never empty no matter when you open it — and the same day always
 produces exactly the same pretend year, so the quiz and the tests can rely on
@@ -579,6 +593,10 @@ money (World English Bible — public domain) with the verse-of-the-day picker,
 and **`generalQuestions.ts`** is the bank of 16 general money-literacy
 questions (budgeting rules, emergency funds, debt, a couple on stewardship)
 behind the daily question when no data is connected.
+
+**`brandIcons.ts`** is the small set of company logos the app carries,
+copied out of the free Simple Icons collection by `npm run gen:brands` (we
+keep only the ones we use, so the phone app doesn't carry thousands).
 
 The math helpers are covered by **unit tests** (`src/**/*.test.ts`, run with
 `npm test` via Vitest), so future changes can't silently break the numbers.
