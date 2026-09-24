@@ -667,7 +667,11 @@ which lives with the other shapes in `types.ts`.)
     edits, same idea: pinned to that **exact row**, so the $9.99 Apple charges
     can become "iCloud" while the $10.99 ones stay untouched (or become
     "Apple Music" separately) instead of one merchant-wide alias overwriting
-    both. Survives re-imports the same way per-row category pins do.
+    both. Survives re-imports the same way per-row category pins do. Renaming
+    some charges really does split them into their own recurring group. The
+    ★ star, "dismiss from Recurring", and renaming a group all go by the name
+    a row shows **now**, not the bank's original text, so starring, hiding,
+    or renaming one split-off group never touches the other.
   - **treatments** — per charge: "someone paid me back" or "this was just me
     moving money", both of which change whether and how a row counts.
   - **links** — which credit cancels which charge, per charge.

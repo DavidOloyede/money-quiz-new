@@ -288,8 +288,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Refs so callbacks can read current state without nesting state updaters
   // (React StrictMode double-invokes updaters, which would duplicate appends).
-  const txRef = useRef(rawTransactions)
-  txRef.current = rawTransactions
   const txOverridesRef = useRef(txOverrides)
   txOverridesRef.current = txOverrides
   const txDescriptionOverridesRef = useRef(txDescriptionOverrides)
@@ -709,16 +707,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setTxLinks((prev) => ({ ...prev, [child.key as string]: '' }))
   }, [])
 
-  /** Map a set of transaction ids to the distinct merchant keys behind them. */
+  /**
+   * Map a set of transaction ids to the distinct merchant keys behind them.
+   * Reads the DERIVED list, not the raw one — a row's merchant identity
+   * follows its current (possibly bulk-renamed) description, not the bank's
+   * original text, so a rename actually detaches it from its old group here.
+   */
   const keysForIds = useCallback((ids: string[]): string[] => {
     const idset = new Set(ids)
     const keys = new Set<string>()
-    for (const t of txRef.current) if (idset.has(t.id)) keys.add(merchantKey(t.description))
+    for (const t of transactionsRef.current) if (idset.has(t.id)) keys.add(merchantKey(t.description))
     return [...keys]
   }, [])
 
   const sigForId = useCallback((id: string): string | null => {
-    const t = txRef.current.find((x) => x.id === id)
+    const t = transactionsRef.current.find((x) => x.id === id)
     return t ? txSignature(t.date, t.description, t.amount) : null
   }, [])
 
@@ -729,13 +732,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    * merchant and/or this charge); if the group would land right back in the
    * Recurring section via auto-detection, it's also dismissed from the section
    * so the star actually turns off.
+   *
+   * Reads the DERIVED transaction (post bulk-rename), not the raw one — a
+   * renamed row's group key must match the group it's actually showing in,
+   * or un-starring it silently dismisses its OLD (pre-rename) group instead.
    */
   const toggleRecurring = useCallback((id: string) => {
-    const t = txRef.current.find((x) => x.id === id)
+    const t = transactionsRef.current.find((x) => x.id === id)
     if (!t) return
     const key = merchantKey(t.description)
     const sig = txSignature(t.date, t.description, t.amount)
-    const starred = transactionsRef.current.find((x) => x.id === id)?.recurring
+    const starred = t.recurring
     if (!starred) {
       setRecurringTxns((prev) => ({ ...prev, [sig]: true }))
       return
@@ -760,11 +767,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  /** Map a set of transaction ids to the distinct alias-aware group keys behind them. */
+  /**
+   * Map a set of transaction ids to the distinct alias-aware group keys
+   * behind them. Reads the DERIVED list (see keysForIds) so a bulk-renamed
+   * row's group follows its current description.
+   */
   const groupKeysForIds = useCallback((ids: string[]): string[] => {
     const idset = new Set(ids)
     const keys = new Set<string>()
-    for (const t of txRef.current) {
+    for (const t of transactionsRef.current) {
       if (idset.has(t.id)) keys.add(groupKey(t.description, aliasesRef.current))
     }
     return [...keys]
@@ -870,10 +881,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const similarCount = useCallback((id: string) => {
-    const target = txRef.current.find((t) => t.id === id)
+    const target = transactionsRef.current.find((t) => t.id === id)
     if (!target) return 0
     const key = merchantKey(target.description)
-    return txRef.current.filter((t) => t.id !== id && merchantKey(t.description) === key).length
+    return transactionsRef.current.filter((t) => t.id !== id && merchantKey(t.description) === key)
+      .length
   }, [])
 
   const applyConfig = useCallback((next: CategoryConfig) => {
