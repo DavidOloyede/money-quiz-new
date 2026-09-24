@@ -29,7 +29,7 @@ signed out with no data.
 | `CtaPair.tsx` | The shared button stack, so the hero and finale always match. Without accounts configured, sample data becomes the only (primary) button. |
 | `PressButton.tsx` | The chunky press-in button (DESIGN.md recipe; the dark-mode edge steps up to forest-700 so it shows). |
 | `MannaBowl.tsx` | The bowl the manna lands in (the logo's closed bowl, drawn large). This is **Omer's spot**: when his art exists he replaces it, in the hero and the finale. |
-| `useReplayInView.ts` | Scroll motion: `rest` / `armed` / `play` phases. Plays only once the element's **middle reaches the middle of the screen** (within 12% of the viewport height); an element taller than the screen plays once it covers the middle, and at the very top or bottom of the page being fully on screen is enough. Replays every time it comes back, and stays at `rest` under reduced motion. The start pose must still show all content. |
+| `useReplayInView.ts` | Scroll motion: `rest` / `armed` / `play` phases. Plays only once the element's **middle reaches the middle of the screen** (within 12% of the viewport height); an element taller than the screen plays once it covers the middle, and at the very top or bottom of the page being fully on screen is enough. Replays every time it comes back, and stays at `rest` under reduced motion. The start pose must still show all content, **except the finale**, whose start pose is a true zero (David's call: a half-played celebration seen while scrolling in looked broken). |
 | `useHoverPlay.ts` | The step tiles' trigger: the same phases, driven by hover/focus, falling back to `useReplayInView` plus tap-to-replay on touch screens. |
 | `styles.ts` | The shared type scale and rhythm: `DISPLAY` (36/64px), `HEADING` (34/48px), `BODY` (17/18px, linen-500), `SECTION`, `COLUMN` (990px). |
 
@@ -77,6 +77,13 @@ language.
   suggests skipping the verse ("skip straight past").
 - **Motion timing:** scroll animations wait until the thing is in the middle
   of the screen, not when it first peeks in.
+- **Finale start:** before it plays, the phone reads 0/5 with an empty ring,
+  and the confetti, medal, check, "Nice work!", chips and Continue aren't
+  there yet. They arrive in order as it plays: the score counts up, the
+  rewards burst, the verdict and chips pop, the level bar grows, and
+  Continue rises in.
+- **Why Manna's bowl loops:** manna keeps falling into the bowl for as long
+  as it's on screen (it pauses while scrolled away), rather than dropping once.
 - **Theme switch:** a small sun/moon pair at the top of the page.
 
 Design-system calls made during the loop (from docs/DESIGN.md):
@@ -103,8 +110,8 @@ David picked pieces from different rounds; these are now built:
 | --- | --- |
 | Hero | Unchanged, plus the sun/moon theme switch in the top bar. |
 | How it works | Round 2's three-tile layout for connect → categories → Year Sheet (hover to play), then the question-of-the-day row (with its streak) and a green budgets row. |
-| Why Manna | Round 1's text and bowl; the Year Sheet moved into How it works; "A pause each morning" removed. |
-| Final | Round 4's layout and motion with the bowl instead of hands; the current phone content, trimmed. |
+| Why Manna | Round 1's text and bowl, with the manna falling continuously; the Year Sheet moved into How it works; "A pause each morning" removed. |
+| Final | Round 4's layout and motion with the bowl instead of hands; the current phone content, trimmed. It starts from zero and builds up. |
 
 These haven't been through the critics. Current renders are the
 `<piece>-now.jpg` files.

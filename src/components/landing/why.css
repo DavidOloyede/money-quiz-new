@@ -3,10 +3,20 @@
  * useReplayInView: `armed` snaps each moving piece to its start pose (still
  * fully visible, just displaced), `play` runs it home, and `rest` (the
  * default, and all reduced motion ever sees) is the finished picture. Each
- * plays once per pass and resolves in one direction; nothing loops.
+ * plays once per pass and resolves in one direction, except the falling
+ * manna, which loops while it's on screen.
  */
 .why-scene svg * {
   transform-box: view-box;
+}
+
+@keyframes why-fall {
+  from {
+    transform: translateY(var(--why-from));
+  }
+  to {
+    transform: translateY(var(--why-to));
+  }
 }
 
 @keyframes why-home {
@@ -16,15 +26,20 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Manna drifts down toward the bowl, and the day's heap settles as it lands. */
-  .why-scene[data-motion='armed'] .why-flake {
-    transform: translateY(-80px);
+  /*
+   * Manna keeps falling into the bowl for as long as the picture is on
+   * screen: each flake loops from above the disc down behind the bowl's
+   * rim, on its own clock. It starts once the picture reaches the middle of
+   * the screen and pauses (armed) while it's away.
+   */
+  .why-fall {
+    animation: why-fall var(--why-dur, 5s) linear var(--why-delay, 0s) infinite;
+    animation-play-state: paused;
   }
-  .why-scene[data-motion='play'] .why-flake {
-    transform: translateY(-80px);
-    animation: why-home 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: var(--why-delay, 0s);
+  .why-scene[data-motion='play'] .why-fall {
+    animation-play-state: running;
   }
+
   .why-heap {
     transform-origin: 220px 272px;
   }

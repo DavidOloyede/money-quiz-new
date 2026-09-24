@@ -77,18 +77,26 @@ function Feature({
 /** Every picture shares one footprint, so the run keeps an even height. */
 const FRAME = 'why-scene aspect-[440/420] w-full max-w-[440px]'
 
-/* ---------- Why Manna: the day's manna falling into a bowl ---------- */
+/* ---------- Why Manna: the day's manna falling into a bowl, all day long ---------- */
 
-// [x, y, radius, color]: still falling, lighter high in the morning air and
-// deeper gold as they near the bowl.
-const FALLING: [number, number, number, string][] = [
-  [152, 86, 9, 'fill-honey-200'],
-  [196, 118, 9, 'fill-honey-200'],
-  [262, 156, 7, 'fill-honey-200'],
-  [318, 176, 8, 'fill-honey-200'],
-  [214, 212, 9, 'fill-honey-300'],
-  [270, 222, 11, 'fill-honey-400'],
+// [x, y, radius, color, seconds per fall]: lighter high in the morning air
+// and deeper gold as they near the bowl. Each keeps falling on its own slow
+// clock, and (y) is where it sits when the picture is still.
+const FALLING: [number, number, number, string, number][] = [
+  [152, 86, 9, 'fill-honey-200', 5.2],
+  [196, 118, 9, 'fill-honey-200', 6.1],
+  [262, 156, 7, 'fill-honey-200', 4.6],
+  [318, 176, 8, 'fill-honey-200', 5.7],
+  [214, 212, 9, 'fill-honey-300', 4.9],
+  [270, 222, 11, 'fill-honey-400', 5.5],
+  [176, 40, 7, 'fill-honey-200', 5.8],
+  [240, 70, 8, 'fill-honey-300', 5],
+  [292, 104, 6, 'fill-honey-200', 6.4],
 ]
+/** The stream's ends: just above the disc, and just inside the bowl (hidden by it). */
+const FALL_FROM = -12
+const FALL_TO = 300
+
 // The day's portion already gathered, heaped just over the rim.
 const HEAP: [number, number, number, string][] = [
   [168, 262, 11, 'fill-honey-300'],
@@ -115,19 +123,32 @@ function MannaBowlScene() {
             <stop offset="0.55" className="[stop-color:var(--color-honey-100)] dark:[stop-color:var(--color-sky-900)]" />
             <stop offset="1" className="[stop-color:var(--color-sky-100)] dark:[stop-color:var(--color-honey-950)]" />
           </linearGradient>
+          <clipPath id="why-disc">
+            <circle cx="220" cy="210" r="206" />
+          </clipPath>
         </defs>
         <circle cx="220" cy="210" r="206" fill="url(#why-dawn)" />
 
-        {FALLING.map(([x, y, r, color], i) => (
-          <circle
-            key={`f${x}`}
-            cx={x}
-            cy={y}
-            r={r}
-            className={`why-flake ${color}`}
-            style={{ '--why-delay': `${i * 0.08}s` } as CSSProperties}
-          />
-        ))}
+        <g clipPath="url(#why-disc)">
+          {FALLING.map(([x, y, r, color, dur]) => (
+            <circle
+              key={`f${x}`}
+              cx={x}
+              cy={y}
+              r={r}
+              className={`why-fall ${color}`}
+              style={
+                {
+                  '--why-from': `${FALL_FROM - y}px`,
+                  '--why-to': `${FALL_TO - y}px`,
+                  '--why-dur': `${dur}s`,
+                  // Start each loop mid-fall, exactly where the still picture has it.
+                  '--why-delay': `${(-dur * (y - FALL_FROM)) / (FALL_TO - FALL_FROM)}s`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </g>
 
         <g className="why-heap">
           {HEAP.map(([x, y, r, color]) => (

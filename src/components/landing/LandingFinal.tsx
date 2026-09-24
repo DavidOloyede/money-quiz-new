@@ -243,7 +243,7 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
           top,
           '--fx': `${Math.round((PHONE_CENTER.x - left - size / 2) * 0.7)}px`,
           '--fy': `${Math.round((PHONE_CENTER.y - top - size / 2) * 0.7)}px`,
-          '--d': `${i * 50}ms`,
+          '--d': `${900 + i * 50}ms`,
         } as CSSProperties
       }
     >
@@ -354,13 +354,24 @@ function FinishedPhone() {
           </div>
         </div>
 
-        <div className="mt-5 font-rounded text-[24px] font-black text-linen-900 dark:text-linen-100">Nice work!</div>
+        <div
+          className="final-pop mt-5 font-rounded text-[24px] font-black text-linen-900 dark:text-linen-100"
+          style={{ '--d': '950ms' } as CSSProperties}
+        >
+          Nice work!
+        </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <span className="rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900">
+          <span
+            className="final-pop rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900"
+            style={{ '--d': '1100ms' } as CSSProperties}
+          >
             +50 XP
           </span>
-          <span className="rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
+          <span
+            className="final-pop rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300"
+            style={{ '--d': '1200ms' } as CSSProperties}
+          >
             3-day streak
           </span>
         </div>
@@ -371,11 +382,13 @@ function FinishedPhone() {
             Level 3 · Faithful With Little
           </div>
           <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-linen-200 dark:bg-linen-700">
-            <div className="h-full w-[70%] rounded-full bg-honey-400" />
+            <div className="h-full w-[70%]">
+              <div className="final-level h-full rounded-full bg-honey-400" />
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex h-10 w-full shrink-0 items-center justify-center rounded-xl bg-forest-600 font-rounded text-[13px] font-extrabold text-white">
+        <div className="final-rise mt-4 flex h-10 w-full shrink-0 items-center justify-center rounded-xl bg-forest-600 font-rounded text-[13px] font-extrabold text-white">
           Continue
         </div>
       </div>
