@@ -104,56 +104,13 @@ export function useApplyToSimilar() {
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
       <div className="w-full max-w-md rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 shadow-lg">
         {expanded && (
-          <div className="border-b border-linen-100 dark:border-linen-800">
-            <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-1.5">
-              <span className="text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
-                {expanded.rows.length - excluded.size} of {expanded.rows.length} selected
-              </span>
-              <button
-                onClick={() => setExpanded(null)}
-                className="text-xs text-linen-500 underline-offset-2 hover:underline dark:text-linen-400"
-              >
-                Hide
-              </button>
-            </div>
-            <ul className="max-h-56 overflow-auto px-1.5 pb-2">
-              {expanded.rows.map((r) => (
-                <li key={r.id}>
-                  <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-linen-50 dark:hover:bg-linen-800">
-                    <input
-                      type="checkbox"
-                      checked={!excluded.has(r.id)}
-                      onChange={() =>
-                        setExcluded((prev) => {
-                          const next = new Set(prev)
-                          if (next.has(r.id)) next.delete(r.id)
-                          else next.add(r.id)
-                          return next
-                        })
-                      }
-                      className="h-4 w-4 shrink-0 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
-                    />
-                    <span className="w-16 shrink-0 text-[11px] text-linen-400 dark:text-linen-500 tabular-nums">
-                      {formatDate(r.date)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-xs text-linen-700 dark:text-linen-200">
-                      {displayDescription(r.description, aliases)}
-                    </span>
-                    <span
-                      className="shrink-0 text-[11px] text-linen-400 dark:text-linen-500"
-                      title={categoryLabel(r.category)}
-                      aria-hidden
-                    >
-                      {categoryMeta(r.category).emoji}
-                    </span>
-                    <span className="w-16 shrink-0 text-right text-xs text-linen-600 dark:text-linen-300 tabular-nums">
-                      {formatCurrency(r.amount)}
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <SimilarRowsList
+            rows={expanded.rows}
+            excluded={excluded}
+            setExcluded={setExcluded}
+            aliases={aliases}
+            onHide={() => setExpanded(null)}
+          />
         )}
 
         <div className="flex items-center gap-2 p-3">
@@ -200,4 +157,75 @@ export function useApplyToSimilar() {
   ) : null
 
   return { change, node }
+}
+
+/**
+ * The expandable "which rows exactly?" list behind both bulk prompts (category
+ * and rename): every row ticked, untick any that don't belong before applying.
+ */
+export function SimilarRowsList({
+  rows,
+  excluded,
+  setExcluded,
+  aliases,
+  onHide,
+}: {
+  rows: Transaction[]
+  excluded: Set<string>
+  setExcluded: (update: (prev: Set<string>) => Set<string>) => void
+  aliases: Record<string, string>
+  onHide: () => void
+}) {
+  return (
+    <div className="border-b border-linen-100 dark:border-linen-800">
+      <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-1.5">
+        <span className="text-xs font-medium uppercase tracking-wide text-linen-400 dark:text-linen-500">
+          {rows.length - excluded.size} of {rows.length} selected
+        </span>
+        <button
+          onClick={onHide}
+          className="text-xs text-linen-500 underline-offset-2 hover:underline dark:text-linen-400"
+        >
+          Hide
+        </button>
+      </div>
+      <ul className="max-h-56 overflow-auto px-1.5 pb-2">
+        {rows.map((r) => (
+          <li key={r.id}>
+            <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1.5 hover:bg-linen-50 dark:hover:bg-linen-800">
+              <input
+                type="checkbox"
+                checked={!excluded.has(r.id)}
+                onChange={() =>
+                  setExcluded((prev) => {
+                    const next = new Set(prev)
+                    if (next.has(r.id)) next.delete(r.id)
+                    else next.add(r.id)
+                    return next
+                  })
+                }
+                className="h-4 w-4 shrink-0 rounded border-linen-300 text-forest-600 focus:ring-forest-500"
+              />
+              <span className="w-16 shrink-0 text-[11px] text-linen-400 dark:text-linen-500 tabular-nums">
+                {formatDate(r.date)}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-xs text-linen-700 dark:text-linen-200">
+                {displayDescription(r.description, aliases)}
+              </span>
+              <span
+                className="shrink-0 text-[11px] text-linen-400 dark:text-linen-500"
+                title={categoryLabel(r.category)}
+                aria-hidden
+              >
+                {categoryMeta(r.category).emoji}
+              </span>
+              <span className="w-16 shrink-0 text-right text-xs text-linen-600 dark:text-linen-300 tabular-nums">
+                {formatCurrency(r.amount)}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }

@@ -6,6 +6,8 @@
  * "AMAZON MKTPL*BJ1KR9CN1" together while keeping distinct merchants apart.
  */
 
+import type { Transaction } from '../types'
+
 const NOISE = new Set([
   'the', 'inc', 'llc', 'co', 'corp', 'store', 'pos', 'debit', 'credit', 'card',
   'online', 'com', 'www', 'net', 'purchase', 'payment', 'ach', 'pmt', 'intl', 'usa',
@@ -91,4 +93,27 @@ export function sharesName(a: string, b: string): boolean {
   const ta = nameTokens(a)
   for (const w of nameTokens(b)) if (ta.has(w)) return true
   return false
+}
+
+/**
+ * The charges worth offering alongside a single-row rename, before anything
+ * else changes. Two tiers, like the category prompt: the ones at the SAME
+ * amount (the other $9.99 Apple charges — very likely the same thing) and
+ * every charge sharing the merchant name at any amount (the $6.48 ones too),
+ * which the user reviews and unticks. Rows already showing `name` are left
+ * out, since there's nothing to change on them.
+ */
+export function renameCandidates(
+  target: Transaction,
+  transactions: Transaction[],
+  name: string,
+  aliases: Record<string, string> = {},
+): { sameAmount: Transaction[]; all: Transaction[] } {
+  const all = transactions.filter(
+    (x) =>
+      x.id !== target.id &&
+      sharesName(x.description, target.description) &&
+      displayDescription(x.description, aliases) !== name,
+  )
+  return { sameAmount: all.filter((x) => x.amount === target.amount), all }
 }

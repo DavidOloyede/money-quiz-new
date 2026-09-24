@@ -214,7 +214,7 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   and, from the bar that appears, **set a category**, **mark reimbursement /
   internal / normal**, or **rename them** to a label of your choosing — e.g.
   select just the $9.99 Apple charges and call them "iCloud", leaving the
-  $10.99 ones alone to become "Apple Music" separately. Unlike the pencil-icon
+  $10.99 ones alone to become "Apple Music" separately. Like the pencil-icon
   rename below, a bulk rename is pinned to those *exact* charges, not the
   whole merchant, so different amounts from the same merchant can carry
   different names. Each row has a **★ star** for **recurring payments** — it
@@ -227,9 +227,13 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   option to update **all** charges from that merchant (handy for a power bill
   that varies every month).
 - **`RenameDescription.tsx`** — Inline rename for a transaction (a pencil next to
-  the name in the modals). Renaming works like a category change: it's saved as a
-  merchant alias and then offers to **rename the other similarly-named charges
-  too**, which merges fragmented descriptors into one group.
+  the name in the modals). Renaming works like a category change: only the charge
+  you edited changes at first. Then a popup offers the **other charges at the
+  same amount** from that merchant (the other $9.99 Apple charges), with a
+  second option for **every charge sharing the name** at any amount (the $6.48
+  ones too). Tap either to see the exact list, all ticked, and untick any that
+  don't belong before renaming. Nothing else is renamed until you say so,
+  because one "Apple" on a statement is often several different subscriptions.
 - **`RecurringSimilar.tsx`** — The same idea for the ★ star: flag one charge as
   recurring and a little popup offers to **mark the merchant's other charges
   too**. Accepting flags the whole merchant, so future imports come in already
@@ -797,12 +801,13 @@ the financial details scrubbed out.
   card; habits in the Spending habits card; "Treat as" re-files either way.
 - **Refund / cashback** — money back in a spending category. Not income: it
   subtracts from that category's spending in the month it lands.
-- **Alias / rename** — a clean display name you give a merchant (via the
-  pencil icon); every messy variant folds under it, in display and in
-  grouping — including other amounts from the same merchant. A **bulk
-  rename** (select rows in the transaction table, then "Rename to…") instead
-  pins the label to just the exact charges you selected, so two amounts from
-  one merchant can carry different names.
+- **Alias / rename** — an alias is a clean display name for a whole merchant
+  (set from the Name box at the top of a group's detail window); every messy
+  variant folds under it, in display and in grouping — including other amounts
+  from the same merchant. Renaming a single charge (the pencil icon) or a
+  **bulk rename** (select rows in the transaction table, then "Rename to…")
+  instead pins the label to just the exact charges you chose, so two amounts
+  from one merchant can carry different names.
 - **Recurring transfer** — a same-amount, same-day Zelle/transfer that's really a
   monthly bill; counted toward your totals (unless you opt it out).
 - **Source** — one thing you added (an uploaded file or a connected bank).
