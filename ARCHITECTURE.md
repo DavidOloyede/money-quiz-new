@@ -565,9 +565,21 @@ the exceptions — they need a real browser.
   when you're signed out.
 - **`merchantLogos.ts`** — The **logo spotter**. It reads a bank line like
   "STARBUCKS STORE 13390" or "NETFLIX.COM" and says which company it is,
-  when it's one of the few dozen well-known companies we have a logo for.
+  when it's one of the roughly 125 well-known companies we have a logo for
+  (coffee and fast food, streaming and software, phone and internet, airlines
+  and hotels, shipping, car loans, and a few big retailers).
   The logos themselves (`data/brandIcons.ts`) are packed inside the app, so
-  spotting one never sends a store name anywhere. For bank-linked accounts,
+  spotting one never sends a store name anywhere. It is deliberately
+  cautious, because a wrong logo is worse than none: everyday words only
+  count when the rest of the line backs them up ("STEAM PURCHASE" is the game
+  store, "STEAM CARPET CLEANING" is not; "PANDORA MEDIA" is the music service,
+  "PANDORA JEWELRY" is not), a car maker only counts next to its loan company
+  ("TOYOTA MOTOR CREDIT"), and a person's name never counts, so "Zelle payment
+  to Ford Anderson" gets the Zelle logo and nothing else. The free logo
+  collection we borrow from has had some big names removed at their own
+  request (Amazon, Walmart, Hulu, Disney+, Adobe and Microsoft among them) and
+  never carried many others (Costco, Home Depot, CVS, most grocery chains), so
+  those rows show no logo of their own. For bank-linked accounts,
   Plaid also sends its own logo with many purchases, and the app uses that
   when we don't have one. Most small or local shops have no logo, and that's
   fine: the screen just shows what it showed before (the category's little
