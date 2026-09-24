@@ -30,6 +30,10 @@ export interface PlaidTxn {
   amount: number
   pending?: boolean
   personal_finance_category?: { primary?: string; detailed?: string }
+  /** Plaid's 100×100 PNG of the merchant's logo, when it recognises one. */
+  logo_url?: string | null
+  /** The parties Plaid pulled out of the descriptor, each maybe with a logo. */
+  counterparties?: { name?: string; type?: string; logo_url?: string | null }[]
 }
 
 /** An item plus its stored raw transactions, for the categorization debug panel. */

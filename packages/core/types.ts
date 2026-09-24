@@ -75,6 +75,11 @@ export interface Transaction {
   counts?: boolean
   /** Which imported file this transaction came from (so it can be removed). */
   sourceId?: string
+  /**
+   * The merchant's logo as Plaid supplied it (bank-linked rows only). Our own
+   * bundled logos (lib/merchantLogos) take precedence where we have one.
+   */
+  logoUrl?: string
 }
 
 /**

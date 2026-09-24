@@ -1,6 +1,8 @@
 import type { Category, SubscriptionCadence, SubscriptionMeta, Transaction } from '../types'
 import { isExcludedCategory, isSpendingCategory, SUBSCRIPTIONS_CATEGORY } from './categories'
 import { groupKey, groupLabel, merchantKey } from './merchant'
+import { brandSlugForAny } from './merchantLogos'
+import type { BrandSlug } from '../data/brandIcons'
 
 /** Alias map (merchant key -> clean name); threaded into grouping analyses. */
 export type Aliases = Record<string, string>
@@ -312,21 +314,43 @@ export interface MerchantStat {
   merchant: string
   count: number
   total: number
+  /** Plaid's logo for this merchant, when any of its rows came with one. */
+  logoUrl?: string
+  /** The company behind it, when it's one we carry a logo for. */
+  brand?: BrandSlug
 }
 
 /** Expense merchants by visit count (then spend), most frequent first. */
 export function merchantStats(transactions: Transaction[], aliases: Aliases = {}): MerchantStat[] {
-  const map = new Map<string, { label: string; count: number; total: number }>()
+  const map = new Map<
+    string,
+    { label: string; raw: string; count: number; total: number; logoUrl?: string }
+  >()
   for (const t of transactions) {
     if (t.amount >= 0 || !countsTowardTotals(t)) continue
     const key = groupKey(t.description, aliases)
-    const entry = map.get(key) ?? { label: groupLabel(t.description, aliases), count: 0, total: 0 }
+    const entry = map.get(key) ?? {
+      label: groupLabel(t.description, aliases),
+      raw: t.description,
+      count: 0,
+      total: 0,
+    }
     entry.count += 1
     entry.total += -t.amount
+    entry.logoUrl ??= t.logoUrl
     map.set(key, entry)
   }
   return [...map.values()]
-    .map((v) => ({ merchant: v.label, count: v.count, total: v.total }))
+    .map((v) => {
+      const brand = brandSlugForAny(v.label, v.raw)
+      return {
+        merchant: v.label,
+        count: v.count,
+        total: v.total,
+        ...(v.logoUrl && { logoUrl: v.logoUrl }),
+        ...(brand && { brand }),
+      }
+    })
     .sort((a, b) => b.count - a.count || b.total - a.total)
 }
 
@@ -430,10 +454,16 @@ export interface RecurringPayment {
   /** Expected bill vs spending habit (heuristic, or the user's override). */
   kind: RecurringKind
   lastDate: string
+  /** Plaid's logo for this merchant, when any of its rows came with one. */
+  logoUrl?: string
+  /** The company behind it, when it's one we carry a logo for. */
+  brand?: BrandSlug
 }
 
 interface RecurringGroup {
   label: string
+  /** The first raw descriptor seen, for spotting the company behind it. */
+  raw: string
   key: string
   keys: Set<string>
   ids: string[]
@@ -444,6 +474,7 @@ interface RecurringGroup {
   total: number
   last: string
   recurring: boolean
+  logoUrl?: string
 }
 
 /** Bucket transactions by group identity (alias-aware), tracking amounts, months, ids, and the ★ recurring flag. */
@@ -460,6 +491,7 @@ function groupByIdentity(
       map.get(key) ??
       {
         label: groupLabel(t.description, aliases),
+        raw: t.description,
         key,
         keys: new Set<string>(),
         ids: [],
@@ -480,6 +512,7 @@ function groupByIdentity(
     e.cat = t.category
     if (t.recurring) e.recurring = true
     if (t.date > e.last) e.last = t.date
+    e.logoUrl ??= t.logoUrl
     map.set(key, e)
   }
   return [...map.values()]
@@ -508,6 +541,7 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
   // A single charge can't show variance, so assume it's fixed; otherwise the
   // same amount must dominate (repeat and cover at least half the charges).
   const fixed = count <= 1 ? true : mode.freq >= 2 && mode.freq / count >= 0.5
+  const brand = brandSlugForAny(e.label, e.raw)
   const r = {
     merchant: e.label,
     groupKey: e.key,
@@ -524,6 +558,8 @@ function toRecurring(e: RecurringGroup, mode: { value: number; freq: number }): 
     isRecurringFlagged: e.recurring,
     isSubscription: e.cat === SUBSCRIPTIONS_CATEGORY,
     lastDate: e.last,
+    ...(e.logoUrl && { logoUrl: e.logoUrl }),
+    ...(brand && { brand }),
   }
   return { ...r, kind: classifyRecurring(r) }
 }
@@ -685,6 +721,10 @@ export interface Charge {
   day: number
   isSubscription: boolean
   cadence: SubscriptionCadence
+  /** Plaid's logo for this merchant, when it has one. */
+  logoUrl?: string
+  /** The company behind it, when it's one we carry a logo for. */
+  brand?: BrandSlug
 }
 
 function toCharge(r: RecurringPayment, date: string, cadence: SubscriptionCadence): Charge {
@@ -699,6 +739,8 @@ function toCharge(r: RecurringPayment, date: string, cadence: SubscriptionCadenc
     day: dayOfMonth(date),
     isSubscription: r.isSubscription,
     cadence,
+    ...(r.logoUrl && { logoUrl: r.logoUrl }),
+    ...(r.brand && { brand: r.brand }),
   }
 }
 

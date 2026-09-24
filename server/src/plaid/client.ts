@@ -63,6 +63,7 @@ export function mockTransactions(accountType: 'bank' | 'credit'): Record<string,
     ['Amazon', 41.27, 'GENERAL_MERCHANDISE', 'GENERAL_MERCHANDISE_ONLINE_MARKETPLACES', 6],
     ['Amazon', 119.5, 'GENERAL_MERCHANDISE', 'GENERAL_MERCHANDISE_ONLINE_MARKETPLACES', 26],
     ['Target', 72.13, 'GENERAL_MERCHANDISE', 'GENERAL_MERCHANDISE_DEPARTMENT_STORES', 18],
+    ['Walmart', 38.62, 'GENERAL_MERCHANDISE', 'GENERAL_MERCHANDISE_SUPERSTORES', 20],
     ['Netflix', 15.49, 'ENTERTAINMENT', 'ENTERTAINMENT_STREAMING', 7],
     ['Spotify', 10.99, 'ENTERTAINMENT', 'ENTERTAINMENT_STREAMING', 11],
     ['GitHub', 4.0, 'GENERAL_SERVICES', 'GENERAL_SERVICES_OTHER', 5],
@@ -72,6 +73,12 @@ export function mockTransactions(accountType: 'bank' | 'credit'): Record<string,
     ['Venmo', 40.0, 'TRANSFER_OUT', 'TRANSFER_OUT_ACCOUNT_TRANSFER', 13],
     ['Zelle payment to Alex', 120.0, 'TRANSFER_OUT', 'TRANSFER_OUT_ACCOUNT_TRANSFER', 24],
   ]
+  // Real Plaid sends a logo_url for merchants it recognises. The app carries
+  // its own logos for many brands, but not Walmart, so this one exercises the
+  // Plaid-supplied path (the URL is the one in Plaid's own docs).
+  const logos: Record<string, string> = {
+    Walmart: 'https://plaid-merchant-logos.plaid.com/walmart_1100.png',
+  }
   const txns: PlaidTxn[] = rows.map(([name, amount, primary, detailed, daysAgo], i) => ({
     transaction_id: `mocktx-${randomUUID().slice(0, 8)}-${i}`,
     account_id: 'mock-account',
@@ -82,6 +89,7 @@ export function mockTransactions(accountType: 'bank' | 'credit'): Record<string,
     iso_currency_code: 'USD',
     pending: false,
     personal_finance_category: { primary, detailed },
+    ...(logos[name] && { logo_url: logos[name] }),
   }))
   if (accountType !== 'credit') {
     txns.push({

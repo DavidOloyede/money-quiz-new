@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Transaction } from '../types'
+import { merchantKey } from './merchant'
 import {
   autoRecurringBill,
   budgetStatus,
@@ -13,6 +14,7 @@ import {
   recurringPayments,
   shiftMonth,
   spendingByCategory,
+  topMerchants,
   spendingHabits,
   totalIncome,
   totalRefunds,
@@ -128,6 +130,43 @@ describe('recurringPayments', () => {
     const [r] = recurringPayments(txs)
     expect(r.isSubscription).toBe(true)
     expect(recurringPayments(txs, {}, { [r.groupKey]: true })).toHaveLength(0)
+  })
+})
+
+describe('Plaid logos on merchant summaries', () => {
+  const logo = 'https://plaid-merchant-logos.plaid.com/walmart_1100.png'
+  // Only one of the three rows came with a logo — the group still gets it.
+  const walmart = ['2026-01', '2026-02', '2026-03'].map((m, i) =>
+    tx(`${m}-09`, -38.62, 'shopping', { description: 'Walmart', ...(i === 1 && { logoUrl: logo }) }),
+  )
+
+  it('carries the logo onto top merchants, recurring groups and their charges', () => {
+    expect(topMerchants(walmart)[0].logoUrl).toBe(logo)
+    const [r] = recurringPayments(walmart)
+    expect(r.logoUrl).toBe(logo)
+    expect(upcomingCharges([r], {}, new Date(2026, 3, 1))[0].logoUrl).toBe(logo)
+  })
+
+  it('names the company behind a group, even when its label drops the clue', () => {
+    const apple = ['2026-01', '2026-02', '2026-03'].map((m) =>
+      tx(`${m}-15`, -2.99, 'subscriptions', { description: 'APPLE.COM/BILL' }),
+    )
+    const [r] = recurringPayments(apple)
+    expect(r.merchant).toBe('Apple')
+    expect(r.brand).toBe('apple')
+    expect(topMerchants(apple)[0].brand).toBe('apple')
+    expect(upcomingCharges([r], {}, new Date(2026, 3, 1))[0].brand).toBe('apple')
+    // A name the user chose wins over the bank's descriptor.
+    const aliased = recurringPayments(apple, { [merchantKey('APPLE.COM/BILL')]: 'Spotify' })[0]
+    expect(aliased.brand).toBe('spotify')
+  })
+
+  it('adds no logo field for merchants without one', () => {
+    const plain = walmart.map(({ logoUrl, ...t }) => t)
+    expect('logoUrl' in topMerchants(plain)[0]).toBe(false)
+    expect('logoUrl' in recurringPayments(plain)[0]).toBe(false)
+    const local = [tx('2026-01-09', -6, 'dining', { description: 'CORNER COFFEE ROASTERS' })]
+    expect('brand' in topMerchants(local)[0]).toBe(false)
   })
 })
 

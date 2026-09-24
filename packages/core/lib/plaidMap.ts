@@ -63,6 +63,10 @@ export function mapPlaidTransactions(txns: PlaidTxn[], sourceId: string): Transa
     if (kw === 'zelle' || kw === 'subscriptions') category = kw
     if (!category) category = kw
 
+    // The merchant's own logo, else the first counterparty that has one (a
+    // marketplace or payment app sometimes carries it instead).
+    const logoUrl = t.logo_url || t.counterparties?.find((c) => c.logo_url)?.logo_url || undefined
+
     return {
       id: `plaid:${t.transaction_id}`,
       date: t.date,
@@ -70,6 +74,7 @@ export function mapPlaidTransactions(txns: PlaidTxn[], sourceId: string): Transa
       amount,
       category,
       sourceId,
+      ...(logoUrl && { logoUrl }),
     }
   })
 }
