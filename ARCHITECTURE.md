@@ -174,20 +174,29 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   page, just showing a different picture.
 - **`landing/`** — The **welcome page** a first-time visitor sees. It's four
   parts stacked top to bottom: the opening ("Enough for today. A plan for
-  tomorrow." beside a phone showing a right quiz answer), **how it works**
-  (connect your bank, answer a quick question, keep simple budgets), **why
-  "Manna"** (the story behind the name, plus what's inside), and a short list
-  of questions and answers ending in a closing celebration. The same two
-  buttons open and close the page: **Create a free account** (the main one)
-  and **Try it with sample data**. The first opens the Account screen already
-  set to sign-up; the second loads the sample year and jumps to the
-  Dashboard. There's also a small "import your own CSV" link and a Sign in
-  link. The little animations (the quiz answer popping green, the confetti)
-  play again every time you scroll back to them, and they stay still if
-  your device asks for less motion. At the top, manna falls from morning
+  tomorrow." beside a phone showing a right quiz answer), **how it works**,
+  **why "Manna"** (the story behind the name, plus room to give and keeping
+  your data safe), and a short list of questions and answers ending in a
+  closing celebration. "How it works" starts with three small picture tiles:
+  connect your bank, see your categories, and plan your whole year on the
+  Year Sheet. Each tile plays a tiny animation when you point at it (on a
+  phone, when you tap it or scroll it to the middle): the bank links, a
+  category opens to show its purchases, and the Year Sheet's numbers ripple
+  in from the top-right corner before the "Net" row glows. Below the tiles
+  come the two daily habits: the question of the day (with the streak it
+  grows) and simple budgets, whose bars stay green while you're under. The
+  same two buttons open and close the page: **Create a free account** (the
+  main one) and **Try it with sample data**. The first opens the Account
+  screen already set to sign-up; the second loads the sample year and jumps
+  to the Dashboard. There's also a small "import your own CSV" link, a Sign
+  in link, and a little sun-and-moon switch at the top for light or dark
+  mode (the same setting the app uses). The other animations (the quiz
+  answer popping green, the confetti) wait until they're in the middle of
+  your screen, play again every time you scroll back to them, and stay still
+  if your device asks for less motion. At the top, manna falls from morning
   clouds into a bowl drawn like the one in the logo; at the bottom it falls
-  from the logo into the same bowl. Omer, the mascot, takes the bowl's place
-  once his artwork exists.
+  into the same bowl in front of the celebrating phone. Omer, the mascot,
+  takes the bowl's place once his artwork exists.
 - **`Nav.tsx`** — The menu (on the side for computers, on top for phones). Also
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.

@@ -2,11 +2,13 @@
  * The landing page's first screen: the promise, the one button, and a picture
  * of the moment the app is built around — manna falling from morning clouds
  * into a bowl beside a phone mid-quiz, just answered right. Per docs/design/landing/bar.md the
- * hero says one thing: no nav, no feature list, a single CTA.
+ * hero says one thing: no nav, no feature list, a single CTA. The top bar
+ * holds only the logo, a sun/moon theme switch and Sign in.
  */
 import type { CSSProperties } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
+import { ThemeSwitch } from './ThemeSwitch'
 import { MannaBowl } from './MannaBowl'
 import { useReplayInView } from './useReplayInView'
 import { BODY, COLUMN, DISPLAY } from './styles'
@@ -40,15 +42,18 @@ export function LandingHero(actions: LandingActions) {
             Manna Money
           </span>
         </div>
-        {onSignIn && (
-          <button
-            type="button"
-            onClick={onSignIn}
-            className="inline-flex h-11 items-center rounded-xl bg-forest-600/[0.06] px-4 font-sans font-semibold text-forest-700 underline decoration-forest-700/30 underline-offset-4 transition-colors duration-150 hover:bg-forest-600/12 hover:decoration-forest-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-600 dark:bg-forest-300/[0.07] dark:text-forest-300 dark:decoration-forest-300/40 dark:hover:bg-forest-300/12 dark:hover:decoration-forest-300"
-          >
-            Sign in
-          </button>
-        )}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeSwitch />
+          {onSignIn && (
+            <button
+              type="button"
+              onClick={onSignIn}
+              className="inline-flex h-11 items-center rounded-xl bg-forest-600/[0.06] px-4 font-sans font-semibold text-forest-700 underline decoration-forest-700/30 underline-offset-4 transition-colors duration-150 hover:bg-forest-600/12 hover:decoration-forest-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest-600 dark:bg-forest-300/[0.07] dark:text-forest-300 dark:decoration-forest-300/40 dark:hover:bg-forest-300/12 dark:hover:decoration-forest-300"
+            >
+              Sign in
+            </button>
+          )}
+        </div>
       </header>
 
       <div

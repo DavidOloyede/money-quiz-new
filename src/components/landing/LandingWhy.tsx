@@ -1,13 +1,13 @@
 /**
  * The landing page's "Why Manna" story and what grows out of it. The story
- * (bread given each morning, a daily lesson in trust, for any faith or none)
- * is the one place on the page for the storyteller voice; the blocks after it
- * carry that daily posture into the app: a moment of perspective each
- * morning, room to give, and an account that keeps it all safe on every
- * device. "How it works" already covers importing, the daily question,
- * budgets and streaks, so none of that repeats here. The pictures are
- * wordless shapes with no numbers and no scripture. No buttons: the call to
- * action lives only in the hero and the closing section.
+ * (manna came each morning, just enough for the day, and the app keeps that
+ * rhythm) is the one place on the page for the storyteller voice, told so it
+ * speaks to anyone rather than one tradition. The blocks after it carry that
+ * posture into the app: room to give, and an account that keeps it all safe
+ * on every device. "How it works" already covers the bank, categories, the
+ * Year Sheet, the daily question and budgets, so none of that repeats here.
+ * No buttons: the call to action lives only in the hero and the closing
+ * section.
  */
 import type { CSSProperties, ReactNode } from 'react'
 import { BODY, COLUMN, HEADING, SECTION } from './styles'
@@ -17,25 +17,20 @@ import './why.css'
 export function LandingWhy() {
   return (
     // One SECTION's rhythm wraps the run, and the blocks sit a fixed gap apart,
-    // so four blocks read as one steady sequence rather than four full sections.
+    // so the blocks read as one steady sequence rather than separate full sections.
     <div id="landing-why" className={SECTION}>
       <div className={`${COLUMN} space-y-24 lg:space-y-32`}>
-        <Feature id="why-manna" heading="Why “Manna”?" visual={<MannaMorning />} storyteller>
-          Manna was bread given each morning in the wilderness, a daily lesson in trust. For any faith or
-          none: tend today well, and plan without worry.
+        <Feature id="why-manna" heading="Why “Manna”?" visual={<MannaBowlScene />} storyteller>
+          Manna came each morning, just enough for the day. We keep that rhythm: small, daily, enough, so
+          you can steward what you’ve been given without worry.
         </Feature>
 
-        <Feature id="why-morning" heading="A pause each morning" visual={<MorningWindow />} flip>
-          Each day opens with a moment of perspective, a short verse on money or generosity, before any
-          numbers. Linger over it, or skip straight past.
-        </Feature>
-
-        <Feature id="why-give" heading="Room to give" visual={<GivingSlice />}>
+        <Feature id="why-give" heading="Room to give" visual={<GivingSlice />} flip>
           Enough for today leaves room to share. See what you give as a share of your income, and set a goal
           if you’d like one: 10%, or whatever fits.
         </Feature>
 
-        <Feature id="why-yours" heading="Safe, and yours" visual={<AccountScene />} flip>
+        <Feature id="why-yours" heading="Safe, and yours" visual={<AccountScene />}>
           Sign in and your numbers follow you to every device. Connect a bank through Plaid or upload a CSV.
           No one else, admins included, can pull up your finances.
         </Feature>
@@ -82,106 +77,69 @@ function Feature({
 /** Every picture shares one footprint, so the run keeps an even height. */
 const FRAME = 'why-scene aspect-[440/420] w-full max-w-[440px]'
 
-/* ---------- Why Manna: manna settling on the ground at first light ---------- */
+/* ---------- Why Manna: the day's manna falling into a bowl ---------- */
 
-// [x, y, radius, color]. Resting on the ground, spread out like dew rather
-// than heaped: nothing here is gathered into a container.
-const RESTING: [number, number, number, string][] = [
-  [58, 346, 8, 'fill-honey-300'],
-  [104, 322, 10, 'fill-honey-400'],
-  [150, 356, 7, 'fill-honey-300'],
-  [196, 316, 9, 'fill-honey-300'],
-  [238, 350, 11, 'fill-honey-400'],
-  [284, 318, 8, 'fill-honey-300'],
-  [326, 360, 9, 'fill-honey-400'],
-  [372, 330, 10, 'fill-honey-300'],
-  [124, 392, 9, 'fill-honey-300'],
-  [270, 394, 8, 'fill-honey-400'],
-  [400, 386, 7, 'fill-honey-300'],
+// [x, y, radius, color]: still falling, lighter high in the morning air and
+// deeper gold as they near the bowl.
+const FALLING: [number, number, number, string][] = [
+  [152, 86, 9, 'fill-honey-200'],
+  [196, 118, 9, 'fill-honey-200'],
+  [262, 156, 7, 'fill-honey-200'],
+  [318, 176, 8, 'fill-honey-200'],
+  [214, 212, 9, 'fill-honey-300'],
+  [270, 222, 11, 'fill-honey-400'],
 ]
-// Still on the way down, in the morning air.
-const FALLING: [number, number, number][] = [
-  [90, 150, 6],
-  [168, 220, 7],
-  [226, 120, 5],
-  [300, 196, 7],
-  [356, 132, 6],
-  [138, 270, 5],
-  [330, 262, 6],
+// The day's portion already gathered, heaped just over the rim.
+const HEAP: [number, number, number, string][] = [
+  [168, 262, 11, 'fill-honey-300'],
+  [196, 254, 15, 'fill-honey-300'],
+  [226, 250, 19, 'fill-honey-200'],
+  [256, 256, 13, 'fill-honey-300'],
+  [140, 266, 8, 'fill-honey-200'],
 ]
 
-function MannaMorning() {
+function MannaBowlScene() {
   const [ref, motion] = useReplayInView<HTMLDivElement>()
   return (
     <div
       ref={ref}
       data-motion={motion}
       role="img"
-      aria-label="Flakes of manna falling at first light and settling on the ground"
-      className={`${FRAME} overflow-hidden rounded-[40px] bg-sky-700 dark:bg-sky-900`}
+      aria-label="Manna falling at first light into a golden bowl, just enough for the day"
+      className={FRAME}
     >
       <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
-        <circle cx="220" cy="-30" r="190" className="fill-sky-600/70 dark:fill-sky-800/80" />
-        <path d="M0 300Q220 252 440 300V420H0Z" className="fill-linen-100 dark:fill-linen-800" />
-        {FALLING.map(([x, y, r], i) => (
+        <defs>
+          <linearGradient id="why-dawn" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" className="[stop-color:var(--color-cream)] dark:[stop-color:var(--color-sky-950)]" />
+            <stop offset="0.55" className="[stop-color:var(--color-honey-100)] dark:[stop-color:var(--color-sky-900)]" />
+            <stop offset="1" className="[stop-color:var(--color-sky-100)] dark:[stop-color:var(--color-honey-950)]" />
+          </linearGradient>
+        </defs>
+        <circle cx="220" cy="210" r="206" fill="url(#why-dawn)" />
+
+        {FALLING.map(([x, y, r, color], i) => (
           <circle
             key={`f${x}`}
             cx={x}
             cy={y}
             r={r}
-            className="why-flake fill-honey-200"
-            style={{ '--why-delay': `${i * 0.06}s` } as CSSProperties}
-          />
-        ))}
-        {RESTING.map(([x, y, r, color], i) => (
-          <circle
-            key={`r${x}`}
-            cx={x}
-            cy={y}
-            r={r}
             className={`why-flake ${color}`}
-            style={{ '--why-delay': `${0.2 + i * 0.05}s` } as CSSProperties}
+            style={{ '--why-delay': `${i * 0.08}s` } as CSSProperties}
           />
         ))}
-      </svg>
-    </div>
-  )
-}
 
-/* ---------- A pause each morning: the sun coming up in an arched window ---------- */
-
-function MorningWindow() {
-  const [ref, motion] = useReplayInView<HTMLDivElement>()
-  const page = 'fill-cream stroke-linen-400 dark:fill-linen-700 dark:stroke-linen-500'
-  return (
-    <div
-      ref={ref}
-      data-motion={motion}
-      role="img"
-      aria-label="The sun rising in an arched window over an open book"
-      className={`${FRAME} overflow-hidden rounded-t-[50%] rounded-b-[40px] bg-sky-200 dark:bg-sky-900`}
-    >
-      <svg viewBox="0 0 440 420" className="h-full w-full" aria-hidden>
-        <g className="why-sun">
-          <circle cx="220" cy="262" r="128" className="fill-cream/45 dark:fill-linen-100/10" />
-          <circle cx="220" cy="262" r="84" className="fill-cream dark:fill-linen-100" />
-        </g>
-        <path d="M0 276Q110 236 230 266T440 252V420H0Z" className="fill-linen-300 dark:fill-linen-700" />
-        <path d="M0 318Q220 282 440 318V420H0Z" className="fill-linen-100 dark:fill-linen-800" />
-
-        <g strokeWidth="3" strokeLinejoin="round">
-          <path d="M220 330C188 316 124 314 72 324V404C124 396 188 398 220 410Z" className={page} />
-          <path d="M220 330C252 316 316 314 368 324V404C316 396 252 398 220 410Z" className={page} />
-        </g>
-        {/* Lines of text, never words: the verse itself stays in the app. */}
-        <g strokeWidth="6" strokeLinecap="round" className="stroke-linen-300 dark:stroke-linen-500">
-          {[352, 372, 390].map((y, i) => (
-            <g key={y}>
-              <path d={`M96 ${y}H${[196, 186, 168][i]}`} />
-              <path d={`M244 ${y}H${[344, 330, 336][i]}`} />
-            </g>
+        <g className="why-heap">
+          {HEAP.map(([x, y, r, color]) => (
+            <circle key={`h${x}`} cx={x} cy={y} r={r} className={color} />
           ))}
         </g>
+
+        {/* The bowl: rim, body with its shaded side, and foot. */}
+        <ellipse cx="220" cy="272" rx="118" ry="13" className="fill-honey-300" />
+        <path d="M102 272C102 340 150 372 220 372S338 340 338 272Z" className="fill-honey-400" />
+        <path d="M296 272h42c0 62-40 96-106 100 44-14 64-52 64-100Z" className="fill-honey-500" />
+        <rect x="178" y="372" width="84" height="16" rx="8" className="fill-honey-500" />
       </svg>
     </div>
   )

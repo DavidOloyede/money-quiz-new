@@ -3,7 +3,8 @@
  * cautious first-timer, then the finale on its own dawn band. The finale is
  * one centred column sized to fit a 900px screen: the promise restated, the
  * same CTA pair as the hero, and right under it the payoff, a phone showing
- * the quiz finished with confetti bursting around it. The FAQ
+ * the quiz finished with confetti bursting around it and manna falling into
+ * the bowl at its foot. The FAQ
  * comes first so the CTAs close the page, as they open it
  * (docs/design/landing/bar.md #5).
  */
@@ -147,14 +148,14 @@ export function LandingFinal(actions: LandingActions) {
 }
 
 /*
- * Manna in stage pixels: a short stream from under the small logo down to the
- * ground at the phone's base. One direction, each flake on its own slow clock.
+ * Manna in stage pixels: a short stream falling into the bowl at the phone's
+ * foot. One direction, each flake on its own slow clock.
  */
 const FLAKES = [
-  { x: 30, size: 10, dur: 6.5, delay: -1.1, tone: 'bg-honey-300' },
-  { x: 58, size: 8, dur: 7.5, delay: -4.6, tone: 'bg-honey-200' },
-  { x: 44, size: 11, dur: 7, delay: -2.9, tone: 'bg-honey-400' },
-  { x: 72, size: 9, dur: 8, delay: -6.2, tone: 'bg-honey-300' },
+  { x: 14, size: 10, dur: 4.5, delay: -1.1, tone: 'bg-honey-300' },
+  { x: 40, size: 8, dur: 5.5, delay: -3.4, tone: 'bg-honey-200' },
+  { x: 26, size: 11, dur: 5, delay: -2.2, tone: 'bg-honey-400' },
+  { x: 54, size: 9, dur: 6, delay: -4.6, tone: 'bg-honey-300' },
 ]
 
 /*
@@ -166,17 +167,17 @@ const FLAKES = [
  */
 type Piece = 'medal' | 'check' | 'sparkle' | 'strip-forest' | 'strip-cream' | 'strip-honey' | 'dot-forest'
 const REWARDS: [number, number, number, 'back' | 'front', Piece][] = [
-  [212, 0, 30, 'back', 'strip-forest'],
-  [494, 140, 26, 'back', 'strip-cream'],
-  [500, 430, 24, 'back', 'strip-honey'],
-  [40, 318, 18, 'back', 'dot-forest'],
-  [14, 116, 30, 'front', 'sparkle'],
-  [22, 206, 54, 'front', 'check'],
-  [438, 8, 70, 'front', 'medal'],
-  [486, 318, 32, 'front', 'strip-cream'],
+  [104, 10, 30, 'back', 'strip-forest'],
+  [420, 128, 26, 'back', 'strip-cream'],
+  [446, 396, 24, 'back', 'strip-honey'],
+  [52, 104, 18, 'back', 'dot-forest'],
+  [414, 250, 30, 'front', 'sparkle'],
+  [82, 178, 56, 'front', 'check'],
+  [340, -6, 70, 'front', 'medal'],
+  [398, 336, 32, 'front', 'strip-cream'],
 ]
 const PARTICLES = new Set<Piece>(['sparkle', 'strip-forest', 'strip-cream', 'strip-honey', 'dot-forest'])
-const PHONE_CENTER = { x: 364, y: 254 }
+const PHONE_CENTER = { x: 260, y: 254 }
 
 function RewardPiece({ piece, size }: { piece: Piece; size: number }) {
   switch (piece) {
@@ -254,24 +255,24 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
 /**
  * The closing picture, on a fixed 520×520 stage scaled whole on smaller
  * screens (like the hero's) so it keeps its shape at every width: the
- * finished-quiz phone, rewards bursting around it, and the small logo up
- * high letting manna fall into the bowl at the phone's base.
+ * finished-quiz phone in the middle, rewards bursting around it, and the
+ * bowl in front of its foot catching the day's manna.
  */
 function FinishedStage() {
   return (
     <div
       role="img"
-      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling from the Manna Money logo into a bowl."
+      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling into a bowl at its foot."
       className="relative mt-4 h-[322px] w-[322px] sm:h-[390px] sm:w-[390px] xl:h-[520px] xl:w-[520px]"
     >
       <div className="absolute top-0 left-0 h-[520px] w-[520px] origin-top-left scale-[0.62] sm:scale-75 xl:scale-100">
         {/* Morning light behind the phone; fades out well inside the stage, so it never shows an edge. */}
         <div className="absolute -inset-6 rounded-full bg-[radial-gradient(closest-side,var(--color-cream),transparent)] dark:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--color-sky-700)_45%,transparent),transparent)]" />
-        <div className="absolute bottom-[2px] left-[40px] h-[28px] w-[460px] rounded-[50%] bg-forest-900/15 blur-md dark:bg-linen-950/80" />
+        <div className="absolute bottom-[2px] left-[40px] h-[28px] w-[440px] rounded-[50%] bg-forest-900/15 blur-md dark:bg-linen-950/80" />
 
         <Rewards depth="back" />
 
-        <div className="absolute top-[128px] left-[112px] h-[332px] w-[100px] overflow-hidden">
+        <div className="absolute top-[250px] left-[74px] h-[190px] w-[70px] overflow-hidden">
           {FLAKES.map((f) => (
             <span
               key={f.x}
@@ -292,15 +293,11 @@ function FinishedStage() {
         <FinishedPhone />
 
         {/*
-         * The same bowl as the hero, catching the manna at the phone's base.
-         * Omer's spot: when his art arrives (a honey-gold manna bowl, see
-         * "Omer, the mascot" in docs/DESIGN.md), he takes the bowl's place.
+         * The same bowl as the hero, in front of the phone's foot where the
+         * manna lands. Omer's spot: when his art arrives (a honey-gold manna
+         * bowl, see "Omer, the mascot" in docs/DESIGN.md), he takes its place.
          */}
-        <MannaBowl className="absolute bottom-[6px] left-[82px] h-[96px] w-[150px]" />
-
-        <div className="absolute top-[40px] left-[118px] h-[84px] w-[84px] -rotate-6 drop-shadow-lg drop-shadow-forest-900/25">
-          <MannaLogo className="h-full w-full" />
-        </div>
+        <MannaBowl className="absolute bottom-[8px] left-[34px] h-[100px] w-[156px] drop-shadow-md" />
 
         <Rewards depth="front" />
       </div>
@@ -311,88 +308,75 @@ function FinishedStage() {
 const RING = 2 * Math.PI * 52
 
 /**
- * The quiz-finished screen from DESIGN.md's celebration table: the score
- * counted up, the XP earned. A generic frame with a browser address bar,
- * because today the app lives in the phone's browser, not an app store.
+ * The quiz-finished screen from DESIGN.md's celebration table, kept to one
+ * of each thing: the score counted up, the verdict, the XP and streak earned,
+ * the level it feeds, and the way on. A generic frame with a browser address
+ * bar, because today the app lives in the phone's browser, not an app store.
  */
 function FinishedPhone() {
   return (
     <div
       aria-hidden
-      className="absolute top-[14px] right-[36px] h-[480px] w-[240px] rounded-[40px] bg-linen-900 p-[9px] shadow-2xl shadow-linen-900/40 ring-1 ring-linen-700 dark:bg-linen-950 dark:ring-linen-600"
+      className="absolute top-[14px] left-[140px] h-[480px] w-[240px] rounded-[40px] bg-linen-900 p-[9px] shadow-2xl shadow-linen-900/40 ring-1 ring-linen-700 dark:bg-linen-950 dark:ring-linen-600"
     >
-      <div className="relative flex h-full flex-col overflow-hidden rounded-[32px] bg-cream dark:bg-linen-900">
-        <span className="mx-auto mt-3 h-[16px] w-[120px] shrink-0 rounded-full bg-linen-100 dark:bg-linen-800" />
+      <div className="flex h-full flex-col items-center overflow-hidden rounded-[32px] bg-cream px-5 pb-5 text-center dark:bg-linen-900">
+        <span className="mt-3 h-[16px] w-[120px] shrink-0 rounded-full bg-linen-100 dark:bg-linen-800" />
 
-        <div className="flex flex-1 flex-col items-center px-5 pt-3 text-center">
-          <div className="font-rounded text-[10px] font-bold tracking-wide text-linen-500 uppercase dark:text-linen-400">
-            Quiz complete
-          </div>
+        <div className="mt-6 font-rounded text-[10px] font-bold tracking-wide text-linen-500 uppercase dark:text-linen-400">
+          Quiz complete
+        </div>
 
-          <div className="relative mt-2 h-[108px] w-[108px]">
-            <svg viewBox="0 0 124 124" className="h-full w-full -rotate-90">
-              <circle
-                cx="62"
-                cy="62"
-                r="52"
-                className="fill-none stroke-linen-200 dark:stroke-linen-700"
-                strokeWidth="11"
-              />
-              <circle
-                cx="62"
-                cy="62"
-                r="52"
-                className="final-ring fill-none stroke-forest-500"
-                strokeWidth="11"
-                strokeLinecap="round"
-                strokeDasharray={RING}
-                style={{ '--ring': RING, '--ring-to': RING * 0.2 } as CSSProperties}
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-rounded text-[40px] leading-none font-black text-forest-700 tabular-nums dark:text-forest-300">
-                <span className="final-score" />
-                <span className="text-[18px] text-linen-500 dark:text-linen-400">/5</span>
-              </span>
-              <span className="mt-1 text-[11px] font-semibold text-linen-500 dark:text-linen-400">right</span>
-            </div>
-          </div>
-
-          <div className="mt-2 font-rounded text-[22px] font-black text-linen-900 dark:text-linen-100">
-            Nice work!
-          </div>
-          <div className="mt-1 text-[12px] leading-snug text-linen-600 dark:text-linen-300">
-            You found your top expense and your biggest bill.
-          </div>
-
-          <div className="mt-2.5 flex items-center gap-2">
-            <span className="rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900">
-              +50 XP
-            </span>
-            <span className="rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
-              3-day streak
+        <div className="relative mt-4 h-[136px] w-[136px]">
+          <svg viewBox="0 0 124 124" className="h-full w-full -rotate-90">
+            <circle
+              cx="62"
+              cy="62"
+              r="52"
+              className="fill-none stroke-linen-200 dark:stroke-linen-700"
+              strokeWidth="11"
+            />
+            <circle
+              cx="62"
+              cy="62"
+              r="52"
+              className="final-ring fill-none stroke-forest-500"
+              strokeWidth="11"
+              strokeLinecap="round"
+              strokeDasharray={RING}
+              style={{ '--ring': RING, '--ring-to': RING * 0.2 } as CSSProperties}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="font-rounded text-[46px] leading-none font-black text-forest-700 tabular-nums dark:text-forest-300">
+              <span className="final-score" />
+              <span className="text-[18px] text-linen-500 dark:text-linen-400">/5</span>
             </span>
           </div>
+        </div>
+
+        <div className="mt-5 font-rounded text-[24px] font-black text-linen-900 dark:text-linen-100">Nice work!</div>
+
+        <div className="mt-3 flex items-center gap-2">
+          <span className="rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900">
+            +50 XP
+          </span>
+          <span className="rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
+            3-day streak
+          </span>
         </div>
 
         {/* Progress toward the next level (levels and titles from core's gamification). */}
-        <div className="mx-4 rounded-2xl bg-linen-100 px-3.5 py-2.5 text-left dark:bg-linen-800">
-          <div className="flex items-baseline justify-between font-rounded text-[12px] font-bold text-linen-900 dark:text-linen-100">
-            <span>Level 3 · Faithful With Little</span>
+        <div className="mt-auto w-full text-left">
+          <div className="font-rounded text-[12px] font-bold text-linen-700 dark:text-linen-200">
+            Level 3 · Faithful With Little
           </div>
-          <div className="mt-2 h-2 overflow-hidden rounded-full bg-linen-200 dark:bg-linen-700">
+          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-linen-200 dark:bg-linen-700">
             <div className="h-full w-[70%] rounded-full bg-honey-400" />
           </div>
-          <div className="mt-1.5 text-[11px] text-linen-500 tabular-nums dark:text-linen-400">180 XP to level 4</div>
         </div>
 
-        <div className="px-4 pt-2.5 pb-3">
-          <div className="flex h-9 items-center justify-center rounded-xl bg-forest-600 font-rounded text-[12px] font-extrabold text-white">
-            Continue
-          </div>
-          <div className="mt-2 text-center text-[11px] font-semibold text-linen-500 dark:text-linen-400">
-            Next question tomorrow
-          </div>
+        <div className="mt-4 flex h-10 w-full shrink-0 items-center justify-center rounded-xl bg-forest-600 font-rounded text-[13px] font-extrabold text-white">
+          Continue
         </div>
       </div>
     </div>

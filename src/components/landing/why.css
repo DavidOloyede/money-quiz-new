@@ -16,7 +16,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Manna drifts down and settles; every flake keeps its place in the scatter. */
+  /* Manna drifts down toward the bowl, and the day's heap settles as it lands. */
   .why-scene[data-motion='armed'] .why-flake {
     transform: translateY(-80px);
   }
@@ -25,14 +25,15 @@
     animation: why-home 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     animation-delay: var(--why-delay, 0s);
   }
-
-  /* The sun comes up in the window. */
-  .why-scene[data-motion='armed'] .why-sun {
-    transform: translateY(48px);
+  .why-heap {
+    transform-origin: 220px 272px;
   }
-  .why-scene[data-motion='play'] .why-sun {
-    transform: translateY(48px);
-    animation: why-home 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  .why-scene[data-motion='armed'] .why-heap {
+    transform: scale(0.8);
+  }
+  .why-scene[data-motion='play'] .why-heap {
+    transform: scale(0.8);
+    animation: why-home 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
   }
 
   /*
