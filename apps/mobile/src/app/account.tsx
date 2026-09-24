@@ -1,5 +1,6 @@
 /**
- * The Account screen: sign in / create account (email+password or Google) when
+ * The Account screen: sign in / create account (email+password; Google is
+ * built but switched off, see SHOW_GOOGLE_SIGN_IN) when
  * signed out; profile, sync status, and sign-out when signed in. The mobile
  * counterpart of the web's AccountView — same warm copy, themed from the
  * shared tokens.
@@ -33,6 +34,8 @@ export default function AccountScreen() {
         options={{
           headerShown: true,
           title: 'Account',
+          // Reached from Settings, the welcome screen or a card, so a plain "Back".
+          headerBackTitle: 'Back',
           headerTitleStyle: { fontFamily: fonts.rounded, color: colors.ink },
         }}
       />
@@ -67,6 +70,13 @@ export default function AccountScreen() {
     </>
   )
 }
+
+/**
+ * Google sign-in is switched off for now (David, Sep 2026): email and
+ * password only. The flow below is kept intact; flipping this back on also
+ * needs `mannamoney://auth` in the Supabase redirect allow-list.
+ */
+const SHOW_GOOGLE_SIGN_IN = false
 
 function SignInCard({
   colors,
@@ -216,34 +226,38 @@ function SignInCard({
         </Text>
       </Pressable>
 
-      {/* or divider */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
-        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>OR</Text>
-        <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
-      </View>
+      {SHOW_GOOGLE_SIGN_IN && (
+        <>
+          {/* or divider */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
+            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>OR</Text>
+            <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
+          </View>
 
-      <Pressable
-        onPress={() => {
-          setError(null)
-          void signInWithGoogle().then((err) => err && setError(err))
-        }}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          paddingVertical: spacing.sm + 2,
-          borderRadius: radii.md,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.borderStrong,
-        }}
-      >
-        <GoogleMark theme={theme} />
-        <Text style={{ fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text }}>
-          Continue with Google
-        </Text>
-      </Pressable>
+          <Pressable
+            onPress={() => {
+              setError(null)
+              void signInWithGoogle().then((err) => err && setError(err))
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing.sm,
+              paddingVertical: spacing.sm + 2,
+              borderRadius: radii.md,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: colors.borderStrong,
+            }}
+          >
+            <GoogleMark theme={theme} />
+            <Text style={{ fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text }}>
+              Continue with Google
+            </Text>
+          </Pressable>
+        </>
+      )}
     </Card>
   )
 }
