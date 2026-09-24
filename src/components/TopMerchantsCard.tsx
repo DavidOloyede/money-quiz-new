@@ -2,6 +2,7 @@ import type { Transaction } from '@moneyquiz/core/types'
 import { topMerchants } from '@moneyquiz/core/lib/analysis'
 import { formatCurrency } from '@moneyquiz/core/lib/format'
 import { useStore } from '@moneyquiz/core/store'
+import { MerchantLogo } from './MerchantLogo'
 
 interface Props {
   transactions: Transaction[]
@@ -24,8 +25,11 @@ export function TopMerchantsCard({ transactions }: Props) {
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
-                  {m.merchant}
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <MerchantLogo brand={m.brand} logoUrl={m.logoUrl} size="sm" />
+                  <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">
+                    {m.merchant}
+                  </span>
                 </span>
                 <span className="shrink-0 tabular-nums text-sm font-semibold text-linen-700 dark:text-linen-200">
                   {formatCurrency(m.total)}

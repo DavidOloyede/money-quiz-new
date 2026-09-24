@@ -5,6 +5,7 @@ import { categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatCurrency, formatCurrencyShort, formatDate } from '@moneyquiz/core/lib/format'
 import { useStore } from '@moneyquiz/core/store'
 import { StarIcon, XIcon } from './icons'
+import { MerchantLogo } from './MerchantLogo'
 
 interface Props {
   /** Recurring bill groups, precomputed by Dashboard's shared recurringPayments pass. */
@@ -209,7 +210,11 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
                     >
                       <StarIcon className="h-4 w-4" filled={r.isRecurringFlagged} />
                     </span>
-                    <span aria-hidden>{categoryMeta(r.category).emoji}</span>
+                    <MerchantLogo
+                      brand={r.brand}
+                      logoUrl={r.logoUrl}
+                      fallback={categoryMeta(r.category).emoji}
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
                         <span
@@ -347,7 +352,12 @@ function ChargeRow({ charge: c, onOpen }: { charge: Charge; onOpen: (ids: string
       <DateBadge date={c.date} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
-          <span aria-hidden>{categoryMeta(c.category).emoji}</span>
+          <MerchantLogo
+            brand={c.brand}
+            logoUrl={c.logoUrl}
+            size="sm"
+            fallback={categoryMeta(c.category).emoji}
+          />
           <span className="truncate text-sm font-medium text-linen-700 dark:text-linen-200">{c.merchant}</span>
           {c.isSubscription && (
             <span className="shrink-0 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">

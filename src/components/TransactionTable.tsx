@@ -4,11 +4,13 @@ import { useStore } from '@moneyquiz/core/store'
 import { filterTransactions, type TransactionCriteria } from '@moneyquiz/core/lib/filter'
 import { allCategories, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { displayDescription } from '@moneyquiz/core/lib/merchant'
+import { brandSlugForAny } from '@moneyquiz/core/lib/merchantLogos'
 import { formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import { useApplyToSimilar } from './ApplyToSimilar'
 import { useRecurringSimilar } from './RecurringSimilar'
 import { SortHeader } from './SortHeader'
 import { StarIcon, LinkIcon } from './icons'
+import { MerchantLogo } from './MerchantLogo'
 import { TransactionMarks, useTransactionActions } from './TransactionActions'
 import { useWheelPan } from '../hooks/useWheelPan'
 import { useSelection } from '../hooks/useSelection'
@@ -141,6 +143,12 @@ export function TransactionTable({ transactions, sources = [], focusSourceId }: 
                     >
                       <StarIcon className="h-4 w-4" filled={!!t.recurring} />
                     </button>
+                    <MerchantLogo
+                      brand={brandSlugForAny(displayDescription(t.description, aliases), t.description)}
+                      logoUrl={t.logoUrl}
+                      size="sm"
+                      keepSpace
+                    />
                     {displayDescription(t.description, aliases)}
                     {t.recurring && (
                       <span className="rounded bg-honey-100 dark:bg-honey-500/20 px-1.5 py-0.5 text-[10px] font-medium text-honey-700 dark:text-honey-300">

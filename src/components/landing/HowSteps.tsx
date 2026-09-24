@@ -9,15 +9,9 @@
  * one-line label, and the numbers are made up.
  */
 import type { CSSProperties, ReactNode } from 'react'
-import {
-  siAmericanexpress,
-  siBankofamerica,
-  siChase,
-  siDiscover,
-  siWellsfargo,
-  type SimpleIcon,
-} from 'simple-icons'
+import type { BrandSlug } from '@moneyquiz/core/data/brandIcons'
 import { CheckIcon, LinkIcon, UploadIcon } from '../icons'
+import { MerchantLogo } from '../MerchantLogo'
 import { BODY } from './styles'
 import { useHoverPlay } from './useHoverPlay'
 import './steps.css'
@@ -82,15 +76,15 @@ const CARD =
 
 /**
  * The banks in the picker; `linked` is the one the mockup shows connecting.
- * Logos are Simple Icons (CC0 artwork); the marks belong to their banks and
- * are here only to show what connecting looks like, not to imply endorsement.
+ * The logos are the app's bundled brand set (see data/brandIcons); they're
+ * here only to show what connecting looks like, not to imply endorsement.
  */
-const BANKS: { icon: SimpleIcon; linked?: boolean }[] = [
-  { icon: siChase, linked: true },
-  { icon: siBankofamerica },
-  { icon: siWellsfargo },
-  { icon: siAmericanexpress },
-  { icon: siDiscover },
+const BANKS: { brand: BrandSlug; linked?: boolean }[] = [
+  { brand: 'chase', linked: true },
+  { brand: 'bankofamerica' },
+  { brand: 'wellsfargo' },
+  { brand: 'americanexpress' },
+  { brand: 'discover' },
 ]
 
 const BANK_CELL = 'relative flex aspect-[5/4] items-center justify-center rounded-xl'
@@ -111,19 +105,14 @@ function BankTile() {
       <div className="mt-3.5 grid grid-cols-3 gap-2">
         {BANKS.map((b) => (
           <div
-            key={b.icon.slug}
+            key={b.brand}
             className={`${BANK_CELL} ${
               b.linked
                 ? 'step-bank border-2 border-forest-500 bg-forest-50 dark:bg-forest-500/15'
                 : 'border border-linen-200 bg-linen-50 dark:border-linen-600 dark:bg-linen-900/60'
             }`}
           >
-            {/* A white chip keeps each brand's own colour legible in dark mode. */}
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-[0_1px_2px_rgb(0_0_0/0.12)]">
-              <svg viewBox="0 0 24 24" className="h-8 w-8">
-                <path d={b.icon.path} fill={`#${b.icon.hex}`} />
-              </svg>
-            </span>
+            <MerchantLogo brand={b.brand} size="lg" className="shadow-[0_1px_2px_rgb(0_0_0/0.12)]" />
             {b.linked && (
               <span className="step-check absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-forest-600 text-white ring-3 ring-cream dark:ring-linen-800">
                 <CheckIcon className="h-3 w-3" />
