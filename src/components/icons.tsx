@@ -191,7 +191,8 @@ export function PencilIcon({ className }: IconProps) {
 }
 
 /**
- * The Manna Money mark: manna falling into an open bowl — provision received.
+ * The Manna Money mark: three flakes of manna over a closed bowl, provision
+ * received (it doubles as a smiling face, on purpose).
  * On hover the flakes actually fall (see `.manna-logo` in index.css); the
  * animation is CSS-only so the mark stays a plain stateless icon, and it
  * stands still for anyone who asked for reduced motion.
@@ -205,12 +206,12 @@ export function MannaLogo({ className }: IconProps) {
       <circle className="manna-flake" cx="16" cy="12.6" r="2.1" fill="#e5b13c" />
       <path
         className="manna-bowl"
-        d="M7.5 16.5c0 5.1 3.8 8.6 8.5 8.6s8.5-3.5 8.5-8.6"
+        d="M6.5 16.4c0 5.3 4.1 9 9.5 9s9.5-3.7 9.5-9Z"
         stroke="#e5b13c"
-        strokeWidth="2.4"
-        strokeLinecap="round"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
       />
-      <path d="M12.5 28.6h7" stroke="#e5b13c" strokeWidth="2.4" strokeLinecap="round" />
+      <path d="M11.5 28.8h9" stroke="#e5b13c" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   )
 }

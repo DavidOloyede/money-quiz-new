@@ -2,7 +2,7 @@
  * Motion for the landing hero (LandingHero.tsx). Kept out of index.css so the
  * hero owns its own keyframes. Every loop drifts one way (down) and runs well
  * over 2s a cycle, per the landing bar; reduce-motion drops it all and leaves
- * the logo and the finished quiz moment.
+ * the clouds, the bowl and the finished quiz moment.
  */
 
 /* Ambient manna: each flake gets its position, size, speed and delay inline. */
@@ -26,16 +26,6 @@
 .hero-flake {
   animation: hero-flake-fall var(--dur, 7s) linear var(--delay, 0s) infinite;
   will-change: transform, opacity;
-}
-
-/*
- * The hero logo stays the brand mark exactly, at rest: index.css animates its
- * flakes on hover, which at this size stops it reading as the mark. The
- * selector outranks those hover rules.
- */
-svg.hero-logo.manna-logo .manna-flake,
-svg.hero-logo.manna-logo .manna-bowl {
-  animation: none;
 }
 
 /*

@@ -184,8 +184,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   Dashboard. There's also a small "import your own CSV" link and a Sign in
   link. The little animations (the quiz answer popping green, the confetti)
   play again every time you scroll back to them, and they stay still if
-  your device asks for less motion. A spot beside the phones is saved for
-  Omer, the mascot, once his artwork exists.
+  your device asks for less motion. At the top, manna falls from morning
+  clouds into a bowl drawn like the one in the logo; at the bottom it falls
+  from the logo into the same bowl. Omer, the mascot, takes the bowl's place
+  once his artwork exists.
 - **`Nav.tsx`** — The menu (on the side for computers, on top for phones). Also
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.

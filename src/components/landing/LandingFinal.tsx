@@ -10,6 +10,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
+import { MannaBowl } from './MannaBowl'
 import { useReplayInView } from './useReplayInView'
 import { MannaLogo } from '../icons'
 import { BODY, COLUMN, DISPLAY, HEADING, SECTION } from './styles'
@@ -251,13 +252,13 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
  * The closing picture, on a fixed 520×520 stage scaled whole on smaller
  * screens (like the hero's) so it keeps its shape at every width: the
  * finished-quiz phone, rewards bursting around it, and the small logo up
- * high letting manna fall to the ground at the phone's base.
+ * high letting manna fall into the bowl at the phone's base.
  */
 function FinishedStage() {
   return (
     <div
       role="img"
-      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling from the Manna Money logo."
+      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling from the Manna Money logo into a bowl."
       className="relative mt-4 h-[322px] w-[322px] sm:h-[390px] sm:w-[390px] xl:h-[520px] xl:w-[520px]"
     >
       <div className="absolute top-0 left-0 h-[520px] w-[520px] origin-top-left scale-[0.62] sm:scale-75 xl:scale-100">
@@ -267,7 +268,7 @@ function FinishedStage() {
 
         <Rewards depth="back" />
 
-        <div className="absolute top-[128px] left-[112px] h-[372px] w-[100px] overflow-hidden">
+        <div className="absolute top-[128px] left-[112px] h-[332px] w-[100px] overflow-hidden">
           {FLAKES.map((f) => (
             <span
               key={f.x}
@@ -288,11 +289,11 @@ function FinishedStage() {
         <FinishedPhone />
 
         {/*
+         * The same bowl as the hero, catching the manna at the phone's base.
          * Omer's spot: when his art arrives (a honey-gold manna bowl, see
-         * "Omer, the mascot" in docs/DESIGN.md), he stands on the ground here
-         * at the phone's base, cheering the finished quiz and catching the
-         * manna.
+         * "Omer, the mascot" in docs/DESIGN.md), he takes the bowl's place.
          */}
+        <MannaBowl className="absolute bottom-[6px] left-[82px] h-[96px] w-[150px]" />
 
         <div className="absolute top-[40px] left-[118px] h-[84px] w-[84px] -rotate-6 drop-shadow-lg drop-shadow-forest-900/25">
           <MannaLogo className="h-full w-full" />
@@ -320,12 +321,12 @@ function FinishedPhone() {
       <div className="relative flex h-full flex-col overflow-hidden rounded-[32px] bg-cream dark:bg-linen-900">
         <span className="mx-auto mt-3 h-[16px] w-[120px] shrink-0 rounded-full bg-linen-100 dark:bg-linen-800" />
 
-        <div className="flex flex-1 flex-col items-center px-5 pt-5 text-center">
+        <div className="flex flex-1 flex-col items-center px-5 pt-3 text-center">
           <div className="font-rounded text-[10px] font-bold tracking-wide text-linen-500 uppercase dark:text-linen-400">
             Quiz complete
           </div>
 
-          <div className="relative mt-3 h-[124px] w-[124px]">
+          <div className="relative mt-2 h-[108px] w-[108px]">
             <svg viewBox="0 0 124 124" className="h-full w-full -rotate-90">
               <circle
                 cx="62"
@@ -354,14 +355,14 @@ function FinishedPhone() {
             </div>
           </div>
 
-          <div className="mt-4 font-rounded text-[22px] font-black text-linen-900 dark:text-linen-100">
+          <div className="mt-2 font-rounded text-[22px] font-black text-linen-900 dark:text-linen-100">
             Nice work!
           </div>
           <div className="mt-1 text-[12px] leading-snug text-linen-600 dark:text-linen-300">
             You found your top expense and your biggest bill.
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-2.5 flex items-center gap-2">
             <span className="rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900">
               +50 XP
             </span>
@@ -371,8 +372,24 @@ function FinishedPhone() {
           </div>
         </div>
 
-        <div className="px-4 pb-5 text-center text-[12px] font-semibold text-linen-500 dark:text-linen-400">
-          Next question tomorrow
+        {/* Progress toward the next level (levels and titles from core's gamification). */}
+        <div className="mx-4 rounded-2xl bg-linen-100 px-3.5 py-2.5 text-left dark:bg-linen-800">
+          <div className="flex items-baseline justify-between font-rounded text-[12px] font-bold text-linen-900 dark:text-linen-100">
+            <span>Level 3 · Faithful With Little</span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-linen-200 dark:bg-linen-700">
+            <div className="h-full w-[70%] rounded-full bg-honey-400" />
+          </div>
+          <div className="mt-1.5 text-[11px] text-linen-500 tabular-nums dark:text-linen-400">180 XP to level 4</div>
+        </div>
+
+        <div className="px-4 pt-2.5 pb-3">
+          <div className="flex h-9 items-center justify-center rounded-xl bg-forest-600 font-rounded text-[12px] font-extrabold text-white">
+            Continue
+          </div>
+          <div className="mt-2 text-center text-[11px] font-semibold text-linen-500 dark:text-linen-400">
+            Next question tomorrow
+          </div>
         </div>
       </div>
     </div>
