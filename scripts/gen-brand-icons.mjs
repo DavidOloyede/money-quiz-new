@@ -7,8 +7,12 @@
  *
  * Add a brand: put its Simple Icons export name below, run
  * `npm run gen:brands`, then teach lib/merchantLogos.ts how to spot it.
- * Simple Icons drops brands on trademark request (Amazon, Walmart, Hulu are
- * gone), so a name that's missing here fails loudly rather than silently.
+ * Simple Icons drops brands on trademark request (Amazon, Walmart, Hulu,
+ * Adobe, Microsoft and T-Mobile are gone), so a name that's missing here fails
+ * loudly rather than silently. Check the drawn mark, not just the name: an
+ * icon can exist but be the wrong company's (O'Reilly is the publisher, not
+ * the auto-parts chain) or a regional variant (Aldi Süd has "SÜD" in it, so
+ * it would be wrong on a US receipt) — those stay out.
  */
 import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -22,11 +26,16 @@ const BRANDS = {
   wellsfargo: 'siWellsfargo',
   americanexpress: 'siAmericanexpress',
   discover: 'siDiscover',
+  robinhood: 'siRobinhood',
+  coinbase: 'siCoinbase',
+  westernunion: 'siWesternunion',
+  wise: 'siWise',
   // Paying people
   zelle: 'siZelle',
   venmo: 'siVenmo',
   paypal: 'siPaypal',
   cashapp: 'siCashapp',
+  klarna: 'siKlarna',
   // Streaming, music, apps
   netflix: 'siNetflix',
   spotify: 'siSpotify',
@@ -40,6 +49,47 @@ const BRANDS = {
   playstation: 'siPlaystation',
   duolingo: 'siDuolingo',
   peloton: 'siPeloton',
+  // Software, gaming and subscriptions
+  google: 'siGoogle',
+  googleplay: 'siGoogleplay',
+  appletv: 'siAppletv',
+  youtubetv: 'siYoutubetv',
+  roku: 'siRoku',
+  crunchyroll: 'siCrunchyroll',
+  pandora: 'siPandora',
+  twitch: 'siTwitch',
+  fubo: 'siFubo',
+  steam: 'siSteam',
+  epicgames: 'siEpicgames',
+  roblox: 'siRoblox',
+  dropbox: 'siDropbox',
+  zoom: 'siZoom',
+  notion: 'siNotion',
+  github: 'siGithub',
+  figma: 'siFigma',
+  grammarly: 'siGrammarly',
+  evernote: 'siEvernote',
+  onepassword: 'si1password',
+  nordvpn: 'siNordvpn',
+  expressvpn: 'siExpressvpn',
+  patreon: 'siPatreon',
+  substack: 'siSubstack',
+  claude: 'siClaude',
+  intuit: 'siIntuit',
+  quickbooks: 'siQuickbooks',
+  coursera: 'siCoursera',
+  udemy: 'siUdemy',
+  skillshare: 'siSkillshare',
+  headspace: 'siHeadspace',
+  strava: 'siStrava',
+  tinder: 'siTinder',
+  discord: 'siDiscord',
+  ticketmaster: 'siTicketmaster',
+  stubhub: 'siStubhub',
+  seatgeek: 'siSeatgeek',
+  fandango: 'siFandango',
+  zillow: 'siZillow',
+  yelp: 'siYelp',
   // Eating out and delivery
   starbucks: 'siStarbucks',
   mcdonalds: 'siMcdonalds',
@@ -48,10 +98,27 @@ const BRANDS = {
   doordash: 'siDoordash',
   ubereats: 'siUbereats',
   instacart: 'siInstacart',
+  kfc: 'siKfc',
   // Getting around
   uber: 'siUber',
   lyft: 'siLyft',
   shell: 'siShell',
+  tesla: 'siTesla',
+  ford: 'siFord',
+  toyota: 'siToyota',
+  honda: 'siHonda',
+  hyundai: 'siHyundai',
+  nissan: 'siNissan',
+  subaru: 'siSubaru',
+  kia: 'siKia',
+  mazda: 'siMazda',
+  bmw: 'siBmw',
+  volkswagen: 'siVolkswagen',
+  autozone: 'siAutozone',
+  ups: 'siUps',
+  fedex: 'siFedex',
+  usps: 'siUsps',
+  dhl: 'siDhl',
   // Shopping
   target: 'siTarget',
   lidl: 'siLidl',
@@ -59,8 +126,22 @@ const BRANDS = {
   nike: 'siNike',
   etsy: 'siEtsy',
   ebay: 'siEbay',
-  // Phone
+  zara: 'siZara',
+  hm: 'siHandm',
+  macys: 'siMacys',
+  samsclub: 'siSamsclub',
+  adidas: 'siAdidas',
+  underarmour: 'siUnderarmour',
+  newbalance: 'siNewbalance',
+  puma: 'siPuma',
+  uniqlo: 'siUniqlo',
+  dell: 'siDell',
+  samsung: 'siSamsung',
+  // Phone, internet and utilities
   verizon: 'siVerizon',
+  att: 'siAtandt',
+  spectrum: 'siSpectrum',
+  nationalgrid: 'siNationalgrid',
   // Travel
   airbnb: 'siAirbnb',
   delta: 'siDelta',
@@ -69,6 +150,11 @@ const BRANDS = {
   americanairlines: 'siAmericanairlines',
   marriott: 'siMarriott',
   hilton: 'siHilton',
+  jetblue: 'siJetblue',
+  expedia: 'siExpedia',
+  booking: 'siBookingdotcom',
+  hotelsdotcom: 'siHotelsdotcom',
+  tripadvisor: 'siTripadvisor',
 }
 
 const entries = Object.entries(BRANDS).map(([slug, name]) => {
