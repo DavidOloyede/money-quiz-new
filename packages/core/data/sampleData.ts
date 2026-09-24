@@ -78,8 +78,11 @@ interface RawRow {
 /* Deterministic helpers                                               */
 /* ------------------------------------------------------------------ */
 
+// Exported for the demo bank connections (data/demoBanks.ts), which build
+// their pretend accounts the same reproducible way.
+
 /** FNV-1a → a stable 0..1 for a string. Same seed, same number, always. */
-function rand(seed: string): number {
+export function rand(seed: string): number {
   let h = 2166136261
   for (let i = 0; i < seed.length; i++) {
     h ^= seed.charCodeAt(i)
@@ -88,29 +91,29 @@ function rand(seed: string): number {
   return ((h >>> 0) % 100000) / 100000
 }
 
-function round2(n: number): number {
+export function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
 
 /** `base`, varied by up to ±spread (default 15%), deterministically. */
-function vary(base: number, seed: string, spread = 0.15): number {
+export function vary(base: number, seed: string, spread = 0.15): number {
   return round2(base * (1 - spread + 2 * spread * rand(seed)))
 }
 
-function pad(n: number): string {
+export function pad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
-function daysInMonth(year: number, month: number): number {
+export function daysInMonth(year: number, month: number): number {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
 }
 
-function iso(year: number, month: number, day: number): string {
+export function iso(year: number, month: number, day: number): string {
   return `${year}-${pad(month + 1)}-${pad(Math.min(day, daysInMonth(year, month)))}`
 }
 
 /** The 12 months ending with the one `now` falls in, oldest first. */
-function windowMonths(now: Date): { year: number; month: number; index: number }[] {
+export function windowMonths(now: Date): { year: number; month: number; index: number }[] {
   const out: { year: number; month: number; index: number }[] = []
   for (let back = 11; back >= 0; back--) {
     const d = new Date(now.getFullYear(), now.getMonth() - back, 1)

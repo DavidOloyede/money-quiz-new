@@ -160,6 +160,13 @@ export interface ImportSource {
   kind?: 'file' | 'plaid'
   /** institution name for Plaid-connected sources */
   institution?: string
+  /**
+   * Set on a pretend connection from the demo flow (data/demoBanks). Nothing
+   * behind it reaches Plaid or the server. `account` names the built-in demo
+   * account it came from; without it, the rows came from a CSV the presenter
+   * picked, so there's nothing to re-fetch.
+   */
+  demo?: { account?: string }
 }
 
 /** Monthly budget per category (category id -> dollars). */

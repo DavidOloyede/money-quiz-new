@@ -28,7 +28,12 @@ import { overrideKey } from './lib/categorize'
 import { groupKey, merchantKey, txSignature } from './lib/merchant'
 import { assignTxKeys } from './lib/txKey'
 import { autoDetectLinks, resolveLinks, type TxLinks } from './lib/links'
-import { counterpartyKey, isSelfTransfer, isTransferDescription } from './lib/owner'
+import {
+  counterpartyKey,
+  isSelfTransfer,
+  isTransferDescription,
+  normalizeOwnerPhrase,
+} from './lib/owner'
 import type { TransferRules } from './lib/transferReview'
 import { matchCategoryRule, type CategoryRule } from './lib/categoryRules'
 import {
@@ -55,6 +60,7 @@ import {
   SAMPLE_CATEGORY_RULES,
   SAMPLE_OWNER_NAMES,
 } from './data/sampleData'
+import { DEMO_OWNER_NAMES, demoAccount, demoImport, demoInstitution } from './data/demoBanks'
 
 interface StoreValue {
   transactions: Transaction[]
@@ -96,6 +102,8 @@ interface StoreValue {
   addPlaidSource: (item: PlaidItemSummary) => void
   /** Pull the latest transactions for a connected account and merge them in. */
   syncPlaidSource: (sourceId: string) => Promise<number>
+  /** Pretend-connect demo bank accounts (the offline Plaid stand-in). Returns rows added. */
+  connectDemoAccounts: (accountIds: string[]) => number
   loadSample: () => void
   /** Edit one transaction's category (remembered by exact description). */
   setCategory: (id: string, category: Category) => void
@@ -489,7 +497,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const removeSource = useCallback((sourceId: string) => {
     const src = sourcesRef.current.find((s) => s.id === sourceId)
-    if (src?.kind === 'plaid') void plaidApi.removeItem(sourceId).catch(() => {})
+    if (src?.kind === 'plaid' && !src.demo) void plaidApi.removeItem(sourceId).catch(() => {})
     setRawTransactions((prev) => prev.filter((t) => t.sourceId !== sourceId))
     setSources((prev) => prev.filter((s) => s.id !== sourceId))
   }, [])
@@ -515,6 +523,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const syncPlaidSource = useCallback(
     async (sourceId: string) => {
+      // A demo connection "syncs" by rebuilding its account for today, so a
+      // demo left open overnight picks up the new day's rows like a real bank.
+      // One fed by the presenter's own CSV has nothing newer to fetch.
+      const src = sourcesRef.current.find((s) => s.id === sourceId)
+      if (src?.demo) {
+        if (!src.demo.account) return src.count
+        const r = demoImport(src.demo.account, sourceId)
+        const fresh = withOverrides(r.transactions)
+        setRawTransactions((prev) => [...prev.filter((t) => t.sourceId !== sourceId), ...fresh])
+        setSources((prev) =>
+          prev.map((s) => (s.id === sourceId ? { ...s, count: fresh.length, dropped: r.droppedPayments } : s)),
+        )
+        return fresh.length
+      }
       const { transactions: ptx } = await plaidApi.sync(sourceId)
       const mapped = withOverrides(mapPlaidTransactions(ptx, sourceId))
       setRawTransactions((prev) => [...prev.filter((t) => t.sourceId !== sourceId), ...mapped])
@@ -522,6 +544,57 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return mapped.length
     },
     [withOverrides],
+  )
+
+  /**
+   * Pretend-connect demo bank accounts, the offline stand-in for Plaid. Each
+   * account's rows go through the ordinary CSV importer (data/demoBanks), and
+   * it's registered like a connected bank so it lists, syncs and disconnects
+   * the same way. Reconnecting an account replaces its rows instead of doubling
+   * them, as relinking a real bank would.
+   *
+   * The demo person's own names join the owner list, so the money they move
+   * between their banks reads as their own transfers, not spending.
+   */
+  const connectDemoAccounts = useCallback(
+    (accountIds: string[]) => {
+      const now = new Date()
+      const added: Transaction[] = []
+      const linked: ImportSource[] = []
+      for (const accountId of accountIds) {
+        const acct = demoAccount(accountId)
+        const inst = acct && demoInstitution(acct.institutionId)
+        if (!acct || !inst) continue
+        const id = `demo:${accountId}`
+        const r = demoImport(accountId, id, now)
+        added.push(...r.transactions)
+        linked.push({
+          id,
+          fileName: `${inst.name} ${acct.name} ••${acct.mask}`,
+          importedAt: now.toISOString(),
+          accountType: acct.accountType,
+          count: r.transactions.length,
+          dropped: r.droppedPayments,
+          kind: 'plaid',
+          institution: inst.name,
+          demo: { account: accountId },
+        })
+      }
+      if (linked.length === 0) return 0
+
+      const ids = new Set(linked.map((s) => s.id))
+      const prepared = withOverrides(added)
+      setRawTransactions((prev) => [...prev.filter((t) => !ids.has(t.sourceId ?? '')), ...prepared])
+      setSources((prev) => [...prev.filter((s) => !ids.has(s.id)), ...linked])
+      setOwnerNamesState((prev) => {
+        const have = new Set(prev.map(normalizeOwnerPhrase))
+        const missing = DEMO_OWNER_NAMES.filter((n) => !have.has(normalizeOwnerPhrase(n)))
+        return missing.length ? [...prev, ...missing] : prev
+      })
+      awardXp(XP.import)
+      return prepared.length
+    },
+    [withOverrides, awardXp],
   )
 
   /**
@@ -1045,6 +1118,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeSource,
       addPlaidSource,
       syncPlaidSource,
+      connectDemoAccounts,
       loadSample,
       setCategory,
       setCategoryBulk,
@@ -1102,6 +1176,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeSource,
       addPlaidSource,
       syncPlaidSource,
+      connectDemoAccounts,
       loadSample,
       setCategory,
       setCategoryBulk,

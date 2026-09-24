@@ -228,9 +228,31 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.
 - **`ConnectBank.tsx`** — The "Connect a bank or card" card that uses Plaid.
+  It always has a **Try a demo bank** button too, which works even signed
+  out with no server at all.
+- **`DemoBankModal.tsx`** — The **demo bank connection**: a pretend version
+  of linking a bank, for showing the app to someone (or trying it without
+  real accounts). It walks through the same steps as the real thing: pick
+  your bank (Chase, Bank of America, Citi, American Express, Capital One,
+  Ally), "sign in" with details already filled in, choose which accounts to
+  share, wait a moment while it "connects", and land on "Chase is
+  connected — added 287 transactions". Nothing is sent anywhere. Behind the
+  curtain each pretend account is really just a spreadsheet file written in
+  that bank's own layout, read by the exact same code a CSV upload uses, so
+  the demo shows what the app really does with that bank's data. The
+  connected accounts are labeled **Demo connection** in the sources list;
+  **Sync** rebuilds them for today and the trash can removes them like any
+  other source. Two extra buttons: **Use my own {bank} CSV** feeds a file
+  you exported into the same pretend connection (handy for demoing with real
+  numbers without putting them anywhere), and **Download these as CSV** saves
+  the pretend bank's files so you can show the ordinary upload route too.
 - **`ColumnMapping.tsx`** — When you upload a spreadsheet, this asks "which
   column is the date? which is the amount?" because every bank's file looks
-  different.
+  different. When it **recognises the bank's layout** (Chase, Ally, Bank of
+  America, Citi, American Express, Capital One, Discover), it fills
+  everything in for you and says so, including the easy-to-miss bits, like
+  American Express and Discover writing purchases as positive numbers.
+  A mapping you saved yourself still wins.
 - **`ImportedFiles.tsx`** — The list of files and connected accounts you added,
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
@@ -503,6 +525,10 @@ the exceptions — they need a real browser.
   stable per-transaction id (date+desc+amount) used to remember per-charge flags.
 - **`importCsv.ts`** — Turns a spreadsheet into Transaction cards. It also
   **removes credit-card "payments"** so your spending isn't counted twice.
+- **`bankFormats.ts`** — A **phone book of bank spreadsheet layouts**: for
+  each bank, the exact header row it writes and which column means what. It
+  recognises a file by its header row, and it can also *write* a file in
+  that layout (the demo banks use that).
 - **`analysis.ts`** — The **calculator**: totals, spending by category, monthly
   trends, repeating payments, budgets, and top stores. It normally **ignores**
   Transfers and Zelle, with one exception: `recurringTransfers` finds same-amount,
@@ -643,7 +669,14 @@ invented.
 Its dates are **counted back from today** rather than written down, so "this
 month" is never empty no matter when you open it — and the same day always
 produces exactly the same pretend year, so the quiz and the tests can rely on
-it. **`verses.ts`** holds 50 scripture verses about
+it. **`demoBanks.ts`** is the same made-up person's money spread across six
+pretend banks (see `DemoBankModal.tsx` above): paycheck and bills at Chase,
+savings at Ally, and a card for each kind of spending. The accounts agree
+with each other: every card's purchases show up as a payment out of checking
+the next month, and money sent to savings appears on both sides, so
+connecting one bank or all six still adds up. Like the sample year, it's
+counted back from today and comes out the same every time.
+**`verses.ts`** holds 50 scripture verses about
 money (World English Bible — public domain) with the verse-of-the-day picker,
 and **`generalQuestions.ts`** is the bank of 16 general money-literacy
 questions (budgeting rules, emergency funds, debt, a couple on stewardship)
