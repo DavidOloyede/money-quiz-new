@@ -300,7 +300,7 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 - **`BudgetsCard.tsx`, `RecurringCard.tsx`, `RecurringTransfersCard.tsx`,
   `TrendsCard.tsx`, `TopMerchantsCard.tsx`** — The info boxes on the Dashboard
   (budgets, repeating bills + subscriptions, recurring transfers, "spending went
-  up/down", and favorite stores).
+  up/down", and where the money went, by merchant).
   - **`RecurringCard.tsx`** is the full-width **"Recurring & subscriptions"** box,
     laid out as a **month calendar**: a grid marks the days a charge lands — each
     shows that **day's total** (e.g. `$55`, or `5 · $178` when several share a
@@ -320,11 +320,22 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     **★ is lit** (being in this list is what the star means); un-tapping it removes
     the group from the list (and turns off its stars everywhere).
     Repeat *shopping habits* are kept out of this card on purpose (see below).
-  - **`SpendingHabitsCard.tsx`** — the **"Spending habits"** box: merchants you
-    keep going back to with *varying* amounts (Amazon, the pharmacy, a burger
-    spot). They repeat, but they're **patterns, not bills**, so they live here
-    instead of the recurring card. Tap a row to open its detail, where a
-    **"Treat as: Expected bill | Habit"** toggle re-files it (remembered).
+  - **`TopMerchantsCard.tsx`** — the **"Top merchants"** box, next to the
+    monthly chart: the six merchants you spent the most with in the chosen
+    date range, each with its company logo (or its category's little picture),
+    a bar for scale, and how many charges it took. Refunds come off the
+    merchant they came back from. Tap a merchant to see its charges. **"View
+    all"** opens **`AllMerchantsModal.tsx`**, a popup with two tabs:
+    - **Merchants** — every merchant in the range, with a search box and a
+      "Most spent / Most visits" switch. Tap one for its charges.
+    - **Spending habits** — places you keep going back to with *varying*
+      amounts (Amazon, the pharmacy, a burger spot). They repeat, but they're
+      **patterns, not bills**, so they live here instead of the recurring
+      card. Tap one to open its detail, where a **"Treat as: Expected bill |
+      Habit"** toggle re-files it (remembered).
+    This one box replaced three older ones ("Where the most went", the old
+    Top merchants list, and a separate Spending habits box), which all
+    answered the same question: where does my money go?
   - **`RecurringTransfersCard.tsx`** surfaces same-amount, same-day Zelle/transfers
     (e.g. a monthly phone Zelle). They **count toward spending/income by
     default**; untick "Counts" for genuine account-to-account moves.
@@ -588,8 +599,8 @@ the exceptions — they need a real browser.
   when we don't have one. Most small or local shops have no logo, and that's
   fine: the screen just shows what it showed before (the category's little
   picture, or nothing). Logos appear in the recurring & subscriptions list,
-  the upcoming charges, top merchants, the Dashboard's "Where the most went"
-  list, and the transactions table. Budgeting apps like Empower tidy bank
+  the upcoming charges, Top merchants and its "View all" list (merchants and
+  spending habits), and the transactions table. Budgeting apps like Empower tidy bank
   lines before you export them ("APPLE.COM/BILL" becomes just "Apple",
   "JPMORGANCHASE" loses its space), so the spotter also recognises those
   tidied-up names, but only when the whole name is the company.
@@ -802,7 +813,8 @@ the financial details scrubbed out.
   **bill** is expected (rent, the power bill, a subscription — owed even when
   the amount varies). A **habit** is a repeat *pattern* with varying amounts at
   a discretionary store (Amazon, the pharmacy). Bills show in the Recurring
-  card; habits in the Spending habits card; "Treat as" re-files either way.
+  card; habits in the Spending habits tab behind Top merchants' "View all";
+  "Treat as" re-files either way.
 - **Refund / cashback** — money back in a spending category. Not income: it
   subtracts from that category's spending in the month it lands.
 - **Alias / rename** — an alias is a clean display name for a whole merchant

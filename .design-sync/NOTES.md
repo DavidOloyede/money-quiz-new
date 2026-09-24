@@ -32,7 +32,7 @@ and infra are intentionally excluded.
   not the output contract (IIFE/header/globals unchanged).
 - **Root `index.d.ts` is a load-bearing manifest, not app code.** With no build,
   the converter reads the bundle's export list from `<repo>/index.d.ts` (the
-  entry it resolves when package.json has no `types`). It declares the 13
+  entry it resolves when package.json has no `types`). It declares the 12
   components + `StoreProvider` so the `exported` set is populated — without it,
   `exported` is empty and the converter WON'T wrap previews in `StoreProvider`
   (store-backed widgets render blank) and warns `[PROVIDER_UNEXPORTED]`. It's

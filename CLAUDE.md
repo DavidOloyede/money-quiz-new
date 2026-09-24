@@ -77,7 +77,7 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
 
 ## The design-sync pipeline (read before touching tracked components)
 
-13 components + StoreProvider are mirrored to claude.ai/design. Read
+12 components + StoreProvider are mirrored to claude.ai/design. Read
 [.design-sync/NOTES.md](.design-sync/NOTES.md) in full before touching any of
 them — the pipeline breaks silently. The contract:
 

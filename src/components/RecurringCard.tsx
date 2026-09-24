@@ -45,7 +45,7 @@ function cadenceLine(r: RecurringPayment, meta: SubscriptionMeta | undefined): s
  * full upcoming run, open in a popup so the card layout stays put). Below, the
  * full list of every recurring group is kept so you can still open any one to
  * rename it or edit its billing date. Repeat spending *habits* (Amazon,
- * pharmacy runs) live in the Spending habits card.
+ * pharmacy runs) live in the Spending habits tab behind Top merchants' "View all".
  */
 export function RecurringCard({ items, onOpenGroup }: Props) {
   const { subscriptionMeta, setGroupRecurring } = useStore()

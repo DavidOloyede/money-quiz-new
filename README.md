@@ -152,8 +152,9 @@ any other transaction. CSV import keeps working with the API off.
     and monthly subtotal (set them with **Save** in the detail view).
   - **Trends & anomalies** — callouts like *"Dining is up 40% vs your 3-month
     average."*
-  - **Top merchants** and a **Transfers & Zelle** panel for the money that's
-    tracked but not counted.
+  - **Top merchants**, with company logos: tap one for its charges, or
+    **View all** for every merchant (searchable) and your spending habits.
+  - A **Transfers & Zelle** panel for the money that's tracked but not counted.
 - **Year Sheet** — a spreadsheet-style view of the whole year (modeled on a
   Google Sheets budget): a column per month, income and expense sections with
   totals and averages, a green/red **NET** row, and a **Projected End Balance**

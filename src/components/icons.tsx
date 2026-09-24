@@ -72,6 +72,23 @@ export function XIcon({ className }: IconProps) {
   )
 }
 
+export function ChevronRightIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M9 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+export function SearchIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M20 20l-4.2-4.2" />
+    </svg>
+  )
+}
+
 export function UserIcon({ className }: IconProps) {
   return (
     <svg {...base(className)}>

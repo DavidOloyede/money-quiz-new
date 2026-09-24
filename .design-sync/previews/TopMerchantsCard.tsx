@@ -2,7 +2,9 @@ import { TopMerchantsCard } from 'money-quiz'
 
 // TopMerchantsCard ranks merchants by total spend from the transactions you
 // pass it (alias-folding comes from the store, which the preview's provider
-// supplies empty). Repeated merchants so the ranking and the ×counts are real.
+// supplies empty). Repeated merchants so the ranking and the ×counts are real;
+// Target, Shell and Starbucks show their bundled logos. Passing onViewAll
+// shows the "View all" links, and habitCount names the habits in the footer.
 const tx = [
   { id: 't1', date: '2026-06-02', description: 'Whole Foods Market', amount: -84.2, category: 'groceries' },
   { id: 't2', date: '2026-06-09', description: 'Whole Foods Market', amount: -112.5, category: 'groceries' },
@@ -25,7 +27,7 @@ const tx = [
 export function Default() {
   return (
     <div className="max-w-md">
-      <TopMerchantsCard transactions={tx} />
+      <TopMerchantsCard transactions={tx} onOpenGroup={() => {}} onViewAll={() => {}} habitCount={4} />
     </div>
   )
 }

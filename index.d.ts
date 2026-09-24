@@ -24,5 +24,4 @@ export declare function CategoryDonut(props: any): any;
 export declare function MonthlyTrend(props: any): any;
 export declare function TopMerchantsCard(props: any): any;
 export declare function TrendsCard(props: any): any;
-export declare function SpendingHabitsCard(props: any): any;
 export declare function DailyQuestionCard(props: any): any;

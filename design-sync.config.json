@@ -23,7 +23,6 @@
     "MonthlyTrend": "src/components/charts/MonthlyTrend.tsx",
     "TopMerchantsCard": "src/components/TopMerchantsCard.tsx",
     "TrendsCard": "src/components/TrendsCard.tsx",
-    "SpendingHabitsCard": "src/components/SpendingHabitsCard.tsx",
     "DailyQuestionCard": "src/components/DailyQuestionCard.tsx"
   },
   "dtsPropsFor": {
@@ -33,9 +32,8 @@
     "BadgesCard": "  /** Earned badge ids -> ISO date earned (from GameState.badges). */\n  badges: Record<string, string>;",
     "CategoryDonut": "  /** Spending grouped by category, sorted high to low. */\n  data: { category: string; total: number; count: number }[];\n  /** Total spending shown in the donut center. */\n  total: number;\n  onSelect?: (category: string) => void;",
     "MonthlyTrend": "  /** Per-month spending/income/net, oldest month first. */\n  data: { monthKey: string; spending: number; income: number; net: number }[];\n  /** Called with the \"YYYY-MM\" key when the user clicks a month's bars. */\n  onSelectMonth?: (monthKey: string) => void;",
-    "TopMerchantsCard": "  /** Transactions to rank merchants from (signed amounts; negative = spend). */\n  transactions: { id: string; date: string; description: string; amount: number; category: string }[];",
+    "TopMerchantsCard": "  /** Transactions to rank merchants from (signed amounts; negative = spend). */\n  transactions: { id: string; date: string; description: string; amount: number; category: string }[];\n  /** Open the charges behind a merchant. */\n  onOpenGroup?: (ids: string[]) => void;\n  /** Open the full merchant list (shows the \"View all\" links when set). */\n  onViewAll?: () => void;\n  /** How many spending habits the full list holds, for the footer link. */\n  habitCount?: number;",
     "TrendsCard": "  /** Transactions to compute month-over-month category trends from. */\n  transactions: { id: string; date: string; description: string; amount: number; category: string }[];",
-    "SpendingHabitsCard": "  /** Repeat-habit groups (e.g. from analysis.recurringPayments). */\n  items: {\n    merchant: string;\n    groupKey: string;\n    keys: string[];\n    ids: string[];\n    category: string;\n    count: number;\n    months: number;\n    avgAmount: number;\n    monthlyEstimate: number;\n    [k: string]: unknown;\n  }[];\n  onOpenGroup: (ids: string[]) => void;",
     "VerseOfDay": "  /* No props — renders the verse for the current day. */",
     "ProgressWidget": "  /* No props — reads level / XP / streak from the store (StoreProvider). */",
     "ProgressChip": "  /* No props — compact level/streak chip; reads from the store (StoreProvider). */",
