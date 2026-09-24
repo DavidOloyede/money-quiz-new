@@ -1,16 +1,19 @@
 /**
  * The landing page's "How it works": a centered heading that names where the
  * steps lead, the three small steps that get you set up (connect your bank,
- * see your categories, plan your whole year; see HowSteps), then the two
- * everyday habits as alternating rows: the question of the day, whose streak
- * grows each day you answer, and calm budgets that stay green while you're
- * under. The streak belongs to the daily question, never to budgets. Each
+ * see your categories, plan your whole year; see HowSteps), then alternating
+ * rows: the question of the day, whose streak grows each day you answer;
+ * every subscription and habit (the charges that keep coming back), their
+ * logos gathered around what they cost a month; and calm budgets that stay
+ * green while you're under. The streak
+ * belongs to the daily question, never to budgets. Each
  * row's visual is one focal slice of the real app drawn in HTML; they're
  * illustrations, so screen readers get a one-line description.
  */
 import type { ReactNode } from 'react'
 import { CheckIcon } from '../icons'
 import { HowSteps } from './HowSteps'
+import { SubscriptionsMock } from './SubscriptionsMock'
 import { BODY, COLUMN, HEADING, SECTION } from './styles'
 import { useReplayInView } from './useReplayInView'
 import './how.css'
@@ -42,6 +45,13 @@ export function LandingHowItWorks() {
             visual={<QuestionMock />}
           />
           <Step
+            title="Every subscription. Every habit."
+            body="We track the obvious recurring charges and the sneaky ones — your bills, your favorite food spots, anything that keeps coming back — so you see what’s due next and what it’s really costing you."
+            label="A ring of logos for things paid again and again, Netflix, Hulu, Chick-fil-A, AT&T, Walmart+, DoorDash and more, around a recurring card totaling $486.20 a month: Hulu due Sep 27, an electric bill around $118, and Chick-fil-A weekly, about $26 a month."
+            visual={<SubscriptionsMock />}
+          />
+          <Step
+            flip
             title="Simple, steady budgets"
             body="Set a monthly budget for what matters and see where you stand at a glance. The bar stays green while you’re under."
             label="September budgets: groceries, dining and gas, each under budget."
