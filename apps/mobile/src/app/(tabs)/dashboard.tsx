@@ -19,13 +19,16 @@ import {
   rangeLabel,
   recurringPayments,
   spendingByCategory,
-  topExpenses,
+  expenseGroups,
   type TimeRange,
 } from '@moneyquiz/core/lib/analysis'
 import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatCurrency, formatDate, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
 import { givingGoalStatus, givingStats } from '@moneyquiz/core/lib/giving'
 
+import { useChargesSheet } from '@/components/ChargesSheet'
+import { TopMerchantsCard } from '@/components/Merchants'
+import { RecurringCard } from '@/components/RecurringCard'
 import { TxListModal } from '@/components/TxListModal'
 import { VerseCard } from '@/components/VerseCard'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, Segmented } from '@/components/ui'
@@ -61,15 +64,16 @@ export default function DashboardScreen() {
   const filtered = useMemo(() => filterByRange(transactions, range), [transactions, range])
   const stats = useMemo(() => headlineStats(filtered), [filtered])
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
-  const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
+  const merchants = useMemo(() => expenseGroups(filtered, aliases), [filtered, aliases])
   const trend = useMemo(() => monthlyTrend(transactions), [transactions])
-  const bills = useMemo(
-    () =>
-      recurringPayments(transactions, aliases, dismissedRecurring, recurringKinds).filter(
-        (r) => r.kind === 'bill',
-      ),
+  // One grouping pass shared by the recurring bills and the spending habits.
+  const recurring = useMemo(
+    () => recurringPayments(transactions, aliases, dismissedRecurring, recurringKinds),
     [transactions, aliases, dismissedRecurring, recurringKinds],
   )
+  const bills = useMemo(() => recurring.filter((r) => r.kind === 'bill'), [recurring])
+  const habits = useMemo(() => recurring.filter((r) => r.kind === 'habit'), [recurring])
+  const charges = useChargesSheet()
   const budgetMonth = range === 'lastMonth' ? prevMonthKey() : currentMonthKey()
   const budgetItems = useMemo(
     () => budgetStatus(transactions, budgets, budgetMonth),
@@ -204,70 +208,22 @@ export default function DashboardScreen() {
             </View>
           </Card>
 
-          {/* Top 5 expenses */}
-          <Card>
-            <CardTitle>Top 5 expenses</CardTitle>
-            {top5.map((e, i) => (
-              <View key={e.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 12, color: colors.faint, width: 16 }}>
-                  {i + 1}
-                </Text>
-                <Text style={{ fontSize: 14 }}>{categoryMeta(e.category).emoji}</Text>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    numberOfLines={1}
-                    style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink }}
-                  >
-                    {e.description}
-                  </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                    {formatDate(e.date)}
-                  </Text>
-                </View>
-                <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 13, color: colors.ink }}>
-                  {formatCurrency(e.amount)}
-                </Text>
-              </View>
-            ))}
-          </Card>
+          {/* Top merchants (tap for charges; View all = every merchant + spending habits) */}
+          <TopMerchantsCard
+            groups={merchants}
+            habitCount={habits.length}
+            onOpen={(m) =>
+              charges.open(
+                m.label,
+                m.ids,
+                `${m.count === 1 ? 'one charge' : `${m.count} charges`} · ${rangeLabel(range)}`,
+              )
+            }
+            onViewAll={() => router.push({ pathname: '/merchants', params: { range } })}
+          />
 
           {/* Recurring & subscriptions */}
-          {bills.length > 0 && (
-            <Card>
-              <CardTitle
-                right={
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                    ~{formatCurrency(-bills.reduce((s, b) => s + b.monthlyEstimate, 0))} / month
-                  </Text>
-                }
-              >
-                Recurring & subscriptions
-              </CardTitle>
-              {bills.map((b) => (
-                <View
-                  key={b.groupKey}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-                >
-                  <Text style={{ fontSize: 14 }}>{categoryMeta(b.category).emoji}</Text>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink }}
-                    >
-                      {b.merchant}
-                    </Text>
-                    <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                      {b.count} charges · around the {ordinal(b.day)}
-                    </Text>
-                  </View>
-                  <Text style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.text }}>
-                    {formatCurrency(-b.monthlyEstimate)}
-                    <Text style={{ fontSize: 11, color: colors.faint }}> /mo</Text>
-                  </Text>
-                </View>
-              ))}
-            </Card>
-          )}
+          <RecurringCard items={bills} onOpen={(title, ids) => charges.open(title, ids)} />
 
           {/* Budgets (view-only; set them on the web) */}
           {budgetItems.length > 0 && (
@@ -320,7 +276,7 @@ export default function DashboardScreen() {
             >
               💝 Giving
             </CardTitle>
-            <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink }}>
+            <Text style={{ fontFamily: fonts.rounded, fontSize: 24, color: colors.ink }}>
               {formatCurrency(giving.total)}
             </Text>
             {goal && goal.target > 0 && (
@@ -340,6 +296,7 @@ export default function DashboardScreen() {
         </>
       )}
 
+      {charges.node}
       {drill && (
         <TxListModal
           title={drill.kind === 'category' ? categoryLabel(drill.category) : formatMonth(drill.month)}
@@ -467,10 +424,4 @@ function LegendDot({ color, label }: { color: string; label: string }) {
       <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.muted }}>{label}</Text>
     </View>
   )
-}
-
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`
 }
