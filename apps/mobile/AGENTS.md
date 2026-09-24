@@ -49,11 +49,24 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
 - **Screens & UI kit (Phase H):** tabs live in `src/app/(tabs)/` (Today, Quiz,
   Dashboard, Import, Settings); build new UI from `src/components/ui.tsx`
   (Screen/Card/Button/Segmented/Bar/Empty/Note/StatusLine) instead of ad-hoc
-  styles, and take state colors (success/danger/soft washes) from the theme —
-  no hex in components. Charts are deliberately View-based bars (no
-  victory-native/react-native-svg); don't add a chart lib without David.
-  Mobile dashboards are **view-only** — budget/category/rename edits stay on
-  the web.
+  styles, and take state colors (success/danger/info/soft washes) from the
+  theme — no hex in components. Type follows docs/DESIGN.md: `fonts.rounded*`
+  (Nunito) for titles, buttons and game text, `fonts.sans*` (Inter) with
+  `fontVariant: ['tabular-nums']` for money, Fraunces only for scripture.
+  Charts are deliberately View-based bars; don't add a chart lib without
+  David. `react-native-svg` is installed (Sep 2026) for company logos and
+  the Manna mark only, not as a license for SVG charts.
+- **Editing on the phone (Sep 2026):** everyday edits only (per-row category,
+  rename, ★, budgets, giving goal, confirm paid-off debt), through the same
+  store actions as the web, and the similar-charge offers come from core
+  (`renameCandidates`, `categoryCandidates`). Transfer review, links,
+  treatments, bulk edits and category rules stay on the web. A sheet opened
+  from inside another sheet must render as that sheet's child (TxListModal
+  takes `children`): iOS won't present two sibling modals.
+- **Full-page screens** (All merchants, All transactions, Year Sheet,
+  Account) are stack routes in `src/app/` that set their own header with
+  `<Stack.Screen options={{ headerShown: true, ... }} />`; the welcome screen
+  is the one headerless route, reached by a `<Redirect>` in the tabs layout.
 - **Plaid on the phone:** `react-native-plaid-link-sdk` v13 API is
   `createPlaidLinkSession({ token, onSuccess, onExit, onEvent })` then
   `session.open()` — the older `create`/`open` pair from v11/12 docs doesn't
