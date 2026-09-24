@@ -7,8 +7,10 @@ its colors, art, lowercase styling or copy.
 1. **Three text sizes do all the work.** Section headings are ~2.8× body
    (48px vs 17px/24px); the closing headline is ~3.8× (64px). Buttons are one
    small bold size (15px). Any section with a fourth text size, or with a
-   heading under 2.5× body, fails. Headings are heavy (700+) in the brand
-   accent; body is regular weight in a muted neutral, visibly quieter.
+   heading under 2.5× body, fails. Headings are heavy (700+) and dark; body
+   is regular weight in a muted neutral, visibly quieter. (The reference
+   colors its headings with its brand accent; heading color is ours to set,
+   and our design system keeps text in linen and forest for actions.)
 
 2. **One idea per section.** Each section is a 2–4 word heading, at most 3
    lines of body (measure ≈ 470px, ~60–70 characters), and one visual. Split

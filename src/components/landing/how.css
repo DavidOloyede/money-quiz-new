@@ -1,0 +1,31 @@
+/*
+ * Motion for the landing page's "How it works". Only the quiz step moves (it
+ * is the one playful moment; the money steps stay still), and every keyframe
+ * starts and ends at the resting look, so the mockup is complete before,
+ * during and after the animation, and reduced motion loses nothing.
+ */
+
+[data-play] .how-hop {
+  animation: how-hop 900ms cubic-bezier(0.34, 1.56, 0.64, 1) 350ms both;
+}
+
+[data-play] .how-cheer {
+  animation: how-cheer 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both;
+}
+
+@keyframes how-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-4px) scale(1.06); }
+}
+
+@keyframes how-cheer {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-play] .how-hop,
+  [data-play] .how-cheer {
+    animation: none;
+  }
+}

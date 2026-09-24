@@ -1,0 +1,82 @@
+/*
+ * Motion for the landing hero (LandingHero.tsx). Kept out of index.css so the
+ * hero owns its own keyframes. Every loop drifts one way (down) and runs well
+ * over 2s a cycle, per the landing bar; reduce-motion drops it all and leaves
+ * the resting logo and the finished quiz moment.
+ */
+
+/* Ambient manna: each flake gets its position, size, speed and delay inline. */
+@keyframes hero-flake-fall {
+  0% {
+    transform: translate3d(0, -24px, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift, 10px), var(--fall, 400px), 0);
+    opacity: 0;
+  }
+}
+
+.hero-flake {
+  animation: hero-flake-fall var(--dur, 7s) linear var(--delay, 0s) infinite;
+  will-change: transform, opacity;
+}
+
+/*
+ * The hero logo stays the brand mark exactly, at rest: index.css animates its
+ * flakes on hover, which at this size stops it reading as the mark. The
+ * selector outranks those hover rules.
+ */
+svg.hero-logo.manna-logo .manna-flake,
+svg.hero-logo.manna-logo .manna-bowl {
+  animation: none;
+}
+
+/*
+ * The quiz "Correct!" moment plays once on load with the reward overshoot
+ * from DESIGN.md. Only `from` frames are defined, so the resting (reduced
+ * motion) state is the finished moment rather than a blank answer.
+ */
+@keyframes hero-pop {
+  from {
+    transform: scale(0.94);
+  }
+}
+@keyframes hero-xp-rise {
+  from {
+    transform: translateY(14px) scale(0.8);
+    opacity: 0;
+  }
+}
+@keyframes hero-panel-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.hero-pop {
+  animation: hero-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
+}
+.hero-xp {
+  animation: hero-xp-rise 900ms cubic-bezier(0.34, 1.56, 0.64, 1) 800ms both;
+}
+.hero-panel {
+  animation: hero-panel-up 450ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-flake {
+    display: none;
+  }
+  .hero-pop,
+  .hero-xp,
+  .hero-panel {
+    animation: none;
+  }
+}

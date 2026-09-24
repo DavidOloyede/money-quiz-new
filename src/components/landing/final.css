@@ -1,0 +1,112 @@
+/*
+ * Motion for the landing page's closing scene (LandingFinal.tsx): manna
+ * falling to Omer's spot, and the one-time "quiz finished" burst when the
+ * scene scrolls into view. The component sets data-anim on .final-scene:
+ * "rest" (everything in its final place), "armed" (waiting, hidden) and
+ * "in" (playing). Reduced motion never leaves "rest".
+ */
+
+/* Ambient manna: one way (down), each flake on its own slow clock. */
+@keyframes final-flake-fall {
+  0% {
+    transform: translate3d(0, -20px, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(4px, 356px, 0);
+    opacity: 0;
+  }
+}
+
+.final-flake {
+  animation: final-flake-fall var(--dur, 7s) linear var(--delay, 0s) infinite;
+}
+
+/* Rewards spring out from the phone with DESIGN.md's reward overshoot. */
+@keyframes final-burst {
+  from {
+    opacity: 0;
+    transform: translate(var(--fx), var(--fy)) scale(0.3);
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.final-scene[data-anim='armed'] .final-burst {
+  opacity: 0;
+  transform: translate(var(--fx), var(--fy)) scale(0.3);
+}
+.final-scene[data-anim='in'] .final-burst {
+  animation: final-burst 650ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--d, 0ms) both;
+}
+
+/*
+ * The score counts up. A registered integer property animates in whole
+ * steps, and a CSS counter prints it. Without @property support the number
+ * simply lands on 4.
+ */
+@property --final-score {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 4;
+}
+
+@keyframes final-count {
+  from {
+    --final-score: 0;
+  }
+  to {
+    --final-score: 4;
+  }
+}
+
+.final-score {
+  --final-score: 4;
+  counter-reset: final-score var(--final-score);
+}
+.final-score::before {
+  content: counter(final-score);
+}
+.final-scene[data-anim='armed'] .final-score {
+  --final-score: 0;
+}
+.final-scene[data-anim='in'] .final-score {
+  animation: final-count 900ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+
+@keyframes final-ring {
+  from {
+    stroke-dashoffset: var(--ring);
+  }
+  to {
+    stroke-dashoffset: var(--ring-to);
+  }
+}
+
+.final-ring {
+  stroke-dashoffset: var(--ring-to);
+}
+.final-scene[data-anim='armed'] .final-ring {
+  stroke-dashoffset: var(--ring);
+}
+.final-scene[data-anim='in'] .final-ring {
+  animation: final-ring 900ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* DESIGN.md: skip particles; the finished moment is shown at rest. */
+  .final-flake {
+    display: none;
+  }
+}

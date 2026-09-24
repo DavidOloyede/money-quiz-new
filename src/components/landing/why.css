@@ -1,0 +1,34 @@
+/*
+ * The "Why Manna" scene: the morning's manna settles onto the ground once,
+ * when the scene first comes into view, then rests. Playing once keeps the
+ * page calm; each flake's resting spot is its SVG position, so with reduced
+ * motion (or before the scene is seen) nothing moves and every flake is there.
+ */
+@keyframes why-manna-land {
+  from {
+    transform: translateY(var(--why-drop, -120px));
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.why-flake {
+  transform-box: view-box;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .why-scene[data-play='false'] .why-flake {
+    opacity: 0;
+  }
+
+  .why-scene[data-play='true'] .why-flake {
+    animation: why-manna-land 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--why-delay, 0s);
+  }
+}
