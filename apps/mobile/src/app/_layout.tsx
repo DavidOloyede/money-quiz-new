@@ -31,6 +31,9 @@ export default function RootLayout() {
     'Inter-Bold': require('../../assets/fonts/Inter-Bold.ttf'),
     'Fraunces-SemiBold': require('../../assets/fonts/Fraunces-SemiBold.ttf'),
     'Fraunces-Italic': require('../../assets/fonts/Fraunces-Italic.ttf'),
+    'Nunito-SemiBold': require('../../assets/fonts/Nunito-SemiBold.ttf'),
+    'Nunito-Bold': require('../../assets/fonts/Nunito-Bold.ttf'),
+    'Nunito-ExtraBold': require('../../assets/fonts/Nunito-ExtraBold.ttf'),
   })
 
   useEffect(() => {

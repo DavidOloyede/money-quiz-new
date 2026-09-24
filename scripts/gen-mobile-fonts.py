@@ -27,6 +27,10 @@ JOBS = [
     # SOFT 0 keeps today's shapes; cut a SOFT 100 instance when mobile adopts it.
     ("public/fonts/fraunces-latin-soft-normal.woff2", {"wght": 600, "opsz": 30, "SOFT": 0}, "Fraunces-SemiBold"),
     ("public/fonts/fraunces-latin-soft-italic.woff2", {"wght": 400, "opsz": 14, "SOFT": 0}, "Fraunces-Italic"),
+    # Nunito, the coach (docs/DESIGN.md): titles and buttons. It looks best bold.
+    ("public/fonts/nunito-latin-wght-normal.woff2", {"wght": 600}, "Nunito-SemiBold"),
+    ("public/fonts/nunito-latin-wght-normal.woff2", {"wght": 700}, "Nunito-Bold"),
+    ("public/fonts/nunito-latin-wght-normal.woff2", {"wght": 800}, "Nunito-ExtraBold"),
 ]
 
 OUT_DIR = "apps/mobile/assets/fonts"

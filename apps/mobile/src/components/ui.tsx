@@ -4,7 +4,8 @@
  * themed from the shared tokens so the phone matches the web's warmth.
  */
 import type { ReactNode } from 'react'
-import { Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ViewStyle } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { fonts, radii, spacing, useAppTheme, type ThemeColors } from '@/theme'
@@ -27,7 +28,7 @@ export function Screen({
         keyboardShouldPersistTaps="handled"
       >
         <View>
-          <Text style={{ fontFamily: fonts.display, fontSize: 26, color: colors.ink }}>{title}</Text>
+          <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 28, color: colors.ink }}>{title}</Text>
           {subtitle && (
             <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.muted, marginTop: 2 }}>
               {subtitle}
@@ -75,7 +76,7 @@ export function CardTitle({ children, right }: { children: ReactNode; right?: Re
   const { colors } = useAppTheme()
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: spacing.sm }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 16, color: colors.ink, flexShrink: 1 }}>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 16, color: colors.ink, flexShrink: 1 }}>
         {children}
       </Text>
       {right}
@@ -97,27 +98,42 @@ export function Button({
   small?: boolean
 }) {
   const { colors } = useAppTheme()
-  const outline = variant !== 'primary'
+  const primary = variant === 'primary'
+  // The primary button "presses in" (docs/DESIGN.md): a darker 4pt edge along
+  // the bottom that shrinks to 1pt while pressed, as the face drops 3pt.
+  const edge = 4
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      style={{
-        alignItems: 'center',
-        alignSelf: small ? 'flex-start' : 'stretch',
-        paddingVertical: small ? spacing.sm : spacing.sm + 2,
-        paddingHorizontal: small ? spacing.md : spacing.md,
-        borderRadius: radii.md,
-        backgroundColor: variant === 'primary' ? colors.primary : 'transparent',
-        borderWidth: outline ? StyleSheet.hairlineWidth : 0,
-        borderColor: variant === 'danger' ? colors.danger : colors.borderStrong,
-        opacity: disabled ? 0.4 : 1,
+      style={({ pressed }) => {
+        const down = primary && pressed && !disabled
+        return {
+          alignItems: 'center',
+          alignSelf: small ? 'flex-start' : 'stretch',
+          minHeight: small ? 36 : 44,
+          justifyContent: 'center',
+          paddingVertical: small ? spacing.sm : spacing.sm + 2,
+          paddingHorizontal: spacing.md,
+          borderRadius: radii.md,
+          backgroundColor: primary ? colors.primary : 'transparent',
+          borderWidth: primary ? 0 : StyleSheet.hairlineWidth,
+          borderColor: variant === 'danger' ? colors.danger : colors.borderStrong,
+          borderBottomWidth: primary ? (down ? 1 : edge) : StyleSheet.hairlineWidth,
+          borderBottomColor: primary
+            ? colors.primaryEdge
+            : variant === 'danger'
+              ? colors.danger
+              : colors.borderStrong,
+          marginTop: primary && down ? edge - 1 : 0,
+          opacity: disabled ? 0.4 : pressed && !primary ? 0.7 : 1,
+        }
       }}
     >
       <Text
         style={{
-          fontFamily: fonts.sansMedium,
-          fontSize: small ? 14 : 15,
+          fontFamily: fonts.rounded,
+          fontSize: small ? 14 : 16,
           color: variant === 'primary' ? colors.card : variant === 'danger' ? colors.danger : colors.text,
         }}
       >
@@ -162,7 +178,7 @@ export function Segmented<T extends string>({
         >
           <Text
             style={{
-              fontFamily: fonts.sansMedium,
+              fontFamily: fonts.roundedSemi,
               fontSize: 13,
               color: value === opt.id ? colors.card : colors.muted,
             }}
@@ -241,7 +257,7 @@ export function Empty({
   return (
     <View style={{ alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.sm }}>
       <Text style={{ fontSize: 34 }}>{emoji}</Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 17, color: colors.ink, textAlign: 'center' }}>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 17, color: colors.ink, textAlign: 'center' }}>
         {title}
       </Text>
       <Text
@@ -262,3 +278,75 @@ export function Empty({
 }
 
 export type { ThemeColors }
+
+/** Search box with a magnifier (merchant and transaction lists). */
+export function SearchField({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (text: string) => void
+  placeholder: string
+}) {
+  const { colors } = useAppTheme()
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        minHeight: 40,
+        paddingHorizontal: spacing.sm + 2,
+        borderRadius: radii.md,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.borderStrong,
+        backgroundColor: colors.card,
+      }}
+    >
+      <Ionicons name="search" size={16} color={colors.faint} />
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.faint}
+        autoCorrect={false}
+        clearButtonMode="while-editing"
+        returnKeyType="search"
+        accessibilityLabel={placeholder}
+        style={{ flex: 1, fontFamily: fonts.sans, fontSize: 15, color: colors.ink, paddingVertical: 8 }}
+      />
+    </View>
+  )
+}
+
+/** Small pill label ("sub", "fixed", "Annual"). */
+export function Badge({ label, tone = 'info' }: { label: string; tone?: 'info' | 'honey' | 'danger' }) {
+  const { colors } = useAppTheme()
+  const [bg, fg] =
+    tone === 'honey'
+      ? [colors.accentSoft, colors.accentDeep]
+      : tone === 'danger'
+        ? [colors.dangerSoft, colors.danger]
+        : [colors.infoSoft, colors.info]
+  return (
+    <View style={{ borderRadius: radii.pill, paddingHorizontal: 7, paddingVertical: 1, backgroundColor: bg }}>
+      <Text style={{ fontFamily: fonts.sansMedium, fontSize: 10, color: fg }}>{label}</Text>
+    </View>
+  )
+}
+
+/** A quiet text link with a chevron ("View all ›"). */
+export function LinkButton({ title, onPress }: { title: string; onPress: () => void }) {
+  const { colors } = useAppTheme()
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={10}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 2, opacity: pressed ? 0.6 : 1 })}
+    >
+      <Text style={{ fontFamily: fonts.roundedSemi, fontSize: 13, color: colors.success }}>{title}</Text>
+      <Ionicons name="chevron-forward" size={14} color={colors.success} />
+    </Pressable>
+  )
+}

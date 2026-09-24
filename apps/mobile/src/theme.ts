@@ -5,7 +5,7 @@
  * both apps; the light/dark pairings here mirror how the web components pair
  * the ramps (page = linen-50/950, card = cream/linen-900, and so on).
  */
-import { cream, forest, honey, linen } from '@moneyquiz/core/theme'
+import { coral, cream, forest, honey, linen, sky } from '@moneyquiz/core/theme'
 import type { ThemeMode } from '@moneyquiz/core'
 import { useStore } from '@moneyquiz/core'
 
@@ -38,16 +38,21 @@ export interface ThemeColors {
   accentDeep: string
   /** Correct / positive text (web: forest-700..800 / forest-300). */
   success: string
-  /** Wrong / destructive text (web: Tailwind rose-600 / rose-400 — not a brand ramp). */
+  /** Primary button's darker bottom edge, the part that "presses in" (docs/DESIGN.md). */
+  primaryEdge: string
+  /** "Not quite": wrong answers, over budget, errors (coral-700 / coral-300). */
   danger: string
-  /** Rose wash behind wrong answers (web: rose-50 / rose-500/10). */
+  /** Coral wash behind wrong answers (coral-50 / coral-500/10). */
   dangerSoft: string
+  /** "For your info" text and badges (sky-700 / sky-300). */
+  info: string
+  /** Sky wash behind info badges (sky-50 / sky-500/10). */
+  infoSoft: string
   /** Dimmed backdrop behind modals (web: linen-900/40). */
   overlay: string
+  /** The tile behind company logos: always white, since brand colours are chosen for white. */
+  logoTile: string
 }
-
-/** Web components use Tailwind's rose for error states; these mirror rose-600/400/50/500. */
-const rose = { text: '#e11d48', textDark: '#fb7185', soft: '#fff1f2', base: '#f43f5e' }
 
 export const palette: Record<ThemeMode, ThemeColors> = {
   light: {
@@ -65,9 +70,14 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     accentSoft: honey['50'],
     accentDeep: honey['700'],
     success: forest['700'],
-    danger: rose.text,
-    dangerSoft: rose.soft,
+    primaryEdge: forest['800'],
+    // Text on a light tint uses the 700 step (docs/DESIGN.md contrast rules).
+    danger: coral['700'],
+    dangerSoft: coral['50'],
+    info: sky['700'],
+    infoSoft: sky['50'],
     overlay: `${linen['900']}66`,
+    logoTile: '#ffffff',
   },
   dark: {
     background: linen['950'],
@@ -84,10 +94,14 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     accentSoft: `${honey['500']}1a`,
     accentDeep: honey['300'],
     success: forest['300'],
-    danger: rose.textDark,
-    dangerSoft: `${rose.base}1a`,
+    primaryEdge: forest['600'],
+    danger: coral['300'],
+    dangerSoft: `${coral['500']}1a`,
+    info: sky['300'],
+    infoSoft: `${sky['500']}1a`,
     // Darker than the web's shared value so it still dims behind linen-900 cards.
     overlay: `${linen['950']}99`,
+    logoTile: '#ffffff',
   },
 }
 
@@ -102,6 +116,11 @@ export const fonts = {
   sansMedium: 'Inter-Medium',
   sansSemiBold: 'Inter-SemiBold',
   sansBold: 'Inter-Bold',
+  /** Nunito, the coach: titles, buttons, quiz and game text. */
+  rounded: 'Nunito-Bold',
+  roundedHeavy: 'Nunito-ExtraBold',
+  roundedSemi: 'Nunito-SemiBold',
+  /** Fraunces, the storyteller: scripture and story only. */
   display: 'Fraunces-SemiBold',
   displayItalic: 'Fraunces-Italic',
 } as const
@@ -115,10 +134,11 @@ export const spacing = {
   xl: 32,
 } as const
 
-/** Corner radii — the web's rounded-lg / rounded-xl. */
+/** Corner radii (docs/DESIGN.md): buttons and small tiles 12, cards 16, pills full. */
 export const radii = {
-  md: 10,
-  lg: 14,
+  md: 12,
+  lg: 16,
+  pill: 999,
 } as const
 
 /** The store's resolved theme joined with its semantic colors. */

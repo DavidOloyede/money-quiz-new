@@ -32,7 +32,7 @@ export default function AccountScreen() {
         options={{
           headerShown: true,
           title: 'Account',
-          headerTitleStyle: { fontFamily: fonts.display, color: colors.ink },
+          headerTitleStyle: { fontFamily: fonts.rounded, color: colors.ink },
         }}
       />
       <KeyboardAvoidingView
@@ -256,7 +256,7 @@ function ProfileCard({ colors }: { colors: ThemeColors }) {
             backgroundColor: colors.primary,
           }}
         >
-          <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.card }}>
+          <Text style={{ fontFamily: fonts.rounded, fontSize: 20, color: colors.card }}>
             {(email[0] ?? '?').toUpperCase()}
           </Text>
         </View>
@@ -327,7 +327,7 @@ function SyncCard({ colors }: { colors: ThemeColors }) {
 
   return (
     <Card colors={colors}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 16, color: colors.ink }}>Sync</Text>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 16, color: colors.ink }}>Sync</Text>
       <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.muted }}>
         Changes save to your account automatically. {syncLabel}.
       </Text>
