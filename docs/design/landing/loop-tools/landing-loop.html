@@ -1,0 +1,150 @@
+<title>Manna Landing Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#faf7f0; --card:#fffdf7; --ink:#2b2418; --quiet:#6f6450; --line:#e8e0cf;
+  --forest:#1f6b3a; --forest-wash:#e7f3ea; --honey:#9a6a0e; --honey-wash:#fbf1d6;
+  --coral:#b4402f; --coral-wash:#fbe9e5; --sky:#2f6690; --sky-wash:#e6f0f7;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  color-scheme:dark;
+  --ground:#17140f; --card:#211d16; --ink:#f1eadb; --quiet:#b3a78f; --line:#3a3326;
+  --forest:#7fcf97; --forest-wash:#1d3325; --honey:#f0c96a; --honey-wash:#3a2f16;
+  --coral:#f09a8a; --coral-wash:#3d211c; --sky:#8cc0e6; --sky-wash:#1b2b38;
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#17140f; --card:#211d16; --ink:#f1eadb; --quiet:#b3a78f; --line:#3a3326;
+  --forest:#7fcf97; --forest-wash:#1d3325; --honey:#f0c96a; --honey-wash:#3a2f16;
+  --coral:#f09a8a; --coral-wash:#3d211c; --sky:#8cc0e6; --sky-wash:#1b2b38;
+}
+body{background:var(--ground);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif;padding-inline:16px;padding-block:32px 64px}
+.wrap{max-width:960px;margin:0 auto;display:grid;gap:28px}
+h1{font:800 30px/1.15 Nunito,ui-rounded,system-ui,sans-serif;margin:0;text-wrap:balance}
+.sub{color:var(--quiet);margin:6px 0 0}
+.stats{display:flex;flex-wrap:wrap;gap:10px 28px;font-variant-numeric:tabular-nums}
+.stat b{display:block;font:800 26px/1 Nunito,ui-rounded,sans-serif}
+.stat span{color:var(--quiet);font-size:13px}
+.pieces{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
+.piece{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;display:grid;gap:12px;align-content:start}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.head h2{font:800 19px/1.2 Nunito,ui-rounded,sans-serif;margin:0}
+.pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.s-queued{background:var(--line);color:var(--quiet)}
+.s-building,.s-critiquing{background:var(--sky-wash);color:var(--sky)}
+.s-passed{background:var(--forest-wash);color:var(--forest)}
+.s-paused{background:var(--honey-wash);color:var(--honey)}
+.round{color:var(--quiet);font-size:13px;font-variant-numeric:tabular-nums}
+.critics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.critic{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.critic .n{color:var(--quiet);display:block;font-size:12px}
+.v{font-weight:600}
+.v-pass{color:var(--forest)} .v-fail{color:var(--coral)} .v-none{color:var(--quiet)}
+.gaps{margin:0;padding:0;list-style:none;display:grid;gap:6px;font-size:13.5px}
+.gaps li{display:grid;grid-template-columns:34px 1fr;gap:8px}
+.gaps li span:first-child{color:var(--quiet);font-variant-numeric:tabular-nums}
+.empty{color:var(--quiet);font-size:13.5px;font-style:italic}
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 20px}
+summary{cursor:pointer;font-weight:600}
+details ol{margin:10px 0 0;padding-left:20px;display:grid;gap:6px;color:var(--quiet);font-size:14px}
+.log{font-size:13.5px;color:var(--quiet);display:grid;gap:4px}
+@media (max-width:480px){.critics{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Manna Money landing page, design loop</h1>
+    <p class="sub">Builder, then three fresh critics per piece (brief, system, craft). All three must pass. Critics see renders only, never code.</p>
+  </header>
+  <div class="stats" id="stats"></div>
+  <div class="pieces" id="pieces"></div>
+  <details>
+    <summary>The bar (duolingo.com mechanics)</summary>
+    <ol id="bar"></ol>
+  </details>
+  <section>
+    <h2 style="font:800 17px Nunito,ui-rounded,sans-serif;margin:0 0 8px">Log</h2>
+    <div class="log" id="log"></div>
+  </section>
+</div>
+
+<script>
+const DATA = {
+  updated: "Sep 24, 3:10 AM",
+  pieces: [
+    { name: "Hero", status: "paused", round: 5, critics: { brief: true, system: false, craft: false }, gaps: [
+      { r: 1, text: "Craft: visual is fragments, not one object. System: quiz answers at 2.9:1 contrast." },
+      { r: 2, text: "Craft: still a collage of rival objects over a 1,200px span. System: dark dawn reads as sunset." },
+      { r: 3, text: "Craft: visual no bigger than the text. Brief: the animated logo isn't the brand mark. System: dark dawn order flipped." },
+      { r: 4, text: "Craft PASS (first win over the reference). Brief + system: quiz moment doesn't replay on a second visit; big logo reads as a face." },
+      { r: 5, text: "Brief PASS (replay fixed). Craft: wants the big logo removed (conflicts with the brief). System: hands lose outlines in dark mode; manna reads as coins." },
+    ] },
+    { name: "How it works", status: "paused", round: 5, critics: { brief: true, system: false, craft: false }, gaps: [
+      { r: 1, text: "Brief: can't take in the three steps in 10s. System: mockups blank until scroll." },
+      { r: 2, text: "Craft: three-column card grid, 13px mockup text. Brief: budgets dropped." },
+      { r: 3, text: "Craft: tight rhythm, double-boxed cards. System: spending bars in forest, not honey." },
+      { r: 4, text: "Craft: mockups too small and wordy. System: reward chip on a money screen. Brief: small wins thin." },
+      { r: 5, text: "Brief PASS. Craft: block 3 still two ideas; placeholder bank tiles read as letters. System: 'Linked securely' should be sky (info), not forest. Hit the 5-round checkpoint." },
+    ] },
+    { name: "Why Manna + features", status: "paused", round: 5, critics: { brief: false, system: false, craft: false }, gaps: [
+      { r: 1, text: "Brief: half the features rerun How it works." },
+      { r: 2, text: "System: the honey bowl impersonates Omer. Brief: a year forecast contradicts 'daily'." },
+      { r: 3, text: "Brief: no daily feature ties to the story. Craft: visuals need captions to read." },
+      { r: 4, text: "Craft: visuals too pale and short for their half. System: honey overused. Brief: no 'any faith or none' welcome; privacy overclaims." },
+      { r: 5, text: "Brief: both features are faith-themed; nothing delivers 'a plan for tomorrow'. Craft: visuals use mixed treatments. System: 36px tile corners; giving pie shown by color alone." },
+    ] },
+    { name: "Final CTA + FAQ", status: "paused", round: 5, critics: { brief: true, system: false, craft: false }, gaps: [
+      { r: 1, text: "Craft: the close lands softly. System: too much honey; a faceless bowl competes with Omer." },
+      { r: 2, text: "System + brief: the big logo reads as a character. Craft: decoration doesn't gather." },
+      { r: 3, text: "Craft: close split into two halves under a dense FAQ. System: sky confetti, press edges on non-buttons." },
+      { r: 4, text: "Brief PASS. Craft: close isn't its own scene; the CSV pill reads as a third CTA. System: '/5' at 2.9:1; particles show under reduce-motion." },
+      { r: 5, text: "Brief PASS (3rd time). Craft: phone screen half empty; wants CTAs cut (the CSV link is required by the brief). System: dark dawn reads as dusk; links in linen not forest." },
+    ] },
+  ],
+  log: [
+    "3:10 AM, round 5 complete for every piece. Run paused at the client checkpoint. Brief passing: hero, how it works, final. Nothing has all three yet.",
+    "3:00 AM, How it works hit the 5-round checkpoint (brief passing, system + craft not). Paused for David. Hero, Why and Final on round 5.",
+    "2:55 AM, hands illustration landed; round 4 critics ran with second-visit (replay) checks.",
+    "2:45 AM, new client direction: bank connection (Plaid) leads, CSV secondary; 'Create a free account' is the primary CTA, sample data secondary; subheadline ends 'Free and private.'; Omer's spot shows open hands receiving manna; animations must replay on every scroll pass.",
+    "2:40 AM, added shared CtaPair, useReplayInView and MannaHands; render script now checks a second visit.",
+    "2:35 AM, checkpoint committed after rounds 2-4.",
+    "8:45 PM, usage limit hit; builders stopped mid-round. Resumed after reset.",
+    "8:40 PM, headings moved from forest to linen (DESIGN.md: forest is for actions). bar.md note updated.",
+    "8:25 PM, round 1 done: 1 of 12 verdicts passed.",
+    "8:10 PM, round 1 builders launched for all four pieces in parallel.",
+    "8:02 PM, bar.md approved; loop started.",
+  ],
+}
+const BAR = [
+  "Three text sizes; section headings ≈2.8× body, closing headline ≈3.8×.",
+  "One idea per section: 2–4 word heading, ≤3 lines body, one visual, zig-zag.",
+  "Even, generous rhythm: ~530px sections, ~990px column, ≥180px between text blocks.",
+  "Chunky buttons that press in: 50px, 12px corners, 4px darker bottom edge.",
+  "The same CTA on the first and last screen, nowhere between.",
+  "The hero says one thing; ≥50% empty; visual larger than text.",
+  "UI motion 150–500ms; decoration gathers around one object, drifts one way, ≥2s loops.",
+]
+const STATUS = { queued: "Queued", building: "Building", critiquing: "Critics judging", passed: "Passed", paused: "Paused for you" }
+const verdict = (v) => v === true ? '<span class="v v-pass">✓ Pass</span>' : v === false ? '<span class="v v-fail">✕ Fail</span>' : '<span class="v v-none">–</span>'
+const rounds = DATA.pieces.reduce((n, p) => n + p.round, 0)
+const passed = DATA.pieces.filter((p) => p.status === "passed").length
+document.getElementById("stats").innerHTML = [
+  [`${passed} / ${DATA.pieces.length}`, "pieces passed"],
+  [rounds, "builder rounds so far"],
+  [DATA.updated, "last update"],
+].map(([b, s]) => `<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("")
+document.getElementById("pieces").innerHTML = DATA.pieces.map((p) => `
+  <article class="piece">
+    <div class="head"><h2>${p.name}</h2><span class="pill s-${p.status}">${STATUS[p.status]}</span></div>
+    <div class="round">Round ${p.round}</div>
+    <div class="critics">
+      <div class="critic"><span class="n">Brief</span>${verdict(p.critics.brief)}</div>
+      <div class="critic"><span class="n">System</span>${verdict(p.critics.system)}</div>
+      <div class="critic"><span class="n">Craft</span>${verdict(p.critics.craft)}</div>
+    </div>
+    ${p.gaps.length ? `<ul class="gaps">${p.gaps.map((g) => `<li><span>R${g.r}</span><span>${g.text}</span></li>`).join("")}</ul>` : '<p class="empty">No gaps named yet.</p>'}
+  </article>`).join("")
+document.getElementById("bar").innerHTML = BAR.map((b) => `<li>${b}</li>`).join("")
+document.getElementById("log").innerHTML = DATA.log.map((l) => `<div>${l}</div>`).join("")
+</script>
