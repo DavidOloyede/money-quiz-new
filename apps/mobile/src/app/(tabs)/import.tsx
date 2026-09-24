@@ -1,7 +1,7 @@
 /**
  * Import — connect a bank or card through Plaid (the same /api/plaid routes
- * as the web; this app never sees credentials or access tokens) and manage
- * connected sources. CSV import stays desktop-first on the web app.
+ * as the web; this app never sees credentials or access tokens), upload a
+ * bank CSV from Files (works signed out too), and manage what's been added.
  */
 import { useEffect, useState } from 'react'
 import { Alert, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -10,6 +10,7 @@ import { useStore, type AccountType, type ImportSource } from '@moneyquiz/core'
 import { formatDate } from '@moneyquiz/core/lib/format'
 import { plaidApi, plaidNeedsSignIn, type PlaidHealth } from '@moneyquiz/core/lib/plaid'
 
+import { CsvImport } from '@/components/CsvImport'
 import { useAuth } from '@/lib/auth'
 import { Button, Card, CardTitle, Note, Screen, Segmented, StatusLine } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
@@ -207,6 +208,8 @@ export default function ImportScreen() {
         {error && <StatusLine kind="error">✕ {error}</StatusLine>}
       </Card>
 
+      <CsvImport />
+
       {sources.length > 0 && (
         <Card>
           <CardTitle
@@ -216,7 +219,7 @@ export default function ImportScreen() {
               </Text>
             }
           >
-            Connected sources
+            Your accounts & files
           </CardTitle>
           {sources.map((s) => (
             <SourceRow key={s.id} source={s} onRemove={() => confirmRemove(s)} />
@@ -235,10 +238,6 @@ export default function ImportScreen() {
         </Card>
       )}
 
-      <Note>
-        Have a CSV from your bank? Import it on the web app — it&apos;s much easier with a big
-        screen, and everything syncs back here.
-      </Note>
     </Screen>
   )
 }

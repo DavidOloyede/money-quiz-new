@@ -111,7 +111,12 @@ car so a second car can use the same engine**:
     first.
   - **Import** — connect a bank or card through Plaid, right on the phone
     (same rules: your bank login happens inside Plaid's own screen; the app
-    never sees it). CSV files are better imported on the website.
+    never sees it; connecting a bank needs you signed in), or **upload a CSV**
+    your bank gave you: pick it from the Files app, tell the app which
+    column is the date, the description and the amount (it guesses first and
+    shows a preview), and it's added. That works signed out too, and the
+    file never leaves the phone. The website reads CSVs with the very same
+    code, so a file imports the same way in both places.
   - **Settings** — your account (sign in / sync / sign out), light or dark
     look, the **daily reminder**, data controls, and Help & support tickets
     (same tickets as the website — replies appear in both places).

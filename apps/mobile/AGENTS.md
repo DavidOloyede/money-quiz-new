@@ -19,6 +19,14 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   editing the .ttf files.
 - `react-native-mmkv` is a native module: after adding/upgrading native deps,
   rebuild the dev client (`npx expo run:ios`) — Expo Go can't run this app.
+- **Pin new Expo modules to the SDK's own version.** `npx expo install`
+  picks the newest 57.0.x of a module, which can need a newer
+  `expo-modules-core` than the installed `expo` (57.0.1) carries: the app then
+  dies at launch with a dyld "Symbol not found" in that module's framework
+  (it happened with expo-file-system 57.0.7). Pin to the version `expo`
+  itself depends on (see node_modules/expo/package.json), and restore
+  package-lock.json first if an install already hoisted a newer copy, so
+  there's exactly one of each module (`npm ls <module>`).
 - The dev API base URL defaults to `http://localhost:8787/api` (Simulator
   reaches the Mac's localhost). Physical devices need
   `EXPO_PUBLIC_API_URL` pointed at the Mac's LAN address.

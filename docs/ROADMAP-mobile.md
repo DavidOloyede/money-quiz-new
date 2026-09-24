@@ -171,6 +171,10 @@ How core stays neutral:
      moved out of the web's ApplyToSimilar). Power tools (transfer review,
      links, treatments, bulk, rules) stay on the web.
    - [x] **Year Sheet**, one month at a time (core `buildYearSheet`).
+   - [x] **CSV upload** on the Import tab (`expo-document-picker` +
+     `expo-file-system`, then the web's column-matching step; core
+     `parseCsv` now serves both apps). Google sign-in is hidden on the phone
+     for now (`SHOW_GOOGLE_SIGN_IN` in account.tsx).
    - [x] **Welcome screen** for signed-out, no-data launches (answered per
      launch, like the web landing).
    Verified on the iPhone 17 Simulator in light and dark with sample data.
