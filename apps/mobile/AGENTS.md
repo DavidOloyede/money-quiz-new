@@ -19,6 +19,14 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   editing the .ttf files.
 - `react-native-mmkv` is a native module: after adding/upgrading native deps,
   rebuild the dev client (`npx expo run:ios`) — Expo Go can't run this app.
+- **Pin new Expo modules to the SDK's own version.** `npx expo install`
+  picks the newest 57.0.x of a module, which can need a newer
+  `expo-modules-core` than the installed `expo` (57.0.1) carries: the app then
+  dies at launch with a dyld "Symbol not found" in that module's framework
+  (it happened with expo-file-system 57.0.7). Pin to the version `expo`
+  itself depends on (see node_modules/expo/package.json), and restore
+  package-lock.json first if an install already hoisted a newer copy, so
+  there's exactly one of each module (`npm ls <module>`).
 - The dev API base URL defaults to `http://localhost:8787/api` (Simulator
   reaches the Mac's localhost). Physical devices need
   `EXPO_PUBLIC_API_URL` pointed at the Mac's LAN address.
@@ -49,11 +57,24 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
 - **Screens & UI kit (Phase H):** tabs live in `src/app/(tabs)/` (Today, Quiz,
   Dashboard, Import, Settings); build new UI from `src/components/ui.tsx`
   (Screen/Card/Button/Segmented/Bar/Empty/Note/StatusLine) instead of ad-hoc
-  styles, and take state colors (success/danger/soft washes) from the theme —
-  no hex in components. Charts are deliberately View-based bars (no
-  victory-native/react-native-svg); don't add a chart lib without David.
-  Mobile dashboards are **view-only** — budget/category/rename edits stay on
-  the web.
+  styles, and take state colors (success/danger/info/soft washes) from the
+  theme — no hex in components. Type follows docs/DESIGN.md: `fonts.rounded*`
+  (Nunito) for titles, buttons and game text, `fonts.sans*` (Inter) with
+  `fontVariant: ['tabular-nums']` for money, Fraunces only for scripture.
+  Charts are deliberately View-based bars; don't add a chart lib without
+  David. `react-native-svg` is installed (Sep 2026) for company logos and
+  the Manna mark only, not as a license for SVG charts.
+- **Editing on the phone (Sep 2026):** everyday edits only (per-row category,
+  rename, ★, budgets, giving goal, confirm paid-off debt), through the same
+  store actions as the web, and the similar-charge offers come from core
+  (`renameCandidates`, `categoryCandidates`). Transfer review, links,
+  treatments, bulk edits and category rules stay on the web. A sheet opened
+  from inside another sheet must render as that sheet's child (TxListModal
+  takes `children`): iOS won't present two sibling modals.
+- **Full-page screens** (All merchants, All transactions, Year Sheet,
+  Account) are stack routes in `src/app/` that set their own header with
+  `<Stack.Screen options={{ headerShown: true, ... }} />`; the welcome screen
+  is the one headerless route, reached by a `<Redirect>` in the tabs layout.
 - **Plaid on the phone:** `react-native-plaid-link-sdk` v13 API is
   `createPlaidLinkSession({ token, onSuccess, onExit, onEvent })` then
   `session.open()` — the older `create`/`open` pair from v11/12 docs doesn't

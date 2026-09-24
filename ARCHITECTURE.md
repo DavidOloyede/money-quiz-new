@@ -85,14 +85,38 @@ car so a second car can use the same engine**:
   - **Quiz** — the same quiz as the website, built from your own
     transactions, with the "receipts" behind every answer and the insights
     at the end.
-  - **Dashboard** — the phone-sized read on your money: income/spending/net,
-    spending by category (tap one to see its transactions), a monthly trend
-    chart, your top 5 expenses, recurring bills, budget progress, and
-    giving. It's a *viewing* dashboard — changing budgets, renaming
-    merchants, and recategorizing stay on the website, where there's room.
+  - **Dashboard** — the phone-sized read on your money, with the same cards
+    as the website: income/spending/net, spending by category (tap one to
+    see its transactions), a monthly trend chart, **Top merchants** with
+    company logos ("View all" opens every merchant plus your spending
+    habits), **Recurring & subscriptions** on a month calendar, budgets,
+    giving, **Debt freedom**, **Trends**, and **Transfers & Zelle**. Two
+    buttons near the top open **All transactions** (search by name, or type
+    an amount like "118"; filter by category or ★) and the **Year Sheet**
+    (one month at a time: swipe through the year with the arrows or the
+    little bars, with the months ahead shown as estimates).
+
+    Since September 2026 the phone can also make the **everyday changes**:
+    tap any charge to star it as recurring, rename it, or move it to another
+    category (it changes just that charge, then offers the similar ones,
+    which you can look over and untick first, same as the website); tap a
+    budget to change or remove it, or add one; set a giving goal; and
+    confirm a paid-off debt. The bigger tools stay on the website, where
+    there's room: deciding what each transfer was, linking a refund to its
+    charge, changing many rows at once, and category rules.
+  - **Welcome** — someone who opens the app signed out with no data first
+    sees one calm welcome screen (the phone's short version of the website's
+    landing page): what Manna Money does, three steps, and the ways in:
+    create an account, try the sample data, connect a bank, or look around
+    first.
   - **Import** — connect a bank or card through Plaid, right on the phone
     (same rules: your bank login happens inside Plaid's own screen; the app
-    never sees it). CSV files are better imported on the website.
+    never sees it; connecting a bank needs you signed in), or **upload a CSV**
+    your bank gave you: pick it from the Files app, tell the app which
+    column is the date, the description and the amount (it guesses first and
+    shows a preview), and it's added. That works signed out too, and the
+    file never leaves the phone. The website reads CSVs with the very same
+    code, so a file imports the same way in both places.
   - **Settings** — your account (sign in / sync / sign out), light or dark
     look, the **daily reminder**, data controls, and Help & support tickets
     (same tickets as the website — replies appear in both places).

@@ -28,7 +28,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   const { colors } = useAppTheme()
   return (
     <View style={{ alignItems: 'center', minWidth: 64 }}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.ink }}>{value}</Text>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 20, color: colors.ink }}>{value}</Text>
       <Text
         style={{
           fontFamily: fonts.sans,

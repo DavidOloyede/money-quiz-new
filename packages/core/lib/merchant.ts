@@ -117,3 +117,25 @@ export function renameCandidates(
   )
   return { sameAmount: all.filter((x) => x.amount === target.amount), all }
 }
+
+/**
+ * The charges worth offering after a single category change, in the same two
+ * tiers: the SAME amount at a merchant sharing the name (the other $118
+ * Willow Bend dues, not the $342.50 ones), and every charge from that exact
+ * merchant at any amount (for a power bill you always want in one place).
+ * Rows already in `category` are left out, since there's nothing to change.
+ */
+export function categoryCandidates(
+  target: Transaction,
+  transactions: Transaction[],
+  category: string,
+): { sameAmount: Transaction[]; sameMerchant: Transaction[] } {
+  const key = merchantKey(target.description)
+  const others = transactions.filter((x) => x.id !== target.id && x.category !== category)
+  return {
+    sameAmount: others.filter(
+      (x) => x.amount === target.amount && sharesName(x.description, target.description),
+    ),
+    sameMerchant: others.filter((x) => merchantKey(x.description) === key),
+  }
+}

@@ -9,7 +9,6 @@ import { Pressable, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useStore, type Category, type Transaction } from '@moneyquiz/core'
 import {
-  budgetStatus,
   currentMonthKey,
   filterByRange,
   headlineStats,
@@ -19,13 +18,18 @@ import {
   rangeLabel,
   recurringPayments,
   spendingByCategory,
-  topExpenses,
+  expenseGroups,
   type TimeRange,
 } from '@moneyquiz/core/lib/analysis'
 import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatCurrency, formatDate, formatMonth, formatPercent } from '@moneyquiz/core/lib/format'
-import { givingGoalStatus, givingStats } from '@moneyquiz/core/lib/giving'
 
+import { useChargesSheet } from '@/components/ChargesSheet'
+import { TopMerchantsCard } from '@/components/Merchants'
+import { BudgetsCard, GivingCard } from '@/components/MoneyCards'
+import { DebtCard, TransfersCard, TrendsCard } from '@/components/MoreCards'
+import { RecurringCard } from '@/components/RecurringCard'
+import { useTransactionEditor } from '@/components/TransactionSheet'
 import { TxListModal } from '@/components/TxListModal'
 import { VerseCard } from '@/components/VerseCard'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, Segmented } from '@/components/ui'
@@ -49,8 +53,6 @@ export default function DashboardScreen() {
     transactions,
     hasData,
     loadSample,
-    budgets,
-    givingGoal,
     aliases,
     dismissedRecurring,
     recurringKinds,
@@ -61,25 +63,18 @@ export default function DashboardScreen() {
   const filtered = useMemo(() => filterByRange(transactions, range), [transactions, range])
   const stats = useMemo(() => headlineStats(filtered), [filtered])
   const cats = useMemo(() => spendingByCategory(filtered), [filtered])
-  const top5 = useMemo(() => topExpenses(filtered, 5), [filtered])
+  const merchants = useMemo(() => expenseGroups(filtered, aliases), [filtered, aliases])
   const trend = useMemo(() => monthlyTrend(transactions), [transactions])
-  const bills = useMemo(
-    () =>
-      recurringPayments(transactions, aliases, dismissedRecurring, recurringKinds).filter(
-        (r) => r.kind === 'bill',
-      ),
+  // One grouping pass shared by the recurring bills and the spending habits.
+  const recurring = useMemo(
+    () => recurringPayments(transactions, aliases, dismissedRecurring, recurringKinds),
     [transactions, aliases, dismissedRecurring, recurringKinds],
   )
+  const bills = useMemo(() => recurring.filter((r) => r.kind === 'bill'), [recurring])
+  const habits = useMemo(() => recurring.filter((r) => r.kind === 'habit'), [recurring])
+  const charges = useChargesSheet()
+  const editor = useTransactionEditor()
   const budgetMonth = range === 'lastMonth' ? prevMonthKey() : currentMonthKey()
-  const budgetItems = useMemo(
-    () => budgetStatus(transactions, budgets, budgetMonth),
-    [transactions, budgets, budgetMonth],
-  )
-  const giving = useMemo(() => givingStats(filtered), [filtered])
-  const goal = useMemo(
-    () => (givingGoal > 0 ? givingGoalStatus(transactions, givingGoal, budgetMonth) : null),
-    [transactions, givingGoal, budgetMonth],
-  )
 
   if (!hasData) {
     return (
@@ -107,7 +102,7 @@ export default function DashboardScreen() {
         : []
 
   return (
-    <Screen title="Dashboard" subtitle={rangeLabel(range)}>
+    <Screen title="Dashboard" subtitle={capitalize(rangeLabel(range))}>
       <Segmented options={RANGES} value={range} onChange={setRange} />
 
       {filtered.length === 0 ? (
@@ -138,6 +133,14 @@ export default function DashboardScreen() {
               sub={stats.largestExpense?.description}
             />
             <StatTile label="Transactions" value={String(stats.count)} />
+          </View>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="outline" title="All transactions" onPress={() => router.push('/transactions')} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="outline" title="Year Sheet" onPress={() => router.push('/year')} />
+            </View>
           </View>
 
           {/* Spending by category */}
@@ -204,142 +207,37 @@ export default function DashboardScreen() {
             </View>
           </Card>
 
-          {/* Top 5 expenses */}
-          <Card>
-            <CardTitle>Top 5 expenses</CardTitle>
-            {top5.map((e, i) => (
-              <View key={e.id} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-                <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 12, color: colors.faint, width: 16 }}>
-                  {i + 1}
-                </Text>
-                <Text style={{ fontSize: 14 }}>{categoryMeta(e.category).emoji}</Text>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text
-                    numberOfLines={1}
-                    style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink }}
-                  >
-                    {e.description}
-                  </Text>
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                    {formatDate(e.date)}
-                  </Text>
-                </View>
-                <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 13, color: colors.ink }}>
-                  {formatCurrency(e.amount)}
-                </Text>
-              </View>
-            ))}
-          </Card>
+          {/* Top merchants (tap for charges; View all = every merchant + spending habits) */}
+          <TopMerchantsCard
+            groups={merchants}
+            habitCount={habits.length}
+            onOpen={(m) =>
+              charges.open(
+                m.label,
+                m.ids,
+                `${m.count === 1 ? 'one charge' : `${m.count} charges`} · ${rangeLabel(range)}`,
+              )
+            }
+            onViewAll={() => router.push({ pathname: '/merchants', params: { range } })}
+          />
 
           {/* Recurring & subscriptions */}
-          {bills.length > 0 && (
-            <Card>
-              <CardTitle
-                right={
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                    ~{formatCurrency(-bills.reduce((s, b) => s + b.monthlyEstimate, 0))} / month
-                  </Text>
-                }
-              >
-                Recurring & subscriptions
-              </CardTitle>
-              {bills.map((b) => (
-                <View
-                  key={b.groupKey}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-                >
-                  <Text style={{ fontSize: 14 }}>{categoryMeta(b.category).emoji}</Text>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text
-                      numberOfLines={1}
-                      style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink }}
-                    >
-                      {b.merchant}
-                    </Text>
-                    <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                      {b.count} charges · around the {ordinal(b.day)}
-                    </Text>
-                  </View>
-                  <Text style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.text }}>
-                    {formatCurrency(-b.monthlyEstimate)}
-                    <Text style={{ fontSize: 11, color: colors.faint }}> /mo</Text>
-                  </Text>
-                </View>
-              ))}
-            </Card>
-          )}
+          <RecurringCard items={bills} onOpen={(title, ids) => charges.open(title, ids)} />
 
-          {/* Budgets (view-only; set them on the web) */}
-          {budgetItems.length > 0 && (
-            <Card>
-              <CardTitle
-                right={
-                  <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
-                    {formatMonth(budgetMonth)}
-                  </Text>
-                }
-              >
-                Budgets
-              </CardTitle>
-              {budgetItems.map((b) => (
-                <View key={b.category} style={{ gap: 3 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm }}>
-                    <Text style={{ fontSize: 13 }}>{categoryMeta(b.category).emoji}</Text>
-                    <Text style={{ flex: 1, fontFamily: fonts.sansMedium, fontSize: 13, color: colors.ink }}>
-                      {categoryLabel(b.category)}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: fonts.sans,
-                        fontSize: 12,
-                        color: b.over ? colors.danger : colors.muted,
-                      }}
-                    >
-                      {formatCurrency(b.spent)} of {formatCurrency(b.budget)}
-                    </Text>
-                  </View>
-                  <Bar pct={b.pct} color={b.over ? colors.danger : colors.primary} />
-                </View>
-              ))}
-              <Note>Set or change budgets on the web app.</Note>
-            </Card>
-          )}
+          <BudgetsCard monthKey={budgetMonth} />
+          <GivingCard filtered={filtered} monthKey={budgetMonth} />
 
-          {/* Giving */}
-          <Card tone="warm">
-            <CardTitle
-              right={
-                giving.pctOfIncome !== null ? (
-                  <Text
-                    style={{ fontFamily: fonts.sansSemiBold, fontSize: 12, color: colors.accentDeep }}
-                  >
-                    {formatPercent(giving.pctOfIncome, 1)} of income
-                  </Text>
-                ) : undefined
-              }
-            >
-              💝 Giving
-            </CardTitle>
-            <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink }}>
-              {formatCurrency(giving.total)}
-            </Text>
-            {goal && goal.target > 0 && (
-              <View style={{ gap: 3 }}>
-                <Bar pct={goal.pct} color={colors.accent} />
-                <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.muted }}>
-                  {goal.met
-                    ? `Goal met for ${formatMonth(budgetMonth)} — ${formatCurrency(goal.given)} given 🎉`
-                    : `${formatCurrency(goal.given)} of ${formatCurrency(goal.target)} toward your ${goal.goalPct}% goal this month`}
-                </Text>
-              </View>
-            )}
-            {giving.total === 0 && (
-              <Note>Nothing given in this range yet — tithes and charity land here.</Note>
-            )}
-          </Card>
+          <DebtCard onOpen={(title, ids) => charges.open(title, ids)} />
+          <TrendsCard transactions={transactions} />
+          <TransfersCard
+            filtered={filtered}
+            onOpenCategory={(category) => setDrill({ kind: 'category', category })}
+            onOpen={(title, ids) => charges.open(title, ids)}
+          />
         </>
       )}
 
+      {charges.node}
       {drill && (
         <TxListModal
           title={drill.kind === 'category' ? categoryLabel(drill.category) : formatMonth(drill.month)}
@@ -348,7 +246,10 @@ export default function DashboardScreen() {
           }`}
           transactions={drillTx}
           onClose={() => setDrill(null)}
-        />
+          onPressRow={editor.open}
+        >
+          {editor.node}
+        </TxListModal>
       )}
     </Screen>
   )
@@ -469,8 +370,6 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   )
 }
 
-function ordinal(n: number): string {
-  const s = ['th', 'st', 'nd', 'rd']
-  const v = n % 100
-  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }

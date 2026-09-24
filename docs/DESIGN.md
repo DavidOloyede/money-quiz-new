@@ -217,6 +217,9 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   Fraunces, and this page.
 - **Not yet:** existing screens haven't been restyled, apart from the four
   small info badges that already used `sky`. Quiz wrong answers are still
-  `rose`. The iPhone app still uses rose for errors and 10/14px corners.
-  Omer, sound and celebrations come next, then a rollout through every
-  screen on both platforms.
+  `rose`. Omer, sound and celebrations come next, then a rollout through
+  every screen on both platforms.
+- **The iPhone app got there first (Sep 24, 2026):** its titles and buttons
+  are Nunito, Fraunces is kept for scripture, errors and "over budget" use
+  coral, info badges use sky, cards and buttons have 16/12pt corners, and the
+  primary button presses in on its darker bottom edge.

@@ -345,7 +345,7 @@ function DialogCard({
         gap: spacing.md,
       }}
     >
-      <Text style={{ fontFamily: fonts.display, fontSize: 18, color: colors.ink }}>{title}</Text>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 18, color: colors.ink }}>{title}</Text>
       <Text style={{ fontFamily: fonts.sans, fontSize: 14, lineHeight: 20, color: colors.muted }}>
         {body}
       </Text>

@@ -147,7 +147,38 @@ How core stays neutral:
    brew): iOS reports the repeating `UNCalendarNotificationTrigger` and the
    banner delivers with the warm copy. Remote/server push stays deliberately
    out of scope.
-7. **TestFlight** → App Store review (finance apps get extra scrutiny: have a
+7. ✅ **Web parity (Sep 2026)** — the phone caught up with everything the
+   website gained after July, on branch `feature/mobile-parity`:
+   - [x] **Design system look** (docs/DESIGN.md): Nunito for titles and
+     buttons (static instances from `gen-mobile-fonts.py`), coral for "not
+     quite", sky for info, 16/12pt corners, the press-in primary button.
+   - [x] **Company logos** via `react-native-svg` (David approved the native
+     dep; dev client rebuilt), drawing the same bundled Simple Icons paths as
+     the web, with Plaid's `logo_url` through `Image`.
+   - [x] **Top merchants** (core `expenseGroups`) replacing "Top 5 expenses",
+     with an **All merchants** screen (search, most spent / most visits) and
+     a **Spending habits** tab.
+   - [x] **Recurring & subscriptions** month calendar with day totals,
+     upcoming charges, All/Subscriptions, ★ per group (a tapped day lists
+     its charges under the calendar; no stacked sheets).
+   - [x] **Debt freedom** (incl. confirming a paid-off debt), **Trends &
+     anomalies**, **Transfers & Zelle** (review stays on the web).
+   - [x] **All transactions** screen (core `filterTransactions`; typing an
+     amount searches by amount).
+   - [x] **Everyday edits** — David's decision, replacing "view-only":
+     per-row category, rename, ★, budgets, giving goal. Similar-charge
+     offers use core `renameCandidates` / `categoryCandidates` (the latter
+     moved out of the web's ApplyToSimilar). Power tools (transfer review,
+     links, treatments, bulk, rules) stay on the web.
+   - [x] **Year Sheet**, one month at a time (core `buildYearSheet`).
+   - [x] **CSV upload** on the Import tab (`expo-document-picker` +
+     `expo-file-system`, then the web's column-matching step; core
+     `parseCsv` now serves both apps). Google sign-in is hidden on the phone
+     for now (`SHOW_GOOGLE_SIGN_IN` in account.tsx).
+   - [x] **Welcome screen** for signed-out, no-data launches (answered per
+     launch, like the web landing).
+   Verified on the iPhone 17 Simulator in light and dark with sample data.
+8. **TestFlight** → App Store review (finance apps get extra scrutiny: have a
    privacy policy URL and demo-mode reviewer account ready).
 
 ## Deliberate deferrals

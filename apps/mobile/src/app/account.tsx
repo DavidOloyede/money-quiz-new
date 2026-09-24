@@ -1,10 +1,11 @@
 /**
- * The Account screen: sign in / create account (email+password or Google) when
+ * The Account screen: sign in / create account (email+password; Google is
+ * built but switched off, see SHOW_GOOGLE_SIGN_IN) when
  * signed out; profile, sync status, and sign-out when signed in. The mobile
  * counterpart of the web's AccountView — same warm copy, themed from the
  * shared tokens.
  */
-import { Stack } from 'expo-router'
+import { Stack, useLocalSearchParams } from 'expo-router'
 import { useState } from 'react'
 import {
   ActivityIndicator,
@@ -25,6 +26,7 @@ import { fonts, radii, spacing, useAppTheme, type ThemeColors } from '@/theme'
 export default function AccountScreen() {
   const { theme, colors } = useAppTheme()
   const { enabled, loading, session } = useAuth()
+  const params = useLocalSearchParams<{ mode?: string }>()
 
   return (
     <>
@@ -32,7 +34,9 @@ export default function AccountScreen() {
         options={{
           headerShown: true,
           title: 'Account',
-          headerTitleStyle: { fontFamily: fonts.display, color: colors.ink },
+          // Reached from Settings, the welcome screen or a card, so a plain "Back".
+          headerBackTitle: 'Back',
+          headerTitleStyle: { fontFamily: fonts.rounded, color: colors.ink },
         }}
       />
       <KeyboardAvoidingView
@@ -59,7 +63,7 @@ export default function AccountScreen() {
               <SyncCard colors={colors} />
             </>
           ) : (
-            <SignInCard colors={colors} theme={theme} />
+            <SignInCard colors={colors} theme={theme} initialMode={params.mode === 'signup' ? 'signup' : 'signin'} />
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -67,9 +71,25 @@ export default function AccountScreen() {
   )
 }
 
-function SignInCard({ colors, theme }: { colors: ThemeColors; theme: 'light' | 'dark' }) {
+/**
+ * Google sign-in is switched off for now (David, Sep 2026): email and
+ * password only. The flow below is kept intact; flipping this back on also
+ * needs `mannamoney://auth` in the Supabase redirect allow-list.
+ */
+const SHOW_GOOGLE_SIGN_IN = false
+
+function SignInCard({
+  colors,
+  theme,
+  initialMode,
+}: {
+  colors: ThemeColors
+  theme: 'light' | 'dark'
+  /** The welcome screen's "Create a free account" opens straight to sign-up. */
+  initialMode: 'signin' | 'signup'
+}) {
   const { signUpWithPassword, signInWithPassword, signInWithGoogle } = useAuth()
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -206,34 +226,38 @@ function SignInCard({ colors, theme }: { colors: ThemeColors; theme: 'light' | '
         </Text>
       </Pressable>
 
-      {/* or divider */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
-        <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>OR</Text>
-        <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
-      </View>
+      {SHOW_GOOGLE_SIGN_IN && (
+        <>
+          {/* or divider */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
+            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>OR</Text>
+            <View style={{ flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border }} />
+          </View>
 
-      <Pressable
-        onPress={() => {
-          setError(null)
-          void signInWithGoogle().then((err) => err && setError(err))
-        }}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          paddingVertical: spacing.sm + 2,
-          borderRadius: radii.md,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.borderStrong,
-        }}
-      >
-        <GoogleMark theme={theme} />
-        <Text style={{ fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text }}>
-          Continue with Google
-        </Text>
-      </Pressable>
+          <Pressable
+            onPress={() => {
+              setError(null)
+              void signInWithGoogle().then((err) => err && setError(err))
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing.sm,
+              paddingVertical: spacing.sm + 2,
+              borderRadius: radii.md,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: colors.borderStrong,
+            }}
+          >
+            <GoogleMark theme={theme} />
+            <Text style={{ fontFamily: fonts.sansMedium, fontSize: 15, color: colors.text }}>
+              Continue with Google
+            </Text>
+          </Pressable>
+        </>
+      )}
     </Card>
   )
 }
@@ -256,7 +280,7 @@ function ProfileCard({ colors }: { colors: ThemeColors }) {
             backgroundColor: colors.primary,
           }}
         >
-          <Text style={{ fontFamily: fonts.display, fontSize: 20, color: colors.card }}>
+          <Text style={{ fontFamily: fonts.rounded, fontSize: 20, color: colors.card }}>
             {(email[0] ?? '?').toUpperCase()}
           </Text>
         </View>
@@ -327,7 +351,7 @@ function SyncCard({ colors }: { colors: ThemeColors }) {
 
   return (
     <Card colors={colors}>
-      <Text style={{ fontFamily: fonts.display, fontSize: 16, color: colors.ink }}>Sync</Text>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 16, color: colors.ink }}>Sync</Text>
       <Text style={{ fontFamily: fonts.sans, fontSize: 14, color: colors.muted }}>
         Changes save to your account automatically. {syncLabel}.
       </Text>

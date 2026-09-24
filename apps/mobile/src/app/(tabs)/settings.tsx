@@ -62,7 +62,7 @@ export default function SettingsScreen() {
                   backgroundColor: session ? colors.primary : colors.border,
                 }}
               >
-                <Text style={{ fontFamily: fonts.display, fontSize: 17, color: session ? colors.card : colors.muted }}>
+                <Text style={{ fontFamily: fonts.rounded, fontSize: 17, color: session ? colors.card : colors.muted }}>
                   {session ? (profile?.email?.[0] ?? session.user.email?.[0] ?? '?').toUpperCase() : '?'}
                 </Text>
               </View>

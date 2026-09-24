@@ -52,7 +52,7 @@ export function DailyQuestion() {
         </Text>
       )}
 
-      <Text style={{ fontFamily: fonts.display, fontSize: 15, lineHeight: 21, color: colors.ink }}>
+      <Text style={{ fontFamily: fonts.rounded, fontSize: 15, lineHeight: 21, color: colors.ink }}>
         {q.prompt}
       </Text>
 

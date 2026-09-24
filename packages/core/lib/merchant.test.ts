@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { renameCandidates } from './merchant'
+import { categoryCandidates, renameCandidates } from './merchant'
 import type { Transaction } from '../types'
 
 const tx = (id: string, description: string, amount: number): Transaction => ({
@@ -48,5 +48,30 @@ describe('renameCandidates', () => {
     const { sameAmount, all } = renameCandidates(claude[0], claude, 'Claude Pro')
     expect(sameAmount.map((t) => t.id)).toEqual(['c2'])
     expect(all.map((t) => t.id)).toEqual(['c2', 'c3'])
+  })
+})
+
+describe('categoryCandidates', () => {
+  const dues = [
+    { ...tx('w1', 'WILLOW BEND OWNERS ASSOCIATION', -118), category: 'home' },
+    tx('w2', 'WILLOW BEND OWNERS ASSOCIATION', -118),
+    tx('w3', 'WILLOW BEND OWNERS ASSOCIATION', -342.5),
+    tx('w4', 'WILLOW BEND HOA SPECIAL', -118),
+    { ...tx('w5', 'WILLOW BEND OWNERS ASSOCIATION', -118), category: 'home' },
+    tx('k1', 'KROGER', -118),
+  ]
+
+  it('offers same-amount rows sharing the name, and the whole merchant at any amount', () => {
+    const { sameAmount, sameMerchant } = categoryCandidates(dues[0], dues, 'home')
+    expect(sameAmount.map((t) => t.id)).toEqual(['w2', 'w4'])
+    expect(sameMerchant.map((t) => t.id)).toEqual(['w2', 'w3'])
+  })
+
+  it('leaves out rows already in the new category, the edited row, and other merchants', () => {
+    const { sameAmount, sameMerchant } = categoryCandidates(dues[0], dues, 'home')
+    const ids = [...sameAmount, ...sameMerchant].map((t) => t.id)
+    expect(ids).not.toContain('w1')
+    expect(ids).not.toContain('w5')
+    expect(ids).not.toContain('k1')
   })
 })

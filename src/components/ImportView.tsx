@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react'
-import Papa from 'papaparse'
 import type { ColumnMapping, CsvRow, ImportSource } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
-import { rowsToTransactions } from '@moneyquiz/core/lib/importCsv'
+import { parseCsv, rowsToTransactions } from '@moneyquiz/core/lib/importCsv'
 import { newId } from '@moneyquiz/core/lib/id'
 import { track } from '../lib/track'
 import { SAMPLE_ACCOUNTS, sampleCsv } from '@moneyquiz/core/data/sampleData'
@@ -45,23 +44,20 @@ export function ImportView({ onNavigate }: Props) {
   const handleFile = (file: File) => {
     setError(null)
     setNotice(null)
-    Papa.parse<CsvRow>(file, {
-      header: true,
-      skipEmptyLines: 'greedy',
-      complete: (res) => {
-        const fields = (res.meta.fields ?? []).filter((f) => f && f.trim() !== '')
-        const data = (res.data as CsvRow[]).filter((r) => r && Object.keys(r).length > 0)
-        if (fields.length === 0 || data.length === 0) {
-          setError('That file didn’t look like a CSV with a header row. Please try another file.')
+    file
+      .text()
+      .then((text) => {
+        const res = parseCsv(text)
+        if (!res.ok) {
+          setError(res.error)
           return
         }
-        setHeaders(fields)
-        setRows(data)
+        setHeaders(res.headers)
+        setRows(res.rows)
         setFileName(file.name)
         setStage('mapping')
-      },
-      error: () => setError('Could not read that file. Please try again.'),
-    })
+      })
+      .catch(() => setError('Could not read that file. Please try again.'))
   }
 
   const onConfirmMapping = (m: ColumnMapping) => {

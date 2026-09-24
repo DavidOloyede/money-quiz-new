@@ -80,7 +80,7 @@ export default function QuizScreen() {
           <Text style={{ fontSize: 34, textAlign: 'center' }}>🎓</Text>
           <Text
             style={{
-              fontFamily: fonts.display,
+              fontFamily: fonts.rounded,
               fontSize: 19,
               color: colors.ink,
               textAlign: 'center',
@@ -164,7 +164,7 @@ export default function QuizScreen() {
       </View>
 
       <Card>
-        <Text style={{ fontFamily: fonts.display, fontSize: 17, lineHeight: 23, color: colors.ink }}>
+        <Text style={{ fontFamily: fonts.rounded, fontSize: 17, lineHeight: 23, color: colors.ink }}>
           {q.prompt}
         </Text>
         <View style={{ gap: spacing.sm }}>
@@ -278,7 +278,7 @@ function Results({
         >
           Your score
         </Text>
-        <Text style={{ fontFamily: fonts.display, fontSize: 44, color: colors.ink }}>
+        <Text style={{ fontFamily: fonts.rounded, fontSize: 44, color: colors.ink }}>
           {correct}
           <Text style={{ fontSize: 22, color: colors.faint }}> / {total}</Text>
         </Text>
