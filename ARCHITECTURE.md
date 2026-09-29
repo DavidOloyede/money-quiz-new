@@ -1,6 +1,6 @@
 # How Manna Money Works — Explained Simply
 
-*Last verified against the working tree: 2026-09-22 (commit `f945b3b`).*
+*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24.*
 
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
@@ -265,6 +265,18 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   everything in for you and says so, including the easy-to-miss bits, like
   American Express and Discover writing purchases as positive numbers.
   A mapping you saved yourself still wins.
+
+  It's laid out as three numbered questions, like a short form. **1. Where is
+  this file from?** (a checking/savings account or a credit card, each with
+  a one-line example). **2. Which column is which?** It shows the first
+  three rows of your actual file with a little tag over each column saying
+  what it's being used for (Date, Description, Amount, or "Not used"), and
+  under every picker it shows what that column holds in your first row, so
+  you can see you picked the right one. **3. Does this look right?** A
+  preview of how those rows will look in the app, with each amount marked
+  "in" or "out". The screen says **"money out / money in"** instead of
+  "debit / credit" on purpose: "credit" already means a credit card one
+  question earlier, and people read the two as the same thing.
 - **`ImportedFiles.tsx`** — The list of files and connected accounts you added,
   with **Sync** and **Delete** buttons.
 - **`TransactionTable.tsx`** — The big list of all your transactions. You can
