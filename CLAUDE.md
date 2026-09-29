@@ -145,4 +145,5 @@ lives in the roadmap's "code-sharing rule" section. The short version:
   commit), not one giant commit. David reviews and pushes/merges himself.
 - Keep the living docs current as you work: ARCHITECTURE.md (plain-language,
   when behavior changes), docs/ROADMAP-mobile.md (check off mobile phases),
-  and this file (when working practices change).
+  docs/ROADMAP.md (the product roadmap: strike items through when they ship,
+  never delete a line), and this file (when working practices change).

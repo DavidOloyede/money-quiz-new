@@ -1,0 +1,63 @@
+# Manna Money product roadmap
+
+The running list of what's built, what's next, and what's later. This is the
+product roadmap; the phone app's build plan lives in
+[ROADMAP-mobile.md](ROADMAP-mobile.md).
+
+**How to keep this file:** never delete a line. When something ships, strike it
+through (`~~like this~~`) and add the date. When a plan changes, strike the old
+line and add the new one under it.
+
+_Started 2026-09-24._
+
+## Now
+
+- [ ] **Import CSV screen clarity.** Clearer "where is this file from?"
+      (checking vs. credit card) and "money out / money in" instead of
+      "debit / credit", with the user's own rows shown under each column.
+      A stopgap: connecting a bank is meant to be the main way in.
+      _Built on `feature/import-csv-clarity` 2026-09-24, waiting on review._
+- [ ] **Google sign-in, live in production.** The app already supports it
+      (Supabase Auth); finish the Google Cloud + Supabase provider setup in
+      docs/SETUP-backend.md and turn it on for real users.
+- [ ] **Real bank connections for everyone.** Plaid works end to end; finish
+      Plaid production access so anyone can link a real bank.
+- [ ] **A sound on the right answer.** A short, happy chime alongside the
+      green pop and confetti. Needs a mute switch in Settings, stays quiet
+      when the device asks for reduced motion or is on silent, and follows
+      the sound rules in docs/DESIGN.md.
+
+## Next
+
+- [ ] **Earn-it Year Sheet + subscription ("Manna Plus", name TBD).**
+      Subscribers get the full year-end planning sheet. Free users can unlock
+      it too by keeping a streak *and* answering a set number of daily
+      questions correctly that day. Paying buys convenience; showing up earns
+      access. This is the main "come back tomorrow" hook, and it keeps people
+      informed on their money so they use the other features.
+      Open questions: how many correct answers count for the day; what a free
+      user sees when the streak breaks (a preview? a grace day?).
+- [ ] **AI money coach.** A big part of the app: explains your money in plain
+      words ("where did my money go?"), teaches the money idea behind each quiz
+      question, and helps organize transactions (categories, renames,
+      recurring). Must keep the privacy rules in CLAUDE.md: no money data sent
+      anywhere without the user choosing it.
+- [ ] **iPhone app in the App Store.** Built (apps/mobile); TestFlight for
+      friends first, then App Store review.
+- [ ] **More game and delight, like Duolingo.** Omer the mascot's artwork,
+      streak freezes, daily goals, more animations, more badges, and small
+      celebrations that make people want to come back.
+
+## Later
+
+- [ ] **Church partnerships.** A church or financial ministry sponsors the
+      subscription for its members; start with a 20-50 member pilot.
+- [ ] **Android app.** The shared engine (packages/core) makes this a smaller
+      step than the iPhone app was.
+
+## Pitch notes to build into the product story
+
+- Personal: why David built it, how it affects families, churches and the
+  next generation, what's different from other money apps, and why
+  Christians and everyone else need it. The full pitch prep lives in the
+  "Manna Money - Pitch & Praise Prep" doc (2026-09-24).
