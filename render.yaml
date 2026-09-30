@@ -6,7 +6,7 @@
 # set in the Render dashboard; Render prompts for them on first deploy.
 services:
   - type: web
-    name: manna-money
+    name: mannamoney
     runtime: node
     plan: free
     branch: main
