@@ -12,6 +12,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "gen:theme": "node scripts/gen-theme.mjs",
+    "gen:sounds": "node scripts/gen-sounds.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "tsc -b && npm --prefix server run lint && npm --prefix apps/mobile run typecheck",
