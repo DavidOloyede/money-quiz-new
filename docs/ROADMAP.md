@@ -22,10 +22,22 @@ _Started 2026-09-24._
       docs/SETUP-backend.md and turn it on for real users.
 - [ ] **Real bank connections for everyone.** Plaid works end to end; finish
       Plaid production access so anyone can link a real bank.
-- [ ] **A sound on the right answer.** A short, happy chime alongside the
+- [x] ~~**A sound on the right answer.** A short, happy chime alongside the
       green pop and confetti. Needs a mute switch in Settings, stays quiet
       when the device asks for reduced motion or is on silent, and follows
-      the sound rules in docs/DESIGN.md.
+      the sound rules in docs/DESIGN.md.~~
+      _Built 2026-10-03 on `feature/celebrations-and-routes` (web + iPhone),
+      with all five DESIGN.md sounds, a Sounds switch and a quiz speaker
+      button. Waiting on review._
+- [x] ~~**Celebrations and a clear level-up, web and iPhone.** Right answer,
+      not quite, quiz finished, and a full-screen level-up / new-badge
+      moment, with iPhone haptics.~~ _Built 2026-10-03, waiting on review._
+- [x] ~~**Real web addresses.** Every screen at its own address (`/quiz`,
+      `/dashboard`, `/year`…), new visitors land on the welcome page first,
+      and a friendly not-found page.~~ _Built 2026-10-03, waiting on review._
+- [x] ~~**Illustrated people of many backgrounds**, leaning toward the
+      deepest skin tones, on the landing, the level-up and the phone's
+      welcome.~~ _Built 2026-10-03, waiting on review._
 
 ## Next
 
@@ -47,6 +59,9 @@ _Started 2026-09-24._
 - [ ] **More game and delight, like Duolingo.** Omer the mascot's artwork,
       streak freezes, daily goals, more animations, more badges, and small
       celebrations that make people want to come back.
+      _Progress 2026-10-03: the answer, quiz-finished and level-up / badge
+      celebrations are built on both platforms. Still to come: Omer's art,
+      streak freezes, daily goals, the debt-paid-off party, more badges._
 
 ## Later
 

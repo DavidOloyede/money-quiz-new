@@ -16,7 +16,11 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
 - Fonts are static instances generated from the web's variable fonts by
   `scripts/gen-mobile-fonts.py` (repo root). Use one `fontFamily` name per
   weight (`fonts.sansMedium`, not `fontWeight`); regenerate rather than
-  editing the .ttf files.
+  editing the .ttf files. **Every cut needs its own PostScript name**: iOS
+  registers fonts by it, and until Oct 2026 every weight shared the
+  variable source's name, so each family collapsed to one weight (bold
+  rendered regular). The generator now renames each cut and asserts the
+  names are unique.
 - `react-native-mmkv` is a native module: after adding/upgrading native deps,
   rebuild the dev client (`npx expo run:ios`) — Expo Go can't run this app.
 - **Pin new Expo modules to the SDK's own version.** `npx expo install`
@@ -62,8 +66,24 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   (Nunito) for titles, buttons and game text, `fonts.sans*` (Inter) with
   `fontVariant: ['tabular-nums']` for money, Fraunces only for scripture.
   Charts are deliberately View-based bars; don't add a chart lib without
-  David. `react-native-svg` is installed (Sep 2026) for company logos and
-  the Manna mark only, not as a license for SVG charts.
+  David. `react-native-svg` is installed (Sep 2026) for company logos, the
+  Manna mark, and (Oct 2026) the illustrated people and the celebration art
+  (bowl, starburst, sunburst, score ring), not as a license for SVG charts.
+- **Celebrations (Oct 2026):** motion is Reanimated 4 (already in the dev
+  client; Expo's Babel preset adds the worklets plugin), with layout
+  animations (`entering`) for one-shot entrances and shared values for
+  loops. Every animated piece checks `useReducedMotion()`. The level-up /
+  badge moment (`components/celebrate/MilestoneOverlay`) is an absolute
+  overlay in the root layout, not a `Modal` (iOS won't present two); keep
+  anything big and rotating in its own layer behind the content, because iOS
+  can paint a sibling's 3D-transformed entrance under it. Sound is
+  `expo-audio` (`lib/sound.ts`: `playsInSilentMode: false` — the default is
+  true — and `mixWithOthers`); haptics are `expo-haptics` (`lib/haptics.ts`).
+  Both were pinned to 57.0.0 and needed a dev-client rebuild. The WAVs in
+  `assets/sounds/` are generated (`npm run gen:sounds`); don't edit them.
+- **People:** `components/Person.tsx` draws the shared cast from
+  `@moneyquiz/core/data/people` (same shapes as the web); wrap a row in
+  `celebrate/Sway` for the idle motion.
 - **Editing on the phone (Sep 2026):** everyday edits only (per-row category,
   rename, ★, budgets, giving goal, confirm paid-off debt), through the same
   store actions as the web, and the similar-charge offers come from core

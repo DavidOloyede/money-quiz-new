@@ -165,7 +165,13 @@ Six moments cover almost all the joy. Everything else stays calm.
   `moneyquiz.*` key. Never rename an existing key: that would orphan
   everyone's synced data.
 - On iPhone, sounds respect the silent switch.
-- A free starting set: Kenney Interface Sounds (CC0, no credit needed).
+- **The five sounds are our own** (October 2026): small synthesis recipes in
+  `packages/core/lib/sounds.ts`, rendered to WAV for both apps by
+  `npm run gen:sounds`. A test holds them to the rules above (short, quiet).
+  To swap in recorded sounds later (Kenney Interface Sounds are CC0), drop
+  same-named files into `public/sounds/` and `apps/mobile/assets/sounds/`.
+- The setting lives under `moneyquiz.sound.v1`, per device (not synced).
+  Sound also stays off under "reduce motion".
 
 ## Voice
 
@@ -211,7 +217,40 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   sheet live in `docs/design/mascot/`, so any tool can redraw Omer
   consistently. The art is arriving separately.
 
-## Where things stand (September 2026)
+## Illustrated people
+
+A cast of ten people (`packages/core/data/people.ts`) shares one style with
+Omer: bold clean outlines, flat color, white-rimmed eyes that read on every
+skin tone, rosy cheeks and a big smile. They appear where people belong: the
+landing's "Small wins, every morning", the crowd that cheers a level-up, the
+quiz intro and the phone's welcome.
+
+- **Many households, many faces.** The cast leans deliberately toward the
+  deepest skin tones (a test keeps at least 60% at the two deepest), with a
+  range of hair (afro puffs, locs, braids, a fade, a headwrap, a hijab,
+  curls, a bob, an elder's silver bun) and ages.
+- **Colors come from the palette.** Skin and hair are tokens in `theme.ts`
+  (`illustration`); clothes use the brand ramps.
+- **Illustrations, not testimonials.** No names, no quotes. A win chip
+  shows the kind of small win the app is about.
+- **Motion:** a slow sway out of step (3 to 4s a cycle), a wave, and at a
+  level-up a hop in a wave with arms pumping. Reduce motion keeps them still.
+
+## Where things stand (October 2026)
+
+- **Done (October 3, `feature/celebrations-and-routes`):** the web rollout.
+  Every screen uses Nunito headings and buttons, Fraunces only for scripture,
+  Inter with tabular numbers for money, coral for "not quite" and over
+  budget, rose only for destructive actions, the press-in buttons
+  (`btn-primary`, `btn-secondary`, `btn-reward`, `btn-danger`) and the
+  16px `card` surface. The five moments that involve answers and levels
+  (right answer, not quite, quiz finished, level up or new badge) are built
+  on both platforms, with sound and iPhone haptics. The streak moment is
+  the flame flicker; the debt-paid-off party is still to come.
+- **Still to come:** Omer's artwork (the bowl stands in for him in the
+  level-up), the debt-paid-off party, and the rest of the celebration list.
+
+## Where things stood (September 2026)
 
 - **Done:** the sky and coral colors, the Nunito font, the softenable
   Fraunces, and this page.

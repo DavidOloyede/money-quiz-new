@@ -180,3 +180,26 @@ each address. Simulator screenshots of the phone moments.
 - **Nothing hardcoded**: skin and hair colors are tokens in `theme.ts`; the
   components take every color from tokens.
 - **Privacy**: no new network calls. Sounds and art ship with the app.
+
+## Outcome (2026-10-03)
+
+Built as planned, in the commit order above, on web and iPhone. Verified with
+`npm test` (553 passing), `npm run lint` and `npm run build`, scripted
+Playwright runs of every web moment, address and screen in light and dark at
+desktop and phone widths, and a scripted run on the iPhone 17 simulator (no
+harness code left behind).
+
+What changed from the plan along the way:
+
+- **iPhone fonts were all one weight.** Every static cut shared the
+  variable source's PostScript name, so iOS merged each family into one
+  weight. Fixed in `scripts/gen-mobile-fonts.py` (unique names, plus a guard)
+  and the fonts regenerated. This affected the whole phone app, not just this
+  work.
+- **The web's phone-width tab row wrapped and clipped.** It now scrolls
+  sideways instead.
+- **On iPhone the sunburst painted over the title card**, so it now lives in
+  its own layer behind everything.
+- The landing's people section shows five across on a computer and three on
+  a phone, and the longest win label was shortened so no chip runs to three
+  lines.

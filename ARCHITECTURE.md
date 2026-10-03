@@ -1,6 +1,6 @@
 # How Manna Money Works — Explained Simply
 
-*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24.*
+*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24; web addresses, celebrations, sound and the illustrated people added 2026-10-03.*
 
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
@@ -55,9 +55,10 @@ car so a second car can use the same engine**:
   what keeps it runnable on a phone. The shared design tokens (the exact
   colors and fonts) live here too, in `theme.ts`.
 - **`src/`** — everything that is web-only: the screens
-  (`components/`), sign-in wiring (`auth.tsx`), and five small helpers that
+  (`components/`), sign-in wiring (`auth.tsx`), and seven small helpers that
   genuinely need a browser (`src/lib/`: the Supabase sign-in client, the
-  activity logger, file downloads, Plaid's pop-up, and the startup wiring).
+  activity logger, file downloads, Plaid's pop-up, the startup wiring, the
+  map of web addresses, and the sound player).
   The web's stylesheet tokens (`src/theme.css`) are **generated** from
   `packages/core/theme.ts` by `npm run gen:theme` — change colors there, not
   in the CSS.
@@ -126,6 +127,22 @@ car so a second car can use the same engine**:
   the app is closed. It's a *local* alarm the app sets on your phone — no
   message is sent from any server, so it works with zero setup and nothing
   about your money ever leaves the device for it.
+
+  The phone has **the same fun moments as the website** (October 2026): the
+  right answer pops with a chime and a little "you got it" buzz in your hand,
+  "not quite" shakes gently with a soft tone, finishing a quiz counts up
+  around a ring with confetti, and going up a level (or earning a badge)
+  fills the screen with the same sunburst, filling bowl, flipping title and
+  cheering crowd. The sounds are the very same files as the website's. They
+  stay quiet when the phone's silent switch is on, they play *alongside*
+  your music instead of stopping it, and Settings has a **Sounds** switch.
+  The welcome screen has a row of the illustrated people waving hello.
+
+  (One fix along the way: the fonts on the phone had all been drawn at a
+  single weight. Every bold and semi-bold font file carried the same inner
+  name, and iPhones tell fonts apart by that name, so they all looked like
+  one. Each file now has its own name, and headings and buttons are bold
+  again.)
 - **`server/`** — the Node.js backend, unchanged.
 
 ---
@@ -194,12 +211,42 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   down the first page load. It also pops up the "Are you sure?" box when you
   clear data and the "Leave the quiz?" warning when you navigate away mid-quiz.
   If you're **signed out and have no data yet**, it shows the welcome page
-  (below) instead of the menu. The web address never changes; it's the same
-  page, just showing a different picture.
-- **`landing/`** — The **welcome page** a first-time visitor sees. It's four
+  (below) instead of the menu.
+
+  **Every screen has its own web address** (since October 2026), like rooms
+  in a house each with their own door: `/dashboard`, `/year` (the Year
+  Sheet), `/quiz`, `/import`, `/settings`, `/account` (plus `/signin` and
+  `/signup`, which open the Account screen ready to sign in or sign up), and
+  `/admin`. The welcome page lives at `/`. So you can bookmark a screen, send
+  someone a link, open one in a new tab, and the browser's Back and Forward
+  buttons work. The tab's title names the screen ("Quiz · Manna Money").
+  A few things are deliberate:
+
+  - **New visitors meet the welcome page first.** Someone with no data and no
+    account who opens, say, `/quiz` is taken to `/` instead. The only doors
+    straight in are the ones the welcome page itself points to: `/import`,
+    `/signin` and `/signup`. Once they've stepped in, they can move around
+    freely for that visit.
+  - **Returning people skip it.** Anyone with data (or signed in) who opens
+    `/` goes straight to their Dashboard (or to Import, if they're signed in
+    with nothing yet).
+  - Other spellings work too (`/year-sheet`, `/login`, `/Quiz/`) and get
+    tidied to the one proper address.
+  - An address that doesn't exist shows a friendly **"This page wandered
+    off"** page (`NotFound.tsx`) with a button home.
+  - "Leave the quiz?" also catches the browser's Back button.
+
+  The map of addresses is `src/lib/routes.ts`. There's no extra routing
+  library; the browser's own history does the work. The server already sends
+  the app for any address that isn't part of the API, so every address loads.
+
+  Each screen settles in with a short fade as it arrives, and every popup
+  fades and settles in too. All of that switches off if your device asks for
+  less motion.
+- **`landing/`** — The **welcome page** a first-time visitor sees. It's five
   parts stacked top to bottom: the opening ("Enough for today. A plan for
   tomorrow." beside a phone showing a right quiz answer), **how it works**,
-  **why "Manna"** (the story behind the name, plus room to give and keeping
+  **small wins, every morning** (see below), **why "Manna"** (the story behind the name, plus room to give and keeping
   your data safe), and a short list of questions and answers ending in a
   closing celebration. "How it works" starts with three small picture tiles:
   connect your bank, see your categories, and plan your whole year on the
@@ -236,6 +283,18 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   clouds into a bowl drawn like the one in the logo; at the bottom it falls
   into the same bowl in front of the celebrating phone. Omer, the mascot,
   takes the bowl's place once his artwork exists.
+- **`landing/LandingPeople.tsx`** — **"Small wins, every morning"**: a row of
+  ten illustrated people, each in a little dawn-colored arch with the kind of
+  small win the app is built around ("12-day streak", "Paid off the car",
+  "Gave 10% this month"). They sway gently, out of step with each other,
+  while manna drifts down behind them, and the win labels pop in each time
+  the row reaches the middle of your screen. They're drawings, not
+  testimonials: no names, no quotes. Five across on a computer, three across
+  on a phone.
+- **`people/Person.tsx`** — Draws one of those people. The people
+  themselves (their faces, hair, clothes and skin) are described once in the
+  shared engine (`packages/core/data/people.ts`, below), so the website and
+  the iPhone draw exactly the same characters.
 - **`Nav.tsx`** — The menu (on the side for computers, on top for phones). Also
   has the **light/dark mode** switch.
 - **`ImportView.tsx`** — The **Import** screen, where you add data.
@@ -356,7 +415,11 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   cell summed (the totals rows, the frozen block, blanks, and projected cells
   aren't clickable, since there are no transactions behind them).
 - **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak 🔥, and badge
-  count 🏅** (the full card in the sidebar, a tiny chip on phones).
+  count 🏅** (the full card in the sidebar, a tiny chip on phones). It
+  answers every point you earn, wherever you earned it: the bar slides
+  forward with a little bounce, a small "+15 XP" floats up from it, the level
+  circle pops when you go up a level, and the flame flickers when your streak
+  grows.
 - **`VerseOfDay.tsx`** — A daily **scripture banner** at the top of the
   Dashboard (one verse about money/stewardship per day, rotating at midnight).
 - **`GivingCard.tsx`** — The **Giving & Generosity** box: tithes + charity for
@@ -416,6 +479,38 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   bills) the figure came from; trend questions show the two months side by
   side. Leaving mid-quiz pops a **"Leave the quiz?"** warning so progress isn't
   lost by accident.
+
+  It's also where most of the **fun moments** happen. Pick the right answer
+  and it pops green, a check mark springs in, a few manna flakes burst out,
+  "+10 XP" floats up, and a bright little chime plays. Pick a wrong one and
+  it gives a gentle shake with a soft coral outline and a soft low tone (never
+  a buzzer), while the right answer lights up beside it. Get three or more in
+  a row and a "🔥 3 in a row!" appears. Finishing counts your score up around
+  a ring that fills in; at half right or better, confetti bursts out and a
+  short fanfare plays, and below half it's a gentler "drop" sound and a kind
+  word instead of a party. A perfect score gets a "PERFECT!" stamp. Going
+  back to review your answers stays calm: the moments only play the first
+  time. Keyboard users can press 1–4 to answer and Enter to move on. A
+  speaker button beside the title turns the sounds on or off.
+- **`AnswerChoice.tsx`** — One answer button, shared by the quiz and the
+  question of the day so both play exactly the same right-answer and
+  not-quite moments.
+- **`celebrate/`** — The pieces that make the moments: `Confetti.tsx`
+  (confetti in the app's five colors), `RewardBurst.tsx` (the manna flakes
+  and floating "+XP"), and the **big one**, `MilestoneOverlay.tsx` with
+  `CelebrationHost.tsx`. When you **go up a level**, the whole screen turns
+  to morning light: a slow sunburst turns, the bowl from the logo fills with
+  manna and glows, "LEVEL UP!" lands in a comic starburst, your level number
+  flips from the old one to the new one, your new title flips in with a
+  shine, a little crowd of the illustrated people cheers in a wave, and
+  confetti falls, with a sparkle sound. **Earning a badge** gets the same
+  party, with the badge spinning in like a medal instead of the bowl. It
+  shows up wherever you earned it (the quiz, the question of the day, an
+  import, or simply opening the app on a new day), waits a moment so the
+  thing that earned it finishes first, and a tap anywhere (or Esc) closes it.
+  It never celebrates progress you already had, like when your account's
+  data loads.
+- **`SoundToggle.tsx`** — The quiz's speaker button.
 - **`QuizEvidence.tsx`** — That "numbers behind this answer" list itself. It's
   its own piece so the quiz and the question of the day show the same receipts
   — no answer anywhere in the app gives you a figure you can't check.
@@ -424,12 +519,18 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   midnight. With data it's personalized from *your* transactions; **with no data
   it asks a general money-literacy question** (so a brand-new user can start a
   streak before connecting anything). Answering earns XP — a little more when
-  you're right — and the card shows your 🔥 streak. Once you've answered, it
+  you're right — and the card shows your 🔥 streak. Answering plays the
+  same moment as the quiz (the pop or the shake, the chime or the soft tone,
+  and the flame flickers). Once you've answered, it
   lists the transactions behind the figure, just like the quiz does (the
   general questions have no transactions behind them, so they show none).
 - **`QuizHistory.tsx`** — Your past scores and your "day streak".
-- **`SettingsView.tsx`** — Theme, custom categories, the export/clear buttons,
-  and the **Help & support** card.
+- **`SettingsView.tsx`** — Theme, the **Sounds** switch (on by default; it
+  plays a chime as it turns on so you know what you're getting), custom
+  categories, the export/clear buttons, and the **Help & support** card.
+  Sounds only ever play at the game moments, never on your money screens,
+  stay quiet if your device asks for less motion, and the setting is kept
+  per device (a laptop and a phone can differ).
 - **`AccountView.tsx`** — The **Account** screen: sign in / create an account
   (email + password, or "Continue with Google"), see your profile, **Sync now**,
   and sign out. Only appears when the cloud backend is configured.
@@ -454,12 +555,12 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 
 ---
 
-## 6. The "thinking" helpers (`packages/core/lib`, plus five web-only files in `src/lib`)
+## 6. The "thinking" helpers (`packages/core/lib`, plus seven web-only files in `src/lib`)
 
 These files don't draw anything — they're the **brains** that do the math and
 the sorting. Keeping them separate from the screens keeps the code tidy, and
 almost all of them live in the shared `packages/core` package so the phone
-app can use them unchanged. The five marked **(web-only, in `src/lib`)** are
+app can use them unchanged. The seven marked **(web-only, in `src/lib`)** are
 the exceptions — they need a real browser.
 
 - **`storage.ts`** — Talks to the notebook: save and load. The notebook has
@@ -604,6 +705,31 @@ the exceptions — they need a real browser.
 - **`badges.ts`** — The **badge rules**: one-time achievements (First Steps,
   Cheerful Giver, First Fruits, Debt Slayer, streaks, perfect quiz) earned from
   real behavior. Giving earns badges, never XP — generosity isn't a points game.
+- **`milestones.ts`** — The **"was that a big moment?" checker**. It
+  compares your points and badges before and after something happened and
+  says "you just went up a level" or "you just earned these badges". Several
+  badges earned at once (loading the sample year can earn three) become one
+  celebration, not a pile of them. Both apps use it to decide when to throw
+  the level-up party. It measures from whatever you had when the app opened,
+  so loading your account never throws a party for old progress.
+- **`sounds.ts`** — The **five sounds**, written as tiny music recipes
+  rather than downloaded files: a bright two-note chime (right answer), a
+  soft low tone (not quite), a round drop, a quick upward sparkle (level up
+  and badges), and a short fanfare (quiz finished). `npm run gen:sounds`
+  plays the recipes into small sound files for both apps (`public/sounds/`
+  and `apps/mobile/assets/sounds/`), so the website and the phone sound the
+  same, and since we made them ourselves there's no license to keep track
+  of. A test makes sure each stays short (under a second; the fanfare under
+  two) and quiet.
+- **`people.ts`** with **`data/people.ts`** — The **illustrated people**.
+  `data/people.ts` is the cast: ten people of many backgrounds, with most at
+  the deepest skin tones on purpose, in different hair styles (afro puffs,
+  locs, braids, a fade, a headwrap, a hijab, curls, a bob, a grandma's silver
+  bun) and the app's own colors. `people.ts` turns each one into simple
+  shapes (circles and curves) that both apps can draw. A test checks the
+  cast keeps leaning toward the deepest skin tones, so a later edit can't
+  quietly undo that. The skin and hair colors live with the other design
+  colors in `theme.ts`.
 - **`debt.ts`** — The **debt-freedom helper**: loan payments by month and a
   detector for recurring loans that go quiet (paid off?), measured against the
   newest data so a stale import doesn't cry wolf.
@@ -648,6 +774,14 @@ the exceptions — they need a real browser.
   you made. The website and the phone share this photocopier; the website
   gives it one last nudge when you close the tab, the phone when you switch
   away from the app.
+- **`routes.ts`** *(web-only, in `src/lib`)* — The **map of web addresses**:
+  which screen lives at which address and back, the tab titles, and which
+  doors a brand-new visitor may walk straight through (see `App.tsx` above).
+- **`sound.ts`** *(web-only, in `src/lib`)* — The **sound player**: plays the
+  five sounds when a moment happens, but only if your Sounds setting is on
+  and your device isn't asking for less motion. Browsers stay silent until
+  you've clicked something on the page, which suits a level-up that happens
+  the moment the page opens.
 - **`track.ts`** *(web-only, in `src/lib`)* — The **activity logger**: small batched events ("viewed the
   quiz", "imported a file — 214 rows") sent to `POST /api/events` for the admin
   activity log. It never records store names or amounts, and records nothing
