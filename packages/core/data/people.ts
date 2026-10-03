@@ -108,7 +108,7 @@ export const CAST: CastMember[] = [
     hairColor: 'black',
     outfit: forest['400'],
     accent: cream,
-    win: 'Spotted a forgotten subscription',
+    win: 'Found a $12 subscription',
     emoji: '🔍',
   },
   {
@@ -131,5 +131,5 @@ export function castMember(id: string): CastMember {
   return m
 }
 
-/** The five who cheer a level-up, front and centre first. */
+/** The five who cheer a level-up, left to right. */
 export const CHEER_CROWD = ['locs', 'puffs', 'fade', 'headwrap', 'braids'] as const

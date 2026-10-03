@@ -1,11 +1,12 @@
 /**
  * The signed-out welcome page. App.tsx shows it in place of the app shell
  * when a visitor is signed out and has no data; creating an account, trying
- * the sample data, importing or signing in drops them into the real app. It never
- * changes the URL.
+ * the sample data, importing or signing in drops them into the real app. It
+ * lives at "/" (see src/lib/routes.ts).
  */
 import { LandingHero } from './LandingHero'
 import { LandingHowItWorks } from './LandingHowItWorks'
+import { LandingPeople } from './LandingPeople'
 import { LandingWhy } from './LandingWhy'
 import { LandingFinal } from './LandingFinal'
 
@@ -28,6 +29,7 @@ export function Landing(actions: LandingActions) {
     <div className="min-h-screen overflow-x-clip bg-linen-50 text-linen-900 dark:bg-linen-950 dark:text-linen-100">
       <LandingHero {...actions} />
       <LandingHowItWorks />
+      <LandingPeople />
       <LandingWhy />
       <LandingFinal {...actions} />
     </div>

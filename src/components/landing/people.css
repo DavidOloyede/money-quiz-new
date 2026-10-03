@@ -1,0 +1,61 @@
+/*
+ * Motion for "Small wins, every morning" (LandingPeople.tsx). The people's
+ * own sway (.person-bob, .person-wave) lives in src/celebrate.css with the
+ * other character motion; this file owns the row's entrance and the drifting
+ * manna. Like the rest of the landing, the "armed" start pose only displaces
+ * things (nothing goes invisible), and reduce motion rests on the finish.
+ */
+@keyframes people-chip-pop {
+  from {
+    transform: translateY(8px) scale(0.6);
+  }
+}
+@keyframes people-rise {
+  from {
+    transform: translateY(14px);
+  }
+}
+
+[data-motion='armed'] .people-chip {
+  transform: translateY(8px) scale(0.6);
+}
+[data-motion='armed'] .people-arch {
+  transform: translateY(14px);
+}
+[data-motion='play'] .people-arch {
+  animation: people-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i) * 70ms) both;
+}
+[data-motion='play'] .people-chip {
+  animation: people-chip-pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(300ms + var(--i) * 90ms) both;
+}
+
+@keyframes people-flake-fall {
+  0% {
+    transform: translate3d(0, -20px, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(14px, 760px, 0);
+    opacity: 0;
+  }
+}
+.people-flake {
+  animation: people-flake-fall var(--dur, 10s) linear var(--delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .people-flake {
+    display: none;
+  }
+  [data-motion] .people-chip,
+  [data-motion] .people-arch {
+    transform: none;
+    animation: none;
+  }
+}
