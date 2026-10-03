@@ -2,27 +2,56 @@
  * The quiz — up to 10 multiple-choice questions generated from the user's own
  * transactions (same engine as the web). Intro → playing → results, with the
  * receipts (evidence lists), insights, and XP awards carried over intact.
+ *
+ * The game moments match the web (docs/DESIGN.md): a right answer pops with
+ * a chime, a success haptic, flakes and "+10 XP"; "not quite" shakes gently
+ * with a soft tone; three right in a row lights a streak flame; finishing
+ * counts the score up around a filling ring with confetti and a fanfare.
  */
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
+import Animated, {
+  Easing,
+  FadeInDown,
+  useAnimatedProps,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withTiming,
+  ZoomIn,
+} from 'react-native-reanimated'
+import Svg, { Circle } from 'react-native-svg'
 import { useStore } from '@moneyquiz/core'
-import { formatCurrency } from '@moneyquiz/core/lib/format'
-import { quizXp } from '@moneyquiz/core/lib/gamification'
+import { quizXp, XP } from '@moneyquiz/core/lib/gamification'
 import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
+import { castMember } from '@moneyquiz/core/data/people'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { BadgesCard } from '@/components/BadgesCard'
+import { Person } from '@/components/Person'
 import { QuizEvidence } from '@/components/QuizEvidence'
 import { QuizStatsRow } from '@/components/QuizStatsRow'
+import { SoundToggle } from '@/components/SoundToggle'
+import { Confetti } from '@/components/celebrate/Confetti'
+import { Sway } from '@/components/celebrate/Sway'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, StatusLine } from '@/components/ui'
+import { haptic } from '@/lib/haptics'
+import { preloadSounds, useSound } from '@/lib/sound'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 
 type Phase = 'intro' | 'playing' | 'done'
 
+/* A little variety in the praise, so the tenth right answer still feels fresh. */
+const PRAISE = ['Correct!', 'Nice!', 'You got it!', 'Spot on!', 'Well done!']
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle)
+const RING = 2 * Math.PI * 54
+
 export default function QuizScreen() {
   const { colors } = useAppTheme()
   const router = useRouter()
+  const play = useSound()
   const {
     transactions,
     hasData,
@@ -39,8 +68,15 @@ export default function QuizScreen() {
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>([])
+  // The question answered in this sitting (not one revisited in review), so
+  // only a fresh answer plays its moment.
+  const [justAnswered, setJustAnswered] = useState<number | null>(null)
+  // The results celebrate once per quiz; coming back from review stays calm.
+  const [resultsFresh, setResultsFresh] = useState(true)
   const [tooSparse, setTooSparse] = useState(false)
   const recordedRef = useRef(false)
+
+  useEffect(() => preloadSounds(), [])
 
   const start = () => {
     const qs = generateQuiz(transactions, { budgets, aliases, dismissedRecurring, recurringKinds })
@@ -52,6 +88,8 @@ export default function QuizScreen() {
     setQuestions(qs)
     setAnswers(Array(qs.length).fill(null))
     setIndex(0)
+    setJustAnswered(null)
+    setResultsFresh(true)
     recordedRef.current = false
     setPhase('playing')
   }
@@ -75,23 +113,23 @@ export default function QuizScreen() {
 
   if (phase === 'intro') {
     return (
-      <Screen title="Quiz">
-        <Card>
-          <Text style={{ fontSize: 34, textAlign: 'center' }}>🎓</Text>
-          <Text
-            style={{
-              fontFamily: fonts.rounded,
-              fontSize: 19,
-              color: colors.ink,
-              textAlign: 'center',
-            }}
-          >
+      <Screen title="Quiz" right={<SoundToggle />}>
+        <Card tone="warm" style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end' }} accessible={false}>
+            {(['hijab', 'fade', 'puffs'] as const).map((id, i) => (
+              <View key={id} style={{ marginHorizontal: -6, zIndex: i === 1 ? 1 : 0 }}>
+                <Sway index={i}>
+                  <Person spec={castMember(id)} pose={i === 1 ? 'wave' : 'smile'} width={70} />
+                </Sway>
+              </View>
+            ))}
+          </View>
+          <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 21, color: colors.ink, textAlign: 'center' }}>
             How well do you know your money?
           </Text>
           <Note>
-            We&apos;ll generate up to 10 multiple-choice questions from your own transactions. Each
-            one teaches you something about your habits — and a fresh mix appears every time you
-            play.
+            Up to 10 quick questions built from your own transactions. Each one teaches you something
+            about your habits, and a fresh mix appears every time you play.
           </Note>
           {tooSparse && (
             <StatusLine kind="error">
@@ -99,7 +137,9 @@ export default function QuizScreen() {
               transactions or loading the sample data.
             </StatusLine>
           )}
-          <Button title="Start quiz" onPress={start} />
+          <View style={{ alignSelf: 'stretch', marginTop: spacing.xs }}>
+            <Button title="Start quiz" onPress={start} />
+          </View>
         </Card>
         <QuizStatsRow history={quizHistory} />
         <BadgesCard badges={game.badges} />
@@ -113,9 +153,12 @@ export default function QuizScreen() {
         <Results
           questions={questions}
           answers={answers}
+          celebrate={resultsFresh}
+          onCelebrated={() => setResultsFresh(false)}
           onRetake={start}
           onReview={() => {
             setIndex(0)
+            setJustAnswered(null)
             setPhase('playing')
           }}
         />
@@ -129,6 +172,9 @@ export default function QuizScreen() {
   const answered = selected !== null
   const isLast = index === questions.length - 1
   const progress = ((index + (answered ? 1 : 0)) / questions.length) * 100
+  const right = answered && selected === q.correctIndex
+  const fresh = justAnswered === index
+  const inARow = right ? runOfRight(questions, answers, index) : 0
 
   const choose = (optIdx: number) => {
     if (answered) return
@@ -137,6 +183,14 @@ export default function QuizScreen() {
       next[index] = optIdx
       return next
     })
+    setJustAnswered(index)
+    if (optIdx === q.correctIndex) {
+      play('chime')
+      haptic.success()
+    } else {
+      play('soft')
+      haptic.notQuite()
+    }
   }
 
   const goNext = () => {
@@ -150,56 +204,89 @@ export default function QuizScreen() {
   }
 
   return (
-    <Screen title="Quiz">
-      <View style={{ gap: spacing.xs }}>
+    <Screen title="Quiz" right={<SoundToggle />}>
+      <View style={{ gap: spacing.xs + 2 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontFamily: fonts.sansMedium, fontSize: 12, color: colors.muted }}>
+          <Text style={{ fontFamily: fonts.rounded, fontSize: 13, color: colors.muted }}>
             Question {index + 1} of {questions.length}
           </Text>
-          <Text style={{ fontFamily: fonts.sansMedium, fontSize: 12, color: colors.muted }}>
-            {score(questions, answers)} correct so far
-          </Text>
+          {inARow >= 3 ? (
+            <Animated.Text
+              key={inARow}
+              entering={fresh ? ZoomIn.springify().damping(8) : undefined}
+              style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}
+            >
+              🔥 {inARow} in a row!
+            </Animated.Text>
+          ) : (
+            <Text style={{ fontFamily: fonts.rounded, fontSize: 13, color: colors.muted, fontVariant: ['tabular-nums'] }}>
+              {score(questions, answers)} right so far
+            </Text>
+          )}
         </View>
-        <Bar pct={progress} color={colors.primary} />
+        <Bar pct={progress} color={colors.primary} height={10} reward />
       </View>
 
       <Card>
-        <Text style={{ fontFamily: fonts.rounded, fontSize: 17, lineHeight: 23, color: colors.ink }}>
+        <Animated.Text
+          key={index}
+          entering={FadeInDown.duration(240)}
+          style={{ fontFamily: fonts.roundedHeavy, fontSize: 18, lineHeight: 24, color: colors.ink }}
+        >
           {q.prompt}
-        </Text>
-        <View style={{ gap: spacing.sm }}>
+        </Animated.Text>
+        <View style={{ gap: spacing.sm + 2 }}>
           {q.options.map((opt, i) => (
             <AnswerOption
-              key={i}
+              key={`${index}-${i}`}
               label={opt}
+              index={i}
               answered={answered}
               isCorrect={i === q.correctIndex}
               isChosen={i === selected}
+              celebrate={fresh}
+              xp={XP.quizPerCorrect}
               onPress={() => choose(i)}
             />
           ))}
         </View>
 
         {answered && (
-          <View style={{ gap: spacing.sm }}>
+          <Animated.View entering={fresh ? FadeInDown.duration(320) : undefined} style={{ gap: spacing.sm }}>
             <View
+              accessibilityLiveRegion="polite"
               style={{
-                borderRadius: radii.md,
+                borderRadius: radii.lg,
+                borderWidth: 2,
+                borderColor: right ? `${colors.primary}40` : colors.dangerBorder,
                 padding: spacing.md,
-                backgroundColor: selected === q.correctIndex ? colors.primarySoft : colors.dangerSoft,
+                backgroundColor: right ? colors.primarySoft : colors.dangerSoft,
+                gap: 4,
               }}
             >
-              <Text
-                style={{
-                  fontFamily: fonts.sans,
-                  fontSize: 13,
-                  lineHeight: 19,
-                  color: selected === q.correctIndex ? colors.success : colors.danger,
-                }}
-              >
-                <Text style={{ fontFamily: fonts.sansSemiBold }}>
-                  {selected === q.correctIndex ? 'Correct! ' : 'Not quite. '}
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 19, color: right ? colors.success : colors.danger }}>
+                  {right ? `✓ ${PRAISE[index % PRAISE.length]}` : '✕ Not quite.'}
                 </Text>
+                {right && (
+                  <Animated.View
+                    entering={fresh ? ZoomIn.delay(150).springify().damping(8) : undefined}
+                    style={{
+                      borderRadius: radii.pill,
+                      paddingHorizontal: 10,
+                      paddingVertical: 3,
+                      backgroundColor: colors.reward,
+                      borderBottomWidth: 2,
+                      borderBottomColor: colors.rewardEdge,
+                    }}
+                  >
+                    <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.onReward }}>
+                      +{XP.quizPerCorrect} XP
+                    </Text>
+                  </Animated.View>
+                )}
+              </View>
+              <Text style={{ fontFamily: fonts.sans, fontSize: 13, lineHeight: 19, color: right ? colors.success : colors.danger }}>
                 {q.answerDetail}
               </Text>
             </View>
@@ -218,7 +305,7 @@ export default function QuizScreen() {
               </Text>
             </View>
             <Button title={isLast ? 'See results' : 'Next question'} onPress={goNext} />
-          </View>
+          </Animated.View>
         )}
       </Card>
 
@@ -231,22 +318,63 @@ function score(questions: QuizQuestion[], answers: (number | null)[]): number {
   return questions.reduce((acc, q, i) => (answers[i] === q.correctIndex ? acc + 1 : acc), 0)
 }
 
+/** Right answers in a row, ending at question `upTo`. */
+function runOfRight(questions: QuizQuestion[], answers: (number | null)[], upTo: number): number {
+  let run = 0
+  for (let i = upTo; i >= 0 && answers[i] === questions[i].correctIndex; i--) run++
+  return run
+}
+
+/** Counts up to `target` (ease-out) when `animate`; otherwise just the number. */
+function useCountUp(target: number, animate: boolean): number {
+  const [value, setValue] = useState(animate ? 0 : target)
+  useEffect(() => {
+    if (!animate) {
+      setValue(target)
+      return
+    }
+    let frame = 0
+    const start = Date.now() + 150
+    const tick = () => {
+      const k = Math.min(1, Math.max(0, (Date.now() - start) / 900))
+      setValue(Math.round((1 - Math.pow(1 - k, 3)) * target))
+      if (k < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [target, animate])
+  return value
+}
+
 function Results({
   questions,
   answers,
+  celebrate: celebrateProp,
+  onCelebrated,
   onRetake,
   onReview,
 }: {
   questions: QuizQuestion[]
   answers: (number | null)[]
+  /** First time on this quiz's results: count up, confetti, fanfare. */
+  celebrate: boolean
+  onCelebrated: () => void
   onRetake: () => void
   onReview: () => void
 }) {
   const { colors } = useAppTheme()
+  const reduce = useReducedMotion()
+  const play = useSound()
   const { transactions, quizHistory, aliases, dismissedRecurring, recurringKinds } = useStore()
+  // Captured on arrival: the parent clears the flag straight away (so a
+  // return from review stays calm), and that mustn't cut this moment short.
+  const [celebrate] = useState(celebrateProp)
   const correct = score(questions, answers)
   const total = questions.length
   const pct = Math.round((correct / total) * 100)
+  const perfect = correct === total
+  const animate = celebrate && !reduce
+  const shown = useCountUp(correct, animate)
   const insights = useMemo(
     () =>
       quizInsights(transactions, askedKinds(questions), {
@@ -257,35 +385,77 @@ function Results({
     [transactions, questions, aliases, dismissedRecurring, recurringKinds],
   )
 
+  const target = RING * (1 - pct / 100)
+  const offset = useSharedValue(animate ? RING : target)
+  useEffect(() => {
+    if (animate) offset.value = withDelay(150, withTiming(target, { duration: 1000, easing: Easing.out(Easing.cubic) }))
+  }, [animate, target, offset])
+  const ringProps = useAnimatedProps(() => ({ strokeDashoffset: offset.value }))
+
+  useEffect(() => {
+    if (!celebrate) return
+    // Under half right is still a finish worth marking, just softer: a drop, no party.
+    play(pct >= 50 ? 'fanfare' : 'drop')
+    if (pct >= 50) haptic.success()
+    onCelebrated()
+    // Once, on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const verdict =
     pct >= 80
-      ? 'Impressive — you really know your spending.'
+      ? 'Impressive. You really know your spending.'
       : pct >= 50
         ? 'Not bad! A few numbers surprised you.'
-        : 'Your money had some surprises in store — now you know them.'
+        : 'Your money had some surprises in store, and now you know them.'
 
   return (
     <View style={{ gap: spacing.md }}>
-      <Card style={{ alignItems: 'center' }}>
-        <Text
-          style={{
-            fontFamily: fonts.sans,
-            fontSize: 11,
-            letterSpacing: 1,
-            textTransform: 'uppercase',
-            color: colors.faint,
-          }}
-        >
-          Your score
-        </Text>
-        <Text style={{ fontFamily: fonts.rounded, fontSize: 44, color: colors.ink }}>
-          {correct}
-          <Text style={{ fontSize: 22, color: colors.faint }}> / {total}</Text>
-        </Text>
-        <Text style={{ fontFamily: fonts.sansMedium, fontSize: 13, color: colors.primary }}>
-          {pct}%
-        </Text>
-        <View
+      <Card style={{ alignItems: 'center', overflow: 'visible' }}>
+        <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 11, letterSpacing: 2, color: colors.faint }}>YOUR SCORE</Text>
+        <View style={{ width: 140, height: 140, alignItems: 'center', justifyContent: 'center' }}>
+          <Svg width={140} height={140} viewBox="0 0 120 120" style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
+            <Circle cx={60} cy={60} r={54} fill="none" strokeWidth={10} stroke={colors.border} />
+            <AnimatedCircle
+              cx={60}
+              cy={60}
+              r={54}
+              fill="none"
+              strokeWidth={10}
+              strokeLinecap="round"
+              stroke={perfect ? colors.reward : colors.primary}
+              strokeDasharray={`${RING} ${RING}`}
+              animatedProps={ringProps}
+            />
+          </Svg>
+          <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 44, color: colors.ink, fontVariant: ['tabular-nums'] }}>
+            {shown}
+            <Text style={{ fontSize: 20, color: colors.faint }}> / {total}</Text>
+          </Text>
+          <Text style={{ fontFamily: fonts.rounded, fontSize: 13, color: colors.success }}>{pct}%</Text>
+          {celebrate && pct >= 50 && (
+            <Confetti mode="pop" count={perfect ? 40 : 26} delay={250} style={{ position: 'absolute', top: 70, left: 70 }} />
+          )}
+        </View>
+        {perfect && (
+          <Animated.View
+            entering={celebrate ? ZoomIn.delay(1100).springify().damping(8) : undefined}
+            style={{
+              transform: [{ rotate: '-3deg' }],
+              borderRadius: radii.md,
+              borderWidth: 2,
+              borderBottomWidth: 4,
+              borderColor: colors.onReward,
+              backgroundColor: colors.reward,
+              paddingHorizontal: spacing.md,
+              paddingVertical: 2,
+            }}
+          >
+            <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 17, color: colors.onReward }}>PERFECT!</Text>
+          </Animated.View>
+        )}
+        <Animated.View
+          entering={celebrate ? ZoomIn.delay(900).springify().damping(9) : undefined}
           style={{
             borderRadius: 999,
             backgroundColor: colors.accentSoft,
@@ -293,10 +463,10 @@ function Results({
             paddingVertical: spacing.xs,
           }}
         >
-          <Text style={{ fontFamily: fonts.sansSemiBold, fontSize: 12, color: colors.accentDeep }}>
-            +{quizXp(correct, total)} XP earned{correct === total && ' · perfect bonus!'}
+          <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}>
+            +{quizXp(correct, total)} XP earned{perfect && ' · perfect bonus!'}
           </Text>
-        </View>
+        </Animated.View>
         <Note>{verdict}</Note>
         <View style={{ alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.sm }}>
           <Button title="Retake with new questions" onPress={onRetake} />

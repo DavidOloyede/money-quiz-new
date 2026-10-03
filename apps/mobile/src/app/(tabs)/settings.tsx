@@ -11,6 +11,7 @@ import { useStore, type ThemeMode } from '@moneyquiz/core'
 
 import { useAuth } from '@/lib/auth'
 import { getReminder, setReminder, type ReminderPref } from '@/lib/reminder'
+import { playSound } from '@/lib/sound'
 import { Support } from '@/components/Support'
 import { Button, Card, CardTitle, Note, Screen, Segmented, StatusLine } from '@/components/ui'
 import { fonts, spacing, useAppTheme } from '@/theme'
@@ -32,7 +33,7 @@ export default function SettingsScreen() {
   const { colors } = useAppTheme()
   const router = useRouter()
   const { enabled, session, profile } = useAuth()
-  const { theme, setTheme, hasData, loadSample, clearAll } = useStore()
+  const { theme, setTheme, sound, setSound, hasData, loadSample, clearAll } = useStore()
 
   const confirmClear = () => {
     Alert.alert(
@@ -89,6 +90,30 @@ export default function SettingsScreen() {
       <Card>
         <CardTitle>Appearance</CardTitle>
         <Segmented options={THEMES} value={theme} onChange={setTheme} />
+      </Card>
+
+      {/* Sounds (docs/DESIGN.md: always mutable, saved per device) */}
+      <Card>
+        <CardTitle
+          right={
+            <Switch
+              value={sound}
+              onValueChange={(on) => {
+                setSound(on)
+                // A taste of what it sounds like, as it turns on.
+                if (on) playSound('chime')
+              }}
+              trackColor={{ true: colors.primary }}
+              accessibilityLabel="Sounds"
+            />
+          }
+        >
+          Sounds
+        </CardTitle>
+        <Note>
+          A soft chime for a right answer, a little fanfare when you finish a quiz or level up. Only in
+          those moments, and never when your phone is on silent.
+        </Note>
       </Card>
 
       {/* Daily reminder */}

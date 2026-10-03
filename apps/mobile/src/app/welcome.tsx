@@ -3,14 +3,19 @@
  * to someone signed out with no data (see (tabs)/_layout). One screen: the
  * promise, three steps, and the ways in: create an account, connect a bank,
  * or try the sample year. Picking any of them (or "Look around first")
- * answers it for this launch.
+ * answers it for this launch. A row of people from the shared cast (the
+ * same ones as the web landing) waves hello from the morning sky.
  */
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Stack, useRouter, type Href } from 'expo-router'
 import { useStore } from '@moneyquiz/core'
 
+import { castMember } from '@moneyquiz/core/data/people'
+
 import { MannaLogo } from '@/components/MannaLogo'
+import { Person } from '@/components/Person'
+import { Sway } from '@/components/celebrate/Sway'
 import { Button } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import { answerWelcome } from '@/lib/welcome'
@@ -24,6 +29,9 @@ const STEPS = [
   { title: 'See your categories', body: 'Every purchase lands in a category. Open one to see exactly what’s inside.' },
   { title: 'Plan your whole year', body: 'The Year Sheet lays out every month, with the months ahead projected.' },
 ]
+
+/** Who waves hello, left to right (the middle one waves). */
+const WELCOMERS = ['elder', 'puffs', 'fade', 'headwrap', 'curly'] as const
 
 export default function WelcomeScreen() {
   const { colors } = useAppTheme()
@@ -62,6 +70,15 @@ export default function WelcomeScreen() {
               Manna Money turns your real transactions into 2-minute questions, simple budgets and small
               wins worth celebrating. Free and private.
             </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginTop: spacing.sm }} accessible={false}>
+              {WELCOMERS.map((id, i) => (
+                <View key={id} style={{ marginHorizontal: -7, zIndex: i === 2 ? 1 : 0 }}>
+                  <Sway index={i}>
+                    <Person spec={castMember(id)} pose={i === 2 ? 'wave' : 'smile'} width={i === 2 ? 70 : 60} />
+                  </Sway>
+                </View>
+              ))}
+            </View>
           </View>
 
           <View style={{ gap: spacing.md }}>

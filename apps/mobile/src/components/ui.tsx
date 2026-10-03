@@ -3,21 +3,24 @@
  * (screen scaffold, cards, buttons, segmented control, progress bar), all
  * themed from the shared tokens so the phone matches the web's warmth.
  */
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
 import { Ionicons } from '@expo/vector-icons'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, type ViewStyle } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { fonts, radii, spacing, useAppTheme, type ThemeColors } from '@/theme'
 
-/** Standard screen scaffold: safe area, scroll, big display title. */
+/** Standard screen scaffold: safe area, scroll, big display title (with an optional control beside it). */
 export function Screen({
   title,
   subtitle,
+  right,
   children,
 }: {
   title: string
   subtitle?: string
+  right?: ReactNode
   children: ReactNode
 }) {
   const { colors } = useAppTheme()
@@ -27,13 +30,16 @@ export function Screen({
         contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md }}
         keyboardShouldPersistTaps="handled"
       >
-        <View>
-          <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 28, color: colors.ink }}>{title}</Text>
-          {subtitle && (
-            <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.muted, marginTop: 2 }}>
-              {subtitle}
-            </Text>
-          )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
+          <View style={{ flexShrink: 1 }}>
+            <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 28, color: colors.ink }}>{title}</Text>
+            {subtitle && (
+              <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.muted, marginTop: 2 }}>
+                {subtitle}
+              </Text>
+            )}
+          </View>
+          {right}
         </View>
         {children}
       </ScrollView>
@@ -93,12 +99,14 @@ export function Button({
 }: {
   title: string
   onPress: () => void
-  variant?: 'primary' | 'outline' | 'danger'
+  variant?: 'primary' | 'outline' | 'danger' | 'reward'
   disabled?: boolean
   small?: boolean
 }) {
   const { colors } = useAppTheme()
-  const primary = variant === 'primary'
+  // Primary and reward (honey, for celebrations only) are the two filled, press-in buttons.
+  const primary = variant === 'primary' || variant === 'reward'
+  const reward = variant === 'reward'
   // The primary button "presses in" (docs/DESIGN.md): a darker 4pt edge along
   // the bottom that shrinks to 1pt while pressed, as the face drops 3pt.
   const edge = 4
@@ -116,12 +124,14 @@ export function Button({
           paddingVertical: small ? spacing.sm : spacing.sm + 2,
           paddingHorizontal: spacing.md,
           borderRadius: radii.md,
-          backgroundColor: primary ? colors.primary : 'transparent',
+          backgroundColor: reward ? colors.reward : primary ? colors.primary : 'transparent',
           borderWidth: primary ? 0 : StyleSheet.hairlineWidth,
           borderColor: variant === 'danger' ? colors.danger : colors.borderStrong,
           borderBottomWidth: primary ? (down ? 1 : edge) : StyleSheet.hairlineWidth,
-          borderBottomColor: primary
-            ? colors.primaryEdge
+          borderBottomColor: reward
+            ? colors.rewardEdge
+            : primary
+              ? colors.primaryEdge
             : variant === 'danger'
               ? colors.danger
               : colors.borderStrong,
@@ -134,7 +144,13 @@ export function Button({
         style={{
           fontFamily: fonts.rounded,
           fontSize: small ? 14 : 16,
-          color: variant === 'primary' ? colors.card : variant === 'danger' ? colors.danger : colors.text,
+          color: reward
+            ? colors.onReward
+            : variant === 'primary'
+              ? colors.card
+              : variant === 'danger'
+                ? colors.danger
+                : colors.text,
         }}
       >
         {title}
@@ -191,25 +207,43 @@ export function Segmented<T extends string>({
   )
 }
 
-/** Thin progress track (XP bars, budget bars). Honey fill by default. */
-export function Bar({ pct, color }: { pct: number; color?: string }) {
+/**
+ * Thin progress track (XP bars, budget bars, quiz progress). Honey fill by
+ * default. A change of `pct` slides the fill there: plainly on money screens,
+ * with the bouncy reward overshoot when `reward` is set (XP, the quiz).
+ */
+export function Bar({
+  pct,
+  color,
+  height = 6,
+  reward = false,
+}: {
+  pct: number
+  color?: string
+  height?: number
+  reward?: boolean
+}) {
   const { colors } = useAppTheme()
+  const target = Math.min(100, Math.max(0, pct))
+  const width = useSharedValue(target)
+  useEffect(() => {
+    width.value = withTiming(target, {
+      duration: reward ? 700 : 350,
+      easing: reward ? Easing.bezier(0.34, 1.56, 0.64, 1) : Easing.out(Easing.cubic),
+    })
+  }, [target, reward, width])
+  const fill = useAnimatedStyle(() => ({ width: `${Math.min(100, Math.max(0, width.value))}%` }))
   return (
     <View
       style={{
-        height: 6,
-        borderRadius: 3,
+        height,
+        borderRadius: height / 2,
         overflow: 'hidden',
         backgroundColor: colors.border,
       }}
     >
-      <View
-        style={{
-          height: '100%',
-          width: `${Math.min(100, Math.max(0, pct))}%`,
-          borderRadius: 3,
-          backgroundColor: color ?? colors.accent,
-        }}
+      <Animated.View
+        style={[{ height: '100%', borderRadius: height / 2, backgroundColor: color ?? colors.accent }, fill]}
       />
     </View>
   )
