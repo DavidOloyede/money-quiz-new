@@ -57,11 +57,11 @@ export function AllMerchantsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onClose}
     >
       <div
-        className="flex h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
+        className="modal-panel flex h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label="All merchants"
@@ -69,7 +69,7 @@ export function AllMerchantsModal({
         <div className="border-b border-linen-100 dark:border-linen-800 p-5 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h2 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+              <h2 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
                 {tab === 'merchants' ? 'All merchants' : 'Spending habits'}
               </h2>
               <p className="mt-0.5 text-xs text-linen-500 dark:text-linen-400">

@@ -20,7 +20,7 @@ function dayStreak(history: QuizResult[]): number {
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="min-w-16">
-      <div className="font-display text-xl font-semibold text-linen-800 dark:text-linen-100">{value}</div>
+      <div className="font-rounded text-xl font-extrabold tabular-nums text-linen-800 dark:text-linen-100">{value}</div>
       <div className="text-[11px] uppercase tracking-wide text-linen-400 dark:text-linen-500">
         {label}
       </div>
@@ -37,7 +37,7 @@ export function QuizHistory({ history }: { history: QuizResult[] }) {
   const streak = dayStreak(history)
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-4">
+    <div className="card p-4">
       <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
         <Stat label="Attempts" value={attempts} />
         <Stat label="Best" value={`${bestPct}%`} />

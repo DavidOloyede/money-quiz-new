@@ -49,16 +49,16 @@ export function TransferReviewModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
+        className="modal-panel flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3 border-b border-linen-100 dark:border-linen-800 p-5">
           <div className="min-w-0 flex-1">
-            <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+            <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">
               Review transfers
             </h3>
             <p className="mt-0.5 text-sm text-linen-500 dark:text-linen-400">
@@ -146,7 +146,7 @@ export function TransferReviewModal({ onClose }: { onClose: () => void }) {
                         {g.moneyIn > 0 && (
                           <button
                             onClick={() => decide(g, { category: 'income' })}
-                            className="rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 hover:bg-cream dark:hover:bg-linen-800"
+                            className="btn-secondary px-2.5 py-1.5 text-xs"
                           >
                             Income
                           </button>
@@ -169,13 +169,13 @@ export function TransferReviewModal({ onClose }: { onClose: () => void }) {
                         </select>
                         <button
                           onClick={() => decide(g, { treatment: 'reimbursement' })}
-                          className="rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 hover:bg-cream dark:hover:bg-linen-800"
+                          className="btn-secondary px-2.5 py-1.5 text-xs"
                         >
                           Reimbursement
                         </button>
                         <button
                           onClick={() => decide(g, { treatment: 'internal' })}
-                          className="rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 hover:bg-cream dark:hover:bg-linen-800"
+                          className="btn-secondary px-2.5 py-1.5 text-xs"
                         >
                           Internal / ignore
                         </button>
@@ -207,7 +207,7 @@ export function TransferReviewModal({ onClose }: { onClose: () => void }) {
           </label>
           <button
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
+            className="btn-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-sm"
           >
             <CheckIcon className="h-4 w-4" /> Done
           </button>

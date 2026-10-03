@@ -173,11 +173,11 @@ export function GroupDetailModal({ ids, onClose }: Props) {
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+        className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
         onClick={onClose}
       >
         <div
-          className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
+          className="modal-panel flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header: rename + summary */}
@@ -438,14 +438,14 @@ export function GroupDetailModal({ ids, onClose }: Props) {
           <div className="flex items-center justify-end gap-2 border-t border-linen-100 dark:border-linen-800 p-4">
             <button
               onClick={onClose}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary px-3 py-1.5 text-sm"
             >
               Cancel
             </button>
             <button
               onClick={save}
               disabled={!dirty}
-              className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-primary px-4 py-1.5 text-sm"
             >
               Save
             </button>

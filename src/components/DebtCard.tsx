@@ -46,9 +46,9 @@ export function DebtCard({
   if (debts.length === 0 && trend.length === 0 && confirmed.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Debt freedom</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Debt freedom</h3>
         {monthlyTotal > 0 && (
           <span className="text-xs tabular-nums text-linen-400 dark:text-linen-500">
             ~{formatCurrency(monthlyTotal)} / month
@@ -119,7 +119,7 @@ export function DebtCard({
               <div className="flex shrink-0 gap-2">
                 <button
                   onClick={() => onSetPaidOff(d.groupKey, true)}
-                  className="rounded-lg bg-forest-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-forest-700"
+                  className="btn-primary px-3 py-1.5 text-xs"
                 >
                   Confirm paid off
                 </button>

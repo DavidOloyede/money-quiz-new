@@ -19,11 +19,11 @@ export function StatCard({ label, value, sub, accent = 'text-linen-800 dark:text
         </span>
         {icon && <span className="text-linen-300">{icon}</span>}
       </div>
-      <div className={`mt-1 font-display text-[26px] font-semibold tracking-tight ${accent}`}>{value}</div>
+      <div className={`mt-1 font-sans text-[26px] font-semibold tracking-tight tabular-nums ${accent}`}>{value}</div>
       {sub && <div className="mt-0.5 text-xs text-linen-500 dark:text-linen-400 truncate">{sub}</div>}
     </>
   )
-  const frame = 'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-4'
+  const frame = 'card p-4'
 
   if (onClick) {
     return (

@@ -14,9 +14,9 @@ export function BadgesCard({ badges }: Props) {
   const earnedCount = BADGES.filter((b) => badges[b.id]).length
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Badges</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Badges</h3>
         <span className="text-xs tabular-nums text-linen-400 dark:text-linen-500">
           {earnedCount} / {BADGES.length} earned
         </span>
@@ -46,7 +46,7 @@ export function BadgesCard({ badges }: Props) {
                     Earned {formatDate(earnedAt.slice(0, 10))}
                   </div>
                   {b.verse && (
-                    <div className="mt-1 text-[11px] italic leading-snug text-linen-500 dark:text-linen-400">
+                    <div className="mt-1 font-display font-soft text-[11px] italic leading-snug text-linen-500 dark:text-linen-400">
                       {b.verse}
                     </div>
                   )}

@@ -16,7 +16,7 @@ import { countsTowardTotals, isRealIncome, isRefund } from '@moneyquiz/core/lib/
 import { useStore } from '@moneyquiz/core/store'
 
 const cardCls =
-  'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5'
+  'card p-5'
 
 /** One transaction with both sides resolved through the real code path. */
 interface Row {
@@ -98,7 +98,7 @@ export function PlaidDebugTab() {
 
   const suspectCount = rows.filter((r) => r.suspect).length
 
-  if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+  if (error) return <p className="text-sm text-coral-700 dark:text-coral-300">{error}</p>
   if (!items) return <p className="text-sm text-linen-400">Loading…</p>
 
   if (rows.length === 0) {
@@ -109,7 +109,7 @@ export function PlaidDebugTab() {
         </p>
         <button
           onClick={() => void load()}
-          className="mt-3 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+          className="btn-secondary mt-3 px-3 py-1.5 text-sm"
         >
           Reload
         </button>
@@ -132,7 +132,7 @@ export function PlaidDebugTab() {
           <button
             onClick={() => void load()}
             disabled={loading}
-            className="ml-auto rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-50"
+            className="btn-secondary ml-auto px-3 py-1.5 text-sm disabled:opacity-50"
           >
             {loading ? 'Reloading…' : 'Reload'}
           </button>

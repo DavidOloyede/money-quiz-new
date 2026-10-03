@@ -187,11 +187,11 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={() => !busy && onClose()}
     >
       <div
-        className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-cream shadow-xl dark:bg-linen-900"
+        className="modal-panel flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-cream shadow-xl dark:bg-linen-900"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -227,7 +227,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
         <div className="min-h-0 flex-1 overflow-y-auto p-5">
           {step.kind === 'pick' && (
             <>
-              <h2 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">Select your bank</h2>
+              <h2 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">Select your bank</h2>
               <p className="mt-0.5 text-sm text-linen-500 dark:text-linen-400">
                 Each one holds a year of made-up transactions for Jordan, our sample saver.
               </p>
@@ -278,7 +278,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
             >
               <div className="flex flex-col items-center text-center">
                 <BankMark inst={step.inst} size="lg" />
-                <h2 className="mt-3 font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+                <h2 className="mt-3 font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
                   Sign in to {step.inst.name}
                 </h2>
               </div>
@@ -311,7 +311,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
               <button
                 type="submit"
                 autoFocus
-                className="mt-5 w-full rounded-lg bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-700"
+                className="btn-primary mt-5 w-full px-4 py-2.5 text-sm"
               >
                 Sign in
               </button>
@@ -320,7 +320,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
 
           {step.kind === 'accounts' && (
             <>
-              <h2 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+              <h2 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
                 Choose accounts to share
               </h2>
               <p className="mt-0.5 text-sm text-linen-500 dark:text-linen-400">
@@ -360,7 +360,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
               <button
                 onClick={() => setStep({ kind: 'connecting', inst: step.inst })}
                 disabled={selected.size === 0}
-                className="mt-5 w-full rounded-lg bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-700 disabled:opacity-50"
+                className="btn-primary mt-5 w-full px-4 py-2.5 text-sm"
               >
                 {selected.size === 0
                   ? 'Pick at least one account'
@@ -372,14 +372,14 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => fileRef.current?.click()}
-                    className="flex items-center gap-1.5 rounded-lg border border-linen-300 px-3 py-1.5 font-medium text-linen-600 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-300 dark:hover:bg-linen-800"
+                    className="btn-secondary flex items-center gap-1.5 px-3 py-1.5"
                   >
                     <UploadIcon className="h-3.5 w-3.5" />
                     Use my own {step.inst.name} CSV
                   </button>
                   <button
                     onClick={() => downloadAll(step.inst)}
-                    className="flex items-center gap-1.5 rounded-lg border border-linen-300 px-3 py-1.5 font-medium text-linen-600 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-300 dark:hover:bg-linen-800"
+                    className="btn-secondary flex items-center gap-1.5 px-3 py-1.5"
                   >
                     <DownloadIcon className="h-3.5 w-3.5" />
                     Download these as CSV
@@ -426,7 +426,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-forest-50 text-forest-600 dark:bg-forest-500/10">
                 <CheckIcon className="h-6 w-6" />
               </span>
-              <h2 className="mt-3 font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+              <h2 className="mt-3 font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
                 {step.inst.name} is connected
               </h2>
               <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -440,7 +440,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
                       onClose()
                       onViewDashboard()
                     }}
-                    className="w-full rounded-lg bg-forest-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-forest-700"
+                    className="btn-primary w-full px-4 py-2.5 text-sm"
                   >
                     See the dashboard
                   </button>
@@ -450,7 +450,7 @@ export function DemoBankModal({ onClose, onViewDashboard }: Props) {
                     setQuery('')
                     setStep({ kind: 'pick' })
                   }}
-                  className="w-full rounded-lg border border-linen-300 px-4 py-2.5 text-sm font-medium text-linen-600 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-300 dark:hover:bg-linen-800"
+                  className="btn-secondary w-full px-4 py-2.5 text-sm"
                 >
                   Connect another bank
                 </button>

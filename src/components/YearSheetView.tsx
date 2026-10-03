@@ -84,7 +84,7 @@ export function YearSheetView({ onNavigate }: Props) {
   if (!hasData) {
     return (
       <Shell>
-        <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+        <div className="card">
           <EmptyState
             icon={<TableIcon className="w-7 h-7" />}
             title="No data for a year sheet yet"
@@ -92,13 +92,13 @@ export function YearSheetView({ onNavigate }: Props) {
           >
             <button
               onClick={loadSample}
-              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary px-4 py-2 text-sm"
             >
               Load sample data
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary px-4 py-2 text-sm"
             >
               Go to Import
             </button>
@@ -174,7 +174,7 @@ export function YearSheetView({ onNavigate }: Props) {
       <div
         ref={mainRef}
         onScroll={syncFromMain}
-        className="max-h-[75vh] overflow-auto rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900"
+        className="max-h-[75vh] overflow-auto card"
       >
         <table className="w-full min-w-[1080px] border-separate border-spacing-0 text-xs">
           <thead>
@@ -427,7 +427,7 @@ function NetRow({ label, cells, stickyTop }: { label: string; cells: SheetCell[]
   const color = (n: number) =>
     n >= 0
       ? 'bg-forest-50 text-forest-700 dark:bg-forest-950 dark:text-forest-400'
-      : 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-400'
+      : 'bg-coral-50 text-coral-700 dark:bg-coral-500/10 dark:text-coral-300'
   return (
     <tr>
       <td className={`px-3 py-1.5 whitespace-nowrap font-semibold text-linen-700 dark:text-linen-200 ${frozenCls(stickyTop, 'bg-cream dark:bg-linen-900', true)}`}>
@@ -464,7 +464,7 @@ function BalanceRow({
   stickyTop: string
 }) {
   const color = (n: number) =>
-    n >= 0 ? 'text-linen-700 dark:text-linen-200' : 'text-rose-600 dark:text-rose-400 font-semibold'
+    n >= 0 ? 'text-linen-700 dark:text-linen-200' : 'text-coral-700 dark:text-coral-300 font-semibold'
   const bg = 'bg-honey-50 dark:bg-linen-900'
   const bottom = 'border-b-2 border-linen-200 dark:border-linen-700'
   return (
@@ -489,7 +489,7 @@ function Shell({ action, children }: { action?: React.ReactNode; children: React
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Year Sheet</h2>
+        <h2 className="font-rounded text-[26px] font-extrabold text-linen-900 dark:text-linen-50">Year Sheet</h2>
         {action}
       </div>
       {children}

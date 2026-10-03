@@ -57,7 +57,7 @@ export function CategoryDonut({ data, total, onSelect }: Props) {
       </ResponsiveContainer>
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xs uppercase tracking-wide text-linen-400 dark:text-linen-500">Spending</span>
-        <span className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">
+        <span className="font-sans text-[22px] font-semibold tabular-nums text-linen-800 dark:text-linen-100">
           {formatCurrency(total)}
         </span>
       </div>

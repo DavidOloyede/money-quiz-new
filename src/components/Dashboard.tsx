@@ -128,7 +128,7 @@ export function Dashboard({ onNavigate }: Props) {
         <div className="mb-4">
           <VerseOfDay />
         </div>
-        <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+        <div className="card">
           <EmptyState
             icon={<ChartIcon className="w-7 h-7" />}
             title="No data to analyze yet"
@@ -136,13 +136,13 @@ export function Dashboard({ onNavigate }: Props) {
           >
             <button
               onClick={loadSample}
-              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary px-4 py-2 text-sm"
             >
               Load sample data
             </button>
             <button
               onClick={() => onNavigate('import')}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary px-4 py-2 text-sm"
             >
               Go to Import
             </button>
@@ -160,7 +160,7 @@ export function Dashboard({ onNavigate }: Props) {
     }
   }
 
-  const netAccent = stats.net >= 0 ? "text-forest-600 dark:text-forest-400" : "text-rose-600 dark:text-rose-400"
+  const netAccent = stats.net >= 0 ? "text-forest-600 dark:text-forest-400" : "text-coral-700 dark:text-coral-300"
   const isRangeEmpty = filtered.length === 0
 
   return (
@@ -208,7 +208,7 @@ export function Dashboard({ onNavigate }: Props) {
       {isRangeEmpty ? (
         <div className="space-y-4">
           <VerseOfDay />
-          <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-10 text-center text-sm text-linen-500 dark:text-linen-400">
+          <div className="card p-10 text-center text-sm text-linen-500 dark:text-linen-400">
             No transactions in this time range. Try a different range.
           </div>
         </div>
@@ -265,8 +265,8 @@ export function Dashboard({ onNavigate }: Props) {
 
           {/* Category breakdown + trend */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-              <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Spending by category</h3>
+            <div className="card p-5">
+              <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Spending by category</h3>
               {cats.length === 0 ? (
                 <p className="mt-6 text-sm text-linen-500 dark:text-linen-400">No spending in this range.</p>
               ) : (
@@ -326,9 +326,9 @@ export function Dashboard({ onNavigate }: Props) {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+              <div className="card p-5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Monthly trend</h3>
+                  <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Monthly trend</h3>
                   <span className="text-xs text-linen-400 dark:text-linen-500">
                     All time · click a month for its transactions
                   </span>
@@ -379,9 +379,9 @@ export function Dashboard({ onNavigate }: Props) {
           </div>
 
           {excluded.length > 0 && (
-            <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+            <div className="card p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Transfers &amp; Zelle</h3>
+                <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Transfers &amp; Zelle</h3>
                 <span className="text-xs text-linen-400 dark:text-linen-500">Not counted as spending or income</span>
               </div>
               <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -484,7 +484,7 @@ function ViewShell({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">{title}</h2>
+        <h2 className="font-rounded text-[26px] font-extrabold text-linen-900 dark:text-linen-50">{title}</h2>
         {action}
       </div>
       {children}

@@ -178,11 +178,11 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
   return (
     <>
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onClose}
     >
       <div
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
+        className="modal-panel flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-linen-100 dark:border-linen-800 p-5">
@@ -195,7 +195,7 @@ export function CategoryDetailModal({ category, transactions, scopeLabel, onClos
               {header.emoji}
             </span>
             <div>
-              <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">{header.title}</h3>
+              <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">{header.title}</h3>
               <p className="text-xs text-linen-500 dark:text-linen-400">
                 {items.length} transaction{items.length === 1 ? '' : 's'} {scopeLabel}
                 {header.note}

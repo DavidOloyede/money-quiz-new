@@ -14,9 +14,9 @@ export function TrendsCard({ transactions }: Props) {
   const month = trends[0].monthKey
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Trends &amp; anomalies</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Trends &amp; anomalies</h3>
         <span className="text-xs text-linen-400 dark:text-linen-500">
           {formatMonth(month)} vs prior months
         </span>
@@ -29,7 +29,7 @@ export function TrendsCard({ transactions }: Props) {
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
                   up
-                    ? 'bg-rose-100 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                    ? 'bg-coral-100 dark:bg-coral-500/15 text-coral-700 dark:text-coral-300'
                     : 'bg-forest-100 dark:bg-forest-500/15 text-forest-600 dark:text-forest-400'
                 }`}
                 aria-hidden
