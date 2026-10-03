@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react'
+import { useEffect, useRef, type MouseEvent } from 'react'
 import type { ThemeMode } from '@moneyquiz/core/types'
 import { isPlainClick, pathForView, type View } from '../lib/routes'
 import { ProgressChip, ProgressWidget } from './ProgressWidget'
@@ -142,6 +142,11 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
 }
 
 export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin }: NavProps) {
+  // On a narrow phone the tabs scroll sideways; keep the current one in view.
+  const tabs = useRef<HTMLElement>(null)
+  useEffect(() => {
+    tabs.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [view])
   return (
     <header className="md:hidden sticky top-0 z-10 bg-cream dark:bg-linen-900 border-b border-linen-200 dark:border-linen-700">
       <div className="flex items-center justify-between px-4 h-14">
@@ -164,7 +169,11 @@ export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onTogg
           </button>
         </div>
       </div>
-      <nav className="flex border-t border-linen-100 dark:border-linen-800">
+      {/* Tabs share the width when they fit and scroll sideways (never wrap) when they don't. */}
+      <nav
+        ref={tabs}
+        className="flex overflow-x-auto overscroll-x-contain border-t border-linen-100 [scrollbar-width:none] dark:border-linen-800 [&::-webkit-scrollbar]:hidden"
+      >
         {navItems(showAccount, showAdmin).map((item) => {
           const active = view === item.id
           const Icon = item.icon
@@ -174,7 +183,7 @@ export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onTogg
               href={pathForView(item.id)}
               onClick={navClick(item.id, onNavigate)}
               aria-current={active ? 'page' : undefined}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 font-rounded text-xs font-bold border-b-2 transition-colors duration-150 ${
+              className={`flex flex-[1_0_auto] items-center justify-center gap-1.5 whitespace-nowrap px-3 py-2.5 font-rounded text-xs font-bold border-b-2 transition-colors duration-150 ${
                 active
                   ? 'border-forest-500 text-forest-700 dark:text-forest-300'
                   : 'border-transparent text-linen-500 dark:text-linen-400'
