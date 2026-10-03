@@ -62,6 +62,7 @@ describe('SYNCED_KEYS', () => {
     expect(SYNCED_KEYS).toContain(STORAGE_KEYS.game)
     expect(SYNCED_KEYS).toContain(STORAGE_KEYS.categories)
     expect(SYNCED_KEYS).not.toContain(STORAGE_KEYS.theme)
+    expect(SYNCED_KEYS).not.toContain(STORAGE_KEYS.sound)
     expect(SYNCED_KEYS).not.toContain(STORAGE_KEYS.daily)
     // legacy keys are migrated on load and must never round-trip to the cloud
     expect(SYNCED_KEYS).not.toContain(STORAGE_KEYS.subscriptions)

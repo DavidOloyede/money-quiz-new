@@ -122,6 +122,34 @@ export const chartSeries = {
   spending: honey['600'],
 } as const
 
+/**
+ * The illustrated people (data/people.ts, drawn by lib/people.ts on both
+ * apps). Skin runs from the deepest tone to the lightest; the cast leans
+ * deliberately toward the deepest two, and people.test.ts holds it there.
+ * Hair includes the greys an elder wears. Fabric for wraps and scarves comes
+ * from the brand ramps, so the people sit inside the palette.
+ */
+export const illustration = {
+  skin: {
+    deepest: '#3a2117',
+    deep: '#4e2c1e',
+    rich: '#6a3d28',
+    brown: '#8c5838',
+    tan: '#b47b52',
+    golden: '#d8a677',
+    light: '#efc9a6',
+  },
+  hair: {
+    black: '#1c1411',
+    darkBrown: '#3b261b',
+    auburn: '#7a3a20',
+    silver: '#cfc8bd',
+  },
+} as const
+
+export type SkinTone = keyof typeof illustration.skin
+export type HairColor = keyof typeof illustration.hair
+
 /** Everything above in one bag, for consumers that want a single import. */
 export const themeTokens = {
   fonts,
@@ -133,4 +161,5 @@ export const themeTokens = {
   coral,
   chartChrome,
   chartSeries,
+  illustration,
 } as const

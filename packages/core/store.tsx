@@ -72,6 +72,8 @@ interface StoreValue {
   budgets: Budgets
   quizHistory: QuizResult[]
   theme: ThemeMode
+  /** Celebration sounds on/off (per device; only the game moments ever play one). */
+  sound: boolean
   /** XP / level / daily-streak progress (auto-checked-in on app open). */
   game: GameState
   /** Year Sheet starting balance per year ("2026" -> dollars). */
@@ -158,6 +160,7 @@ interface StoreValue {
   awardXp: (amount: number) => void
   recordQuizResult: (correct: number, total: number) => void
   setTheme: (mode: ThemeMode) => void
+  setSound: (on: boolean) => void
   saveMapping: (m: ColumnMapping) => void
   clearAll: () => void
 }
@@ -287,6 +290,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ...loadJSON<GameState>(STORAGE_KEYS.game, DEFAULT_GAME_STATE),
   }))
   const [theme, setThemeState] = useState<ThemeMode>(initialTheme)
+  const [sound, setSoundState] = useState<boolean>(() => loadJSON<boolean>(STORAGE_KEYS.sound, true) !== false)
 
   // Count today toward the daily streak (idempotent — only the first visit of
   // the day moves the streak and awards check-in XP).
@@ -464,6 +468,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveJSON(STORAGE_KEYS.theme, theme)
     getThemeAdapter().apply(theme)
   }, [theme])
+  useEffect(() => saveJSON(STORAGE_KEYS.sound, sound), [sound])
 
   /**
    * Re-apply remembered category edits to a fresh set (exact description first,
@@ -1059,6 +1064,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
 
   const setTheme = useCallback((mode: ThemeMode) => setThemeState(mode), [])
+  const setSound = useCallback((on: boolean) => setSoundState(on), [])
 
   const saveMapping = useCallback((m: ColumnMapping) => setMapping(m), [])
 
@@ -1102,6 +1108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      sound,
       game,
       startingBalances,
       givingGoal,
@@ -1148,6 +1155,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       awardXp,
       recordQuizResult,
       setTheme,
+      setSound,
       saveMapping,
       clearAll,
     }),
@@ -1160,6 +1168,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      sound,
       game,
       startingBalances,
       givingGoal,
@@ -1206,6 +1215,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       awardXp,
       recordQuizResult,
       setTheme,
+      setSound,
       saveMapping,
       clearAll,
     ],

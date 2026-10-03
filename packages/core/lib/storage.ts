@@ -109,6 +109,9 @@ export const STORAGE_KEYS = {
   // data shouldn't take away the level you earned.
   game: 'moneyquiz.game.v1',
   theme: 'moneyquiz.theme.v1',
+  // Celebration sounds on/off. Per device like `theme` (a laptop and a phone
+  // reasonably differ), so it's in neither DATA_KEYS nor the synced slices.
+  sound: 'moneyquiz.sound.v1',
 } as const
 
 /** Keys that hold imported data / edits (wiped by "Clear all data"). */
