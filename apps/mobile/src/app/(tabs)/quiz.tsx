@@ -213,7 +213,7 @@ export default function QuizScreen() {
           {inARow >= 3 ? (
             <Animated.Text
               key={inARow}
-              entering={fresh ? ZoomIn.springify().damping(8) : undefined}
+              entering={fresh ? ZoomIn.springify().damping(13) : undefined}
               style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}
             >
               🔥 {inARow} in a row!
@@ -270,7 +270,7 @@ export default function QuizScreen() {
                 </Text>
                 {right && (
                   <Animated.View
-                    entering={fresh ? ZoomIn.delay(150).springify().damping(8) : undefined}
+                    entering={fresh ? ZoomIn.delay(150).springify().damping(13) : undefined}
                     style={{
                       borderRadius: radii.pill,
                       paddingHorizontal: 10,
@@ -439,7 +439,7 @@ function Results({
         </View>
         {perfect && (
           <Animated.View
-            entering={celebrate ? ZoomIn.delay(1100).springify().damping(8) : undefined}
+            entering={celebrate ? ZoomIn.delay(1100).springify().damping(13) : undefined}
             style={{
               transform: [{ rotate: '-3deg' }],
               borderRadius: radii.md,

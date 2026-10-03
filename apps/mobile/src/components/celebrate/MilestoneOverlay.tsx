@@ -13,8 +13,8 @@
  * present two modals at once). A tap anywhere closes it; reduce motion shows
  * the finished picture.
  */
-import { useEffect } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import Animated, {
   Easing,
   FadeIn,
@@ -77,6 +77,10 @@ const numberIn = new Keyframe({
 
 export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone; onClose: () => void }) {
   const { theme } = useAppTheme()
+  const { width } = useWindowDimensions()
+  // Where the stage landed on screen, so the sunburst (drawn in its own layer
+  // behind everything, or iOS can paint it over the title card) centres on the bowl.
+  const [stageY, setStageY] = useState<number | null>(null)
   const reduce = useReducedMotion()
   const dark = theme === 'dark'
   const level = milestone.kind === 'level'
@@ -85,13 +89,18 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone;
   // The slow sunburst and the glow behind the bowl.
   const spin = useSharedValue(0)
   const glow = useSharedValue(0.6)
+  const shown = useSharedValue(reduce ? 1 : 0)
   useEffect(() => {
     if (reduce) return
+    shown.value = withDelay(100, withTiming(1, { duration: 600 }))
     spin.value = withRepeat(withTiming(360, { duration: 30000, easing: Easing.linear }), -1)
     glow.value = withDelay(900, withRepeat(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.quad) }), -1, true))
-  }, [reduce, spin, glow])
-  const raysStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${spin.value}deg` }] }))
-  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value, transform: [{ scale: 0.9 + glow.value * 0.15 }] }))
+  }, [reduce, spin, glow, shown])
+  const raysStyle = useAnimatedStyle(() => ({ opacity: shown.value, transform: [{ rotate: `${spin.value}deg` }] }))
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: shown.value * (0.25 + glow.value * 0.2),
+    transform: [{ scale: 0.9 + glow.value * 0.15 }],
+  }))
 
   return (
     <View style={StyleSheet.absoluteFill} accessibilityViewIsModal>
@@ -107,6 +116,18 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone;
           <Rect width="100%" height="100%" fill="url(#dawn)" />
         </Svg>
       </Animated.View>
+      {stageY !== null && (
+        <View pointerEvents="none" style={{ position: 'absolute', top: stageY + 128 - 200, left: width / 2 - 200, width: 400, height: 400, alignItems: 'center', justifyContent: 'center' }}>
+          <Animated.View style={[{ position: 'absolute', width: 400, height: 400 }, raysStyle]}>
+            <Svg width={400} height={400} viewBox="0 0 400 400">
+              {RAYS.map((d, i) => (
+                <Path key={i} d={d} fill={honey['300']} opacity={dark ? 0.2 : 0.32} />
+              ))}
+            </Svg>
+          </Animated.View>
+          <Animated.View style={[{ width: 170, height: 170, borderRadius: 85, backgroundColor: honey['300'] }, glowStyle]} />
+        </View>
+      )}
       <Confetti count={44} delay={350} style={StyleSheet.absoluteFill} />
 
       <Pressable
@@ -116,37 +137,10 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone;
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.lg }}
       >
         {/* The stage */}
-        <View style={{ width: 300, height: 220, alignItems: 'center' }}>
-          <Animated.View
-            entering={FadeIn.delay(100).duration(600)}
-            style={{ position: 'absolute', top: 128 - 200, left: 150 - 200, width: 400, height: 400 }}
-          >
-            <Animated.View style={[{ width: 400, height: 400 }, raysStyle]}>
-              <Svg width={400} height={400} viewBox="0 0 400 400">
-                {RAYS.map((d, i) => (
-                  <Path key={i} d={d} fill={honey['300']} opacity={dark ? 0.22 : 0.4} />
-                ))}
-              </Svg>
-            </Animated.View>
-          </Animated.View>
-          <Animated.View
-            style={[
-              {
-                position: 'absolute',
-                top: 70,
-                width: 170,
-                height: 170,
-                borderRadius: 85,
-                backgroundColor: honey['300'],
-                opacity: 0.5,
-                shadowColor: honey['300'],
-                shadowOpacity: 0.9,
-                shadowRadius: 40,
-              },
-              glowStyle,
-            ]}
-          />
-
+        <View
+          onLayout={(e) => setStageY(e.nativeEvent.layout.y)}
+          style={{ width: 300, height: 220, alignItems: 'center' }}
+        >
           <Animated.View
             entering={ZoomIn.delay(250).springify().damping(10)}
             style={{ position: 'absolute', top: 0, zIndex: 2, width: 192, height: 88, transform: [{ rotate: '-6deg' }] }}
@@ -158,8 +152,8 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone;
               <Text
                 style={{
                   fontFamily: fonts.roundedHeavy,
-                  fontSize: 24,
-                  letterSpacing: 0.5,
+                  fontSize: shout.length > 9 ? 20 : 23,
+                  letterSpacing: 0.3,
                   color: forest['700'],
                   textShadowColor: cream,
                   textShadowRadius: 3,
