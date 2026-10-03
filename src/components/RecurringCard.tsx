@@ -95,9 +95,9 @@ export function RecurringCard({ items, onOpenGroup }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Recurring &amp; subscriptions</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Recurring &amp; subscriptions</h3>
         <span className="text-xs text-linen-400 dark:text-linen-500">
           ~{formatCurrency(total)}/mo · {shown.length}
         </span>
@@ -391,13 +391,13 @@ function ChargePopup({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4" onClick={onClose}>
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4" onClick={onClose}>
       <div
-        className="flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
+        className="modal-panel flex max-h-[80vh] w-full max-w-md flex-col rounded-2xl bg-cream dark:bg-linen-900 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-linen-100 dark:border-linen-800 p-4">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">{title}</h3>
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">{title}</h3>
           <button
             onClick={onClose}
             aria-label="Close"
@@ -424,7 +424,7 @@ function DateBadge({ date }: { date: string }) {
   const day = Number(date.slice(8, 10))
   return (
     <span className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-linen-100 dark:bg-linen-800">
-      <span className="text-[10px] font-semibold uppercase leading-none text-rose-500 dark:text-rose-400">
+      <span className="text-[10px] font-semibold uppercase leading-none text-coral-700 dark:text-coral-300">
         {month}
       </span>
       <span className="text-sm font-semibold leading-tight text-linen-700 dark:text-linen-200">{day}</span>

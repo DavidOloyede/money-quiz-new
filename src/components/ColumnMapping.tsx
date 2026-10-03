@@ -92,7 +92,7 @@ function StepHeading({ n, title, sub }: { n: number; title: string; sub?: string
         {n}
       </span>
       <div>
-        <h4 className="font-display font-semibold text-linen-800 dark:text-linen-100">{title}</h4>
+        <h4 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">{title}</h4>
         {sub && <p className="text-sm text-linen-500 dark:text-linen-400">{sub}</p>}
       </div>
     </div>
@@ -187,10 +187,10 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
   const peekRows = rows.slice(0, FILE_PEEK_ROWS)
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Match your columns</h3>
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Match your columns</h3>
           <p className="text-sm text-linen-500 dark:text-linen-400">
             Three quick checks. We&apos;ll remember your answers for this bank next time.
           </p>
@@ -464,14 +464,14 @@ export function ColumnMapping({ headers, rows, initial, onConfirm, onCancel }: P
       <div className="mt-6 flex items-center justify-end gap-3">
         <button
           onClick={onCancel}
-          className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+          className="btn-secondary px-4 py-2 text-sm"
         >
           Cancel
         </button>
         <button
           onClick={() => onConfirm(mapping)}
           disabled={!valid}
-          className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn-primary px-4 py-2 text-sm"
         >
           Import {full.transactions.length} transactions
         </button>

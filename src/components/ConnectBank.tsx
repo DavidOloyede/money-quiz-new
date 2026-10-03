@@ -104,14 +104,14 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account' | 'dash
   }
 
   return (
-    <div className="mb-4 rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="mb-4 card p-5">
       <div className="flex items-start gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest-50 dark:bg-forest-500/10 text-forest-600">
           <LinkIcon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Connect a bank or card</h3>
+            <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Connect a bank or card</h3>
             {status.kind === 'ready' && status.health.mode === 'mock' && (
               <span className="rounded-full bg-honey-50 dark:bg-honey-500/10 px-2 py-0.5 text-[10px] font-medium text-honey-700 dark:text-honey-300">
                 Demo mode — sample data
@@ -193,7 +193,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account' | 'dash
               <button
                 onClick={status.health.mode === 'mock' ? connectMock : connectPlaid}
                 disabled={busy}
-                className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-forest-700 disabled:opacity-50"
+                className="btn-primary px-4 py-1.5 text-sm"
               >
                 {busy ? 'Connecting…' : status.health.mode === 'mock' ? 'Connect (demo)' : 'Connect with Plaid'}
               </button>
@@ -205,7 +205,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account' | 'dash
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-linen-100 pt-3 dark:border-linen-800">
             <button
               onClick={() => setDemoOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-linen-300 px-3 py-1.5 text-sm font-medium text-linen-700 hover:bg-linen-50 dark:border-linen-600 dark:text-linen-200 dark:hover:bg-linen-800"
+              className="btn-secondary flex items-center gap-1.5 px-3 py-1.5 text-sm"
             >
               <SparkIcon className="h-4 w-4 text-honey-500" />
               Try a demo bank
@@ -222,7 +222,7 @@ export function ConnectBank({ onNavigate }: { onNavigate?: (v: 'account' | 'dash
             </div>
           )}
           {error && (
-            <div className="mt-3 flex items-center gap-2 text-sm text-rose-700 dark:text-rose-300">
+            <div className="mt-3 flex items-center gap-2 text-sm text-coral-700 dark:text-coral-300">
               <XIcon className="h-4 w-4 shrink-0" /> {error}
             </div>
           )}

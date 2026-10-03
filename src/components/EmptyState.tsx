@@ -15,7 +15,7 @@ export function EmptyState({ icon, title, message, children }: EmptyStateProps) 
           {icon}
         </div>
       )}
-      <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">{title}</h3>
+      <h3 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">{title}</h3>
       <p className="mt-2 max-w-md text-sm text-linen-500 dark:text-linen-400">{message}</p>
       {children && <div className="mt-6 flex flex-wrap items-center justify-center gap-3">{children}</div>}
     </div>

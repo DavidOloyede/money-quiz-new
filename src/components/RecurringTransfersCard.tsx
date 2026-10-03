@@ -21,9 +21,9 @@ export function RecurringTransfersCard({ transactions, onOpenGroup }: Props) {
   if (items.length === 0) return null
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Recurring transfers</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Recurring transfers</h3>
         <span className="text-xs text-linen-400 dark:text-linen-500">{items.length}</span>
       </div>
       <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -42,7 +42,7 @@ export function RecurringTransfersCard({ transactions, onOpenGroup }: Props) {
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
                     rt.direction === 'out'
-                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
+                      ? 'bg-honey-100 text-honey-800 dark:bg-honey-500/20 dark:text-honey-300'
                       : 'bg-forest-100 text-forest-700 dark:bg-forest-500/20 dark:text-forest-300'
                   }`}
                 >

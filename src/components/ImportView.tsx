@@ -112,7 +112,7 @@ export function ImportView({ onNavigate }: Props) {
   return (
     <div>
       <div className="mb-4">
-        <h2 className="font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Import transactions</h2>
+        <h2 className="font-rounded text-[26px] font-extrabold text-linen-900 dark:text-linen-50">Import transactions</h2>
         <p className="text-sm text-linen-500 dark:text-linen-400">
           Upload one or more bank CSVs — each adds to what&apos;s already here — or load the sample
           data to get started.
@@ -145,7 +145,7 @@ export function ImportView({ onNavigate }: Props) {
       )}
 
       {error && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-coral-200 dark:border-coral-500/30 bg-coral-50 dark:bg-coral-500/10 p-3 text-sm text-coral-700 dark:text-coral-300">
           <XIcon className="h-4 w-4" />
           {error}
         </div>
@@ -191,7 +191,7 @@ export function ImportView({ onNavigate }: Props) {
             <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">or choose a file from your computer</p>
             <button
               onClick={() => inputRef.current?.click()}
-              className="mt-4 rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary mt-4 px-4 py-2 text-sm"
             >
               Choose CSV file
             </button>
@@ -209,8 +209,8 @@ export function ImportView({ onNavigate }: Props) {
           </div>
 
           {/* Sample card */}
-          <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-6">
-            <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Just exploring?</h3>
+          <div className="card p-6">
+            <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Just exploring?</h3>
             <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
               Load a year of realistic sample transactions across three accounts — checking,
               savings and a credit card — and try the whole app instantly.
@@ -227,7 +227,7 @@ export function ImportView({ onNavigate }: Props) {
             </button>
             <button
               onClick={downloadSample}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary mt-2 flex w-full items-center justify-center gap-2 px-4 py-2 text-sm"
             >
               <DownloadIcon className="h-4 w-4" />
               Download sample CSVs

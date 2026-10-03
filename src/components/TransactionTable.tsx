@@ -70,10 +70,10 @@ export function TransactionTable({ transactions, sources = [], focusSourceId }: 
   return (
     <div
       data-transaction-table
-      className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900"
+      className="card"
     >
       <div className="flex flex-wrap items-center gap-3 border-b border-linen-100 dark:border-linen-800 p-4">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Your transactions</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Your transactions</h3>
         <span className="rounded-full bg-linen-100 dark:bg-linen-800 px-2 py-0.5 text-xs font-medium text-linen-500 dark:text-linen-400">
           {filtered.length} of {transactions.length}
         </span>

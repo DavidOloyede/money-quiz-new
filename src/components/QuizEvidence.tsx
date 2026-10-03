@@ -31,7 +31,7 @@ export function QuizEvidence({ evidence, compact = false }: Props) {
 
 function EvidenceList({ card, compact }: { card: EvidenceCard; compact: boolean }) {
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+    <div className="card">
       <div className="border-b border-linen-100 dark:border-linen-800 px-4 py-2 text-xs font-semibold text-linen-600 dark:text-linen-300">
         {card.title}
       </div>

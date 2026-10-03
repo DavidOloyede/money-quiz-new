@@ -34,7 +34,7 @@ interface ActivityRow {
 const PAGE = 100
 
 const cardCls =
-  'rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5'
+  'card p-5'
 
 function useProfiles() {
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -62,7 +62,7 @@ function MetricsTab() {
       .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load metrics'))
   }, [])
 
-  if (error) return <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+  if (error) return <p className="text-sm text-coral-700 dark:text-coral-300">{error}</p>
   if (!metrics) return <p className="text-sm text-linen-400">Loading…</p>
 
   const items: [string, number][] = [
@@ -76,7 +76,7 @@ function MetricsTab() {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {items.map(([label, value]) => (
         <div key={label} className={cardCls}>
-          <div className="font-display text-[26px] font-semibold text-linen-800 dark:text-linen-100">{value}</div>
+          <div className="font-sans text-[26px] font-semibold tabular-nums text-linen-800 dark:text-linen-100">{value}</div>
           <div className="mt-1 text-xs text-linen-500 dark:text-linen-400">{label}</div>
         </div>
       ))}
@@ -198,7 +198,7 @@ function ActivityTab({
       {!done && rows.length > 0 && (
         <button
           onClick={() => void load(page + 1, false)}
-          className="mt-3 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+          className="btn-secondary mt-3 px-3 py-1.5 text-sm"
         >
           Load more
         </button>
@@ -284,7 +284,7 @@ export function AdminView() {
 
   return (
     <div>
-      <h2 className="mb-4 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Admin</h2>
+      <h2 className="mb-4 font-rounded text-[26px] font-extrabold text-linen-900 dark:text-linen-50">Admin</h2>
 
       <div className="mb-4 inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
         {tabs.map(([id, label]) => (

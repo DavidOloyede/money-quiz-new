@@ -36,9 +36,9 @@ export function ImportedFiles({ sources, onRemove, onSync, onSelect }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
+    <div className="card">
       <div className="flex flex-wrap items-center gap-3 border-b border-linen-100 dark:border-linen-800 p-4">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Imported sources</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Imported sources</h3>
         <span className="rounded-full bg-linen-100 dark:bg-linen-800 px-2 py-0.5 text-xs font-medium text-linen-500 dark:text-linen-400">
           {sources.length} source{sources.length === 1 ? '' : 's'} · {totalTx} transactions
         </span>
@@ -98,7 +98,7 @@ export function ImportedFiles({ sources, onRemove, onSync, onSelect }: Props) {
                 <button
                   onClick={() => sync(s.id)}
                   disabled={syncing === s.id}
-                  className="flex shrink-0 items-center gap-1 rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 transition-colors hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-50"
+                  className="btn-secondary flex shrink-0 items-center gap-1 px-2.5 py-1.5 text-xs transition-colors disabled:opacity-50"
                   title="Refresh transactions"
                 >
                   <RefreshIcon className={`h-3.5 w-3.5 ${syncing === s.id ? 'animate-spin' : ''}`} />
@@ -107,7 +107,7 @@ export function ImportedFiles({ sources, onRemove, onSync, onSelect }: Props) {
               )}
               <button
                 onClick={() => onRemove(s.id)}
-                className="shrink-0 rounded-lg p-2 text-linen-400 dark:text-linen-500 transition-colors hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600"
+                className="shrink-0 rounded-lg p-2 text-linen-400 dark:text-linen-500 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700"
                 aria-label={`Remove ${s.fileName}`}
                 title={isPlaid ? 'Disconnect and remove its transactions' : 'Remove this file and its transactions'}
               >
