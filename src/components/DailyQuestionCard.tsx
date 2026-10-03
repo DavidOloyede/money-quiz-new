@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { useSound } from '../lib/sound'
+import { AnswerChoice } from './AnswerChoice'
 import { QuizEvidence } from './QuizEvidence'
 import { CheckIcon, SparkIcon, XIcon } from './icons'
 
@@ -8,10 +10,12 @@ import { CheckIcon, SparkIcon, XIcon } from './icons'
  * One question a day — the streak's habit hook. Personalized from the user's
  * own transactions when there's data; a general financial-literacy question
  * when there isn't, so the daily habit starts before any account is connected.
- * Answering earns XP (a little more when correct); the same question stays up
- * all day and a new one arrives at midnight. Once answered it shows the same
- * receipts the quiz does — the transactions the figure came from — so the
- * day's number is never something to take on faith.
+ * Answering earns XP (a little more when correct) and plays the same moment
+ * as the quiz: the answer pops (or shakes), a chime (or soft tone), and the
+ * streak flame flickers. The same question stays up all day and a new one
+ * arrives at midnight. Once answered it shows the same receipts the quiz
+ * does — the transactions the figure came from — so the day's number is
+ * never something to take on faith.
  */
 export function DailyQuestionCard() {
   const {
@@ -23,9 +27,12 @@ export function DailyQuestionCard() {
     awardXp,
     game,
   } = useStore()
+  const play = useSound()
   const [daily, setDaily] = useState(() =>
     getDailyState(transactions, { budgets, aliases, dismissedRecurring, recurringKinds }),
   )
+  // Answered in this visit (not earlier today): only then does the moment play.
+  const [justAnswered, setJustAnswered] = useState(false)
 
   const q = daily.question
   const answered = daily.answer !== null
@@ -33,74 +40,79 @@ export function DailyQuestionCard() {
 
   const choose = (idx: number) => {
     if (answered) return
-    awardXp(dailyQuestionXp(idx === q.correctIndex))
+    const right = idx === q.correctIndex
+    awardXp(dailyQuestionXp(right))
     setDaily(answerDaily(daily, idx))
+    setJustAnswered(true)
+    play(right ? 'chime' : 'soft')
   }
 
   return (
-    <div className="rounded-2xl border border-honey-200 dark:border-honey-500/30 bg-gradient-to-br from-honey-50 to-cream dark:from-honey-950/30 dark:to-linen-900 p-5">
+    <div className="rounded-2xl border border-honey-200 bg-linear-to-br from-honey-50 to-cream p-5 dark:border-honey-500/30 dark:from-honey-950/30 dark:to-linen-900">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+        <h3 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
           <span aria-hidden>📅</span> Question of the day
         </h3>
-        <span className="text-xs font-medium text-honey-700 dark:text-honey-300">
-          🔥 {game.streak}-day streak
-          {daily.source === 'general' && ' · general — connect data to personalize'}
+        <span className="rounded-full bg-honey-100 px-2.5 py-1 font-rounded text-xs font-extrabold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
+          <span className={justAnswered ? 'flame-grow' : ''} aria-hidden>
+            🔥
+          </span>{' '}
+          {game.streak}-day streak
         </span>
       </div>
+      {daily.source === 'general' && (
+        <p className="mt-1 text-xs text-linen-500 dark:text-linen-400">
+          A general one for now. Connect your data to make it personal.
+        </p>
+      )}
 
-      <p className="mt-3 font-display text-[15px] font-medium text-linen-800 dark:text-linen-100">{q.prompt}</p>
+      <p className="mt-3 font-rounded text-[17px] font-bold text-linen-900 dark:text-linen-50">{q.prompt}</p>
 
-      <div className="mt-3 space-y-2">
-        {q.options.map((opt, i) => {
-          const isCorrect = i === q.correctIndex
-          const isChosen = i === daily.answer
-          let cls =
-            'border-linen-200 dark:border-linen-700 hover:border-honey-400 hover:bg-honey-50/40 text-linen-700 dark:text-linen-200'
-          if (answered) {
-            if (isCorrect)
-              cls =
-                'border-forest-500 bg-forest-50 dark:bg-forest-500/10 text-forest-800 dark:text-forest-300'
-            else if (isChosen)
-              cls = 'border-rose-400 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300'
-            else cls = 'border-linen-200 dark:border-linen-700 text-linen-400 dark:text-linen-500'
-          }
-          return (
-            <button
-              key={i}
-              onClick={() => choose(i)}
-              disabled={answered}
-              className={`flex w-full items-center justify-between rounded-xl border bg-cream/60 dark:bg-linen-900/40 px-4 py-2.5 text-left text-sm font-medium transition-colors ${cls} ${
-                answered ? 'cursor-default' : 'cursor-pointer'
-              }`}
-            >
-              <span>{opt}</span>
-              {answered && isCorrect && <CheckIcon className="h-5 w-5 text-forest-600" />}
-              {answered && isChosen && !isCorrect && <XIcon className="h-5 w-5 text-rose-500" />}
-            </button>
-          )
-        })}
+      <div className="mt-3 space-y-2.5">
+        {q.options.map((opt, i) => (
+          <AnswerChoice
+            key={i}
+            compact
+            label={opt}
+            index={i}
+            answered={answered}
+            isCorrect={i === q.correctIndex}
+            isChosen={i === daily.answer}
+            celebrate={justAnswered}
+            xp={dailyQuestionXp(true)}
+            onChoose={() => choose(i)}
+          />
+        ))}
       </div>
 
       {answered && (
         <div className="mt-4 space-y-2.5">
           <div
-            className={`rounded-xl p-3.5 text-sm ${
+            role="status"
+            className={`rounded-xl p-3.5 text-sm ${justAnswered ? 'feedback-in' : ''} ${
               correct
-                ? 'bg-forest-50 dark:bg-forest-500/10 text-forest-800 dark:text-forest-300'
-                : 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300'
+                ? 'bg-forest-50 text-forest-800 dark:bg-forest-500/10 dark:text-forest-300'
+                : 'bg-coral-50 text-coral-800 dark:bg-coral-500/10 dark:text-coral-300'
             }`}
           >
-            <span className="font-semibold">{correct ? 'Correct! ' : 'Not quite. '}</span>
+            <span className="inline-flex items-center gap-1 font-rounded font-black">
+              {correct ? <CheckIcon className="h-4 w-4" /> : <XIcon className="h-4 w-4" />}
+              {correct ? 'Correct! ' : 'Not quite. '}
+            </span>{' '}
             {q.answerDetail}
           </div>
-          <div className="flex items-start gap-2 rounded-xl bg-cream/70 dark:bg-linen-800/50 p-3.5 text-sm text-linen-600 dark:text-linen-300">
+          <div className="flex items-start gap-2 rounded-xl bg-cream/70 p-3.5 text-sm text-linen-600 dark:bg-linen-800/50 dark:text-linen-300">
             <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-honey-500" />
             <span>{q.takeaway}</span>
           </div>
           <QuizEvidence evidence={q.evidence} compact />
-          <p className="text-center text-xs text-linen-400 dark:text-linen-500">
-            +{dailyQuestionXp(correct)} XP · come back tomorrow for a new one
+          <p className="text-center text-xs text-linen-500 dark:text-linen-400">
+            <span
+              className={`mr-1 inline-block rounded-full bg-honey-400 px-2 py-0.5 font-rounded font-black text-linen-900 ${justAnswered ? 'chip-pop' : ''}`}
+            >
+              +{dailyQuestionXp(correct)} XP
+            </span>
+            Come back tomorrow for a new one
           </p>
         </div>
       )}
