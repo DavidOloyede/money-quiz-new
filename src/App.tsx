@@ -21,6 +21,7 @@ import { SettingsView } from './components/SettingsView'
 import { AccountView } from './components/AccountView'
 import { TrashIcon } from './components/icons'
 import { Landing } from './components/landing/Landing'
+import { CelebrationHost } from './components/celebrate/CelebrationHost'
 
 // The dashboard pulls in Recharts; load it on demand to keep the initial bundle small.
 const Dashboard = lazy(() =>
@@ -57,6 +58,8 @@ function ConfirmClear({
 }) {
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onCancel}
     >
@@ -95,6 +98,8 @@ function ConfirmLeaveQuiz({
 }) {
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onStay}
     >
@@ -332,6 +337,8 @@ export default function App() {
           // after a login pull, account switch, or sign-out wipe.
           <StoreProvider key={epoch}>
             <Shell />
+            {/* Level-ups and new badges, wherever they're earned. */}
+            <CelebrationHost />
           </StoreProvider>
         )}
       </SyncGate>

@@ -9,6 +9,7 @@ import {
   transactionsToJson,
 } from '../lib/exportData'
 import { SupportCard } from './SupportCard'
+import { playSound } from '../lib/sound'
 import { DownloadIcon, MoonIcon, SunIcon, TrashIcon } from './icons'
 import { counterpartyLabel } from '@moneyquiz/core/lib/owner'
 import { countRuleMatches } from '@moneyquiz/core/lib/categoryRules'
@@ -25,6 +26,8 @@ export function SettingsView({ onClear }: Props) {
     sources,
     theme,
     setTheme,
+    sound,
+    setSound,
     categoryConfig,
     addCustomCategory,
     updateCategory,
@@ -87,6 +90,39 @@ export function SettingsView({ onClear }: Props) {
               )
             })}
           </div>
+        </section>
+
+        {/* Sounds (docs/DESIGN.md: always mutable, saved per device) */}
+        <section className="card flex items-center justify-between gap-4 p-5">
+          <div>
+            <h3 id="sounds-label" className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
+              Sounds
+            </h3>
+            <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
+              A soft chime for a right answer, a little fanfare when you finish a quiz or level up. Only
+              in those moments, never on your money screens.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={sound}
+            aria-labelledby="sounds-label"
+            onClick={() => {
+              setSound(!sound)
+              // A taste of what it sounds like, as it turns on.
+              if (!sound) playSound('chime')
+            }}
+            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors duration-200 ${
+              sound ? 'bg-forest-600' : 'bg-linen-300 dark:bg-linen-600'
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                sound ? 'translate-x-6' : ''
+              }`}
+            />
+          </button>
         </section>
 
         {/* Categories */}

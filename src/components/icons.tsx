@@ -135,6 +135,25 @@ export function SparkIcon({ className }: IconProps) {
   )
 }
 
+export function SpeakerIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z" />
+      <path d="M15.5 9a4 4 0 010 6" />
+      <path d="M18 6.5a7.5 7.5 0 010 11" />
+    </svg>
+  )
+}
+
+export function SpeakerOffIcon({ className }: IconProps) {
+  return (
+    <svg {...base(className)}>
+      <path d="M4 9.5v5h3.5L12 19V5L7.5 9.5H4z" />
+      <path d="M16 9.5l5 5M21 9.5l-5 5" />
+    </svg>
+  )
+}
+
 export function SettingsIcon({ className }: IconProps) {
   return (
     <svg {...base(className)}>
