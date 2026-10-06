@@ -35,6 +35,7 @@ const ITEMS: NavItem[] = [
 interface NavProps {
   view: View | null
   onNavigate: (v: View) => void
+  onHome: () => void
   onClear: () => void
   hasData: boolean
   theme: ThemeMode
@@ -67,6 +68,15 @@ function navClick(id: View, onNavigate: (v: View) => void) {
   }
 }
 
+/** The brand mark: a real link back to "/", same treatment as the other nav items. */
+function homeClick(onHome: () => void) {
+  return (e: MouseEvent) => {
+    if (!isPlainClick(e)) return
+    e.preventDefault()
+    onHome()
+  }
+}
+
 function ThemeToggle({ theme, onToggleTheme, compact }: { theme: ThemeMode; onToggleTheme: () => void; compact?: boolean }) {
   const dark = theme === 'dark'
   const base =
@@ -84,10 +94,14 @@ function ThemeToggle({ theme, onToggleTheme, compact }: { theme: ThemeMode; onTo
   )
 }
 
-export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin, syncActive }: NavProps) {
+export function Sidebar({ view, onNavigate, onHome, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin, syncActive }: NavProps) {
   return (
     <aside className="hidden md:flex md:flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900">
-      <div className="flex items-center gap-2.5 px-5 h-16 border-b border-linen-100 dark:border-linen-800">
+      <a
+        href="/"
+        onClick={homeClick(onHome)}
+        className="flex items-center gap-2.5 px-5 h-16 border-b border-linen-100 dark:border-linen-800 hover:bg-linen-50 dark:hover:bg-linen-800 transition-colors"
+      >
         <MannaLogo className="w-8 h-8" />
         <div className="leading-tight">
           <div className="font-rounded text-[18px] font-extrabold tracking-tight text-forest-700 dark:text-forest-300">
@@ -95,7 +109,7 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
           </div>
           <div className="text-[11px] text-linen-400 dark:text-linen-500">Steward your daily bread</div>
         </div>
-      </div>
+      </a>
 
       <nav className="flex-1 p-3 space-y-1">
         {navItems(showAccount, showAdmin).map((item) => {
@@ -141,7 +155,7 @@ export function Sidebar({ view, onNavigate, onClear, hasData, theme, onToggleThe
   )
 }
 
-export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin }: NavProps) {
+export function MobileTopNav({ view, onNavigate, onHome, onClear, hasData, theme, onToggleTheme, showAccount, showAdmin }: NavProps) {
   // On a narrow phone the tabs scroll sideways; keep the current one in view.
   const tabs = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -150,12 +164,12 @@ export function MobileTopNav({ view, onNavigate, onClear, hasData, theme, onTogg
   return (
     <header className="md:hidden sticky top-0 z-10 bg-cream dark:bg-linen-900 border-b border-linen-200 dark:border-linen-700">
       <div className="flex items-center justify-between px-4 h-14">
-        <div className="flex items-center gap-2">
+        <a href="/" onClick={homeClick(onHome)} className="flex items-center gap-2">
           <MannaLogo className="w-7 h-7" />
           <span className="font-rounded text-[17px] font-extrabold tracking-tight text-forest-700 dark:text-forest-300">
             Manna Money
           </span>
-        </div>
+        </a>
         <div className="flex items-center gap-1">
           <ProgressChip />
           <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} compact />

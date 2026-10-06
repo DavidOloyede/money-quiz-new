@@ -227,9 +227,12 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     straight in are the ones the welcome page itself points to: `/import`,
     `/signin` and `/signup`. Once they've stepped in, they can move around
     freely for that visit.
-  - **Returning people skip it.** Anyone with data (or signed in) who opens
-    `/` goes straight to their Dashboard (or to Import, if they're signed in
-    with nothing yet).
+  - **People with data skip it.** Anyone with data who opens `/` goes
+    straight to their Dashboard. Anyone with no data, signed in or not, sees
+    the welcome page there (signed in, it leaves off the "Sign in" and
+    "Create a free account" buttons).
+  - **The Manna Money name and logo** at the top of every screen are a link
+    to `/`: the welcome page with no data, the Dashboard with data.
   - Other spellings work too (`/year-sheet`, `/login`, `/Quiz/`) and get
     tidied to the one proper address.
   - An address that doesn't exist shows a friendly **"This page wandered

@@ -180,13 +180,14 @@ function Shell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Where this route should really go. Someone with data (or signed in) skips
-  // the landing; a brand-new visitor who opens an in-app address meets the
-  // landing first, except at the doors the landing itself links to.
+  // Where this route should really go. "/" is the landing for anyone with no
+  // data yet, signed in or not; with data it goes straight to the dashboard.
+  // A brand-new visitor who opens an in-app address meets the landing first,
+  // except at the doors the landing itself links to.
   const known = hasData || !!session
   const newVisitor = !known && !authLoading && !steppedIn
   let redirect: Route | null = null
-  if (route.kind === 'home' && !authLoading && known) redirect = viewRoute(hasData ? 'dashboard' : 'import')
+  if (route.kind === 'home' && !authLoading && hasData) redirect = viewRoute('dashboard')
   else if (route.kind === 'view' && newVisitor && !isOpenDoor(route)) redirect = { kind: 'home' }
   const redirectPath = redirect ? pathFor(redirect) : null
   useEffect(() => {
@@ -211,7 +212,7 @@ function Shell() {
     }
   }, [route, redirectPath])
 
-  const showLanding = route.kind === 'home' && !known && !authLoading
+  const showLanding = route.kind === 'home' && !hasData && !authLoading
   useEffect(() => {
     document.title = titleFor(route)
   }, [route])
@@ -223,6 +224,7 @@ function Shell() {
   if (waiting) return <ViewFallback full />
 
   if (showLanding) {
+    const offerAccount = accountsEnabled && !session
     return (
       <Landing
         onTrySample={() => {
@@ -233,8 +235,8 @@ function Shell() {
           setSteppedIn(true)
           go(viewRoute('import'))
         }}
-        onSignUp={accountsEnabled ? () => go(viewRoute('account', 'signup')) : undefined}
-        onSignIn={accountsEnabled ? () => go(viewRoute('account', 'signin')) : undefined}
+        onSignUp={offerAccount ? () => go(viewRoute('account', 'signup')) : undefined}
+        onSignIn={offerAccount ? () => go(viewRoute('account', 'signin')) : undefined}
       />
     )
   }
@@ -251,6 +253,7 @@ function Shell() {
       <Sidebar
         view={view}
         onNavigate={navigate}
+        onHome={() => navigateTo({ kind: 'home' })}
         onClear={() => setConfirmClear(true)}
         hasData={hasData}
         theme={theme}
@@ -262,6 +265,7 @@ function Shell() {
       <MobileTopNav
         view={view}
         onNavigate={navigate}
+        onHome={() => navigateTo({ kind: 'home' })}
         onClear={() => setConfirmClear(true)}
         hasData={hasData}
         theme={theme}
