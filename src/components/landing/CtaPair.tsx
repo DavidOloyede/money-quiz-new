@@ -2,12 +2,20 @@
  * The landing page's call-to-action stack, shared so the hero and the
  * closing section stay identical (docs/design/landing/bar.md #5): create an
  * account first, try the sample year second. Without accounts configured,
- * the sample year is the only (and so primary) button.
+ * the sample year is the only (and so primary) button. Someone who already
+ * has data gets just the way back to their dashboard.
  */
 import type { LandingActions } from './Landing'
 import { PressButton } from './PressButton'
 
-export function CtaPair({ onSignUp, onTrySample, className = '' }: LandingActions & { className?: string }) {
+export function CtaPair({ onSignUp, onTrySample, onOpenApp, className = '' }: LandingActions & { className?: string }) {
+  if (onOpenApp) {
+    return (
+      <div className={`flex w-full flex-col gap-3 sm:w-auto ${className}`}>
+        <PressButton onClick={onOpenApp}>Go to my dashboard</PressButton>
+      </div>
+    )
+  }
   return (
     <div className={`flex w-full flex-col gap-3 sm:w-auto ${className}`}>
       {onSignUp && <PressButton onClick={onSignUp}>Create a free account</PressButton>}

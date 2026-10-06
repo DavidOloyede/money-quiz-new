@@ -116,7 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return 'Accounts are not configured'
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      // Back to the Account screen, where email sign-in leaves people too;
+      // "/" is the welcome page now, an odd place to land right after.
+      options: { redirectTo: `${window.location.origin}/account` },
     })
     return error ? error.message : null
   }, [])

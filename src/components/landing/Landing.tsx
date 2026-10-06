@@ -1,8 +1,8 @@
 /**
- * The signed-out welcome page. App.tsx shows it in place of the app shell
- * when a visitor is signed out and has no data; creating an account, trying
- * the sample data, importing or signing in drops them into the real app. It never
- * changes the URL.
+ * The welcome page. App.tsx shows it in place of the app shell at "/" for
+ * everyone, signed in or not, data or not (see src/lib/routes.ts); creating
+ * an account, trying the sample data, importing, signing in or (with data)
+ * going to the dashboard drops them into the real app.
  */
 import { LandingHero } from './LandingHero'
 import { LandingHowItWorks } from './LandingHowItWorks'
@@ -21,6 +21,11 @@ export interface LandingActions {
   onImport: () => void
   /** Leave for the sign-in screen; absent when accounts aren't configured. */
   onSignIn?: () => void
+  /**
+   * Back to the dashboard, for someone who already has data. When present it
+   * replaces the sample-data offer, which would overwrite their own year.
+   */
+  onOpenApp?: () => void
 }
 
 export function Landing(actions: LandingActions) {

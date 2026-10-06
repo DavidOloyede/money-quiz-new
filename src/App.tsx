@@ -1,9 +1,20 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { StoreProvider, useStore } from '@moneyquiz/core/store'
 import { AuthProvider, useAuth } from './auth'
 import { SyncGate, useSync } from './components/SyncGate'
 import { track } from './lib/track'
-import { MobileTopNav, Sidebar, type View } from './components/Nav'
+import { MobileTopNav, Sidebar } from './components/Nav'
+import { NotFound } from './components/NotFound'
+import {
+  isOpenDoor,
+  parsePath,
+  pathFor,
+  sameRoute,
+  titleFor,
+  viewRoute,
+  type Route,
+  type View,
+} from './lib/routes'
 import { ImportView } from './components/ImportView'
 import { QuizView } from './components/QuizView'
 import { SettingsView } from './components/SettingsView'
@@ -23,9 +34,13 @@ const AdminView = lazy(() =>
   import('./components/AdminView').then((m) => ({ default: m.AdminView })),
 )
 
-function ViewFallback() {
+function ViewFallback({ full = false }: { full?: boolean }) {
   return (
-    <div className="flex items-center justify-center py-24 text-sm text-linen-400 dark:text-linen-500">
+    <div
+      className={`flex items-center justify-center text-sm text-linen-400 dark:text-linen-500 ${
+        full ? 'min-h-screen bg-linen-50 dark:bg-linen-950' : 'py-24'
+      }`}
+    >
       Loading…
     </div>
   )
@@ -42,33 +57,27 @@ function ConfirmClear({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
+        className="modal-panel w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
           <TrashIcon className="h-6 w-6" />
         </div>
-        <h3 className="mt-4 font-display text-lg font-semibold text-linen-800 dark:text-linen-100">Clear all data?</h3>
+        <h3 className="mt-4 font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">Clear all data?</h3>
         <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
           This permanently removes every transaction, your category edits, and your saved column
           mapping from this browser{alsoCloud ? ' and from your account' : ''}. This can&apos;t be
           undone.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
-          >
+          <button onClick={onCancel} className="btn-secondary px-4 py-2 text-sm">
             Cancel
           </button>
-          <button
-            onClick={onConfirm}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
+          <button onClick={onConfirm} className="btn-danger px-4 py-2 text-sm">
             Clear everything
           </button>
         </div>
@@ -86,29 +95,23 @@ function ConfirmLeaveQuiz({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4"
       onClick={onStay}
     >
       <div
-        className="w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
+        className="modal-panel w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">Leave the quiz?</h3>
+        <h3 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">Leave the quiz?</h3>
         <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
           You&apos;re mid-quiz — if you leave now, your progress won&apos;t be counted toward your
           history or XP.
         </p>
         <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onStay}
-            className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
-          >
+          <button onClick={onStay} className="btn-primary px-4 py-2 text-sm">
             Keep playing
           </button>
-          <button
-            onClick={onLeave}
-            className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
-          >
+          <button onClick={onLeave} className="btn-secondary px-4 py-2 text-sm">
             Leave quiz
           </button>
         </div>
@@ -121,63 +124,131 @@ function Shell() {
   const { clearAll, hasData, loadSample, theme, setTheme } = useStore()
   const { enabled: accountsEnabled, isAdmin, session, loading: authLoading } = useAuth()
   const sync = useSync()
-  const [view, setView] = useState<View>(() => (hasData ? 'dashboard' : 'import'))
+  const [route, setRoute] = useState<Route>(() => parsePath(window.location.pathname))
+  const routeRef = useRef(route)
+  routeRef.current = route
   const [confirmClear, setConfirmClear] = useState(false)
-  // Once a visitor picks "import" or "sign in" from the landing page, stay in
-  // the app for this visit even though they still have no data.
-  const [leftLanding, setLeftLanding] = useState(false)
-  const [accountMode, setAccountMode] = useState<'signin' | 'signup'>('signin')
+  // Once a visitor steps into the app (from the landing, or straight through
+  // one of its doors like /import), they move around freely for this visit
+  // even though they still have no data.
+  const [steppedIn, setSteppedIn] = useState(false)
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  const showLanding = !hasData && !session && !authLoading && !leftLanding
-  useEffect(() => track('nav.view', { view: showLanding ? 'landing' : view }), [view, showLanding])
+  /** Show a route and put its address in the bar (replace: no new history entry). */
+  const go = useCallback((next: Route, replace = false) => {
+    const path = pathFor(next)
+    if (path !== window.location.pathname) {
+      window.history[replace ? 'replaceState' : 'pushState'](null, '', path)
+      if (!replace) window.scrollTo(0, 0)
+    }
+    setRoute(next)
+  }, [])
 
   // Guard against losing a quiz in progress: QuizView reports "dirty" while
-  // mid-quiz, and navigating away first asks for confirmation.
+  // mid-quiz, and navigating away (a link, or the browser's Back) first asks.
   const quizDirtyRef = useRef(false)
-  const [pendingView, setPendingView] = useState<View | null>(null)
-  const navigate = (v: View) => {
-    if (quizDirtyRef.current && view === 'quiz' && v !== 'quiz') setPendingView(v)
-    else setView(v)
+  const [pendingRoute, setPendingRoute] = useState<Route | null>(null)
+  const leavingQuiz = (next: Route) => {
+    const cur = routeRef.current
+    return quizDirtyRef.current && cur.kind === 'view' && cur.view === 'quiz' && !sameRoute(next, cur)
   }
+  const navigateTo = (next: Route) => {
+    if (leavingQuiz(next)) setPendingRoute(next)
+    else go(next)
+  }
+  const navigate = (v: View) => navigateTo(viewRoute(v))
+
+  useEffect(() => {
+    const onPop = () => {
+      const next = parsePath(window.location.pathname)
+      if (leavingQuiz(next)) {
+        // Put the quiz's address back, then ask.
+        window.history.pushState(null, '', pathFor(routeRef.current))
+        setPendingRoute(next)
+        return
+      }
+      setRoute(next)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+    // leavingQuiz reads only refs, so the first render's copy stays current.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Where this route should really go. "/" is always the landing, signed in
+  // or not, data or not. A brand-new visitor who opens an in-app address
+  // meets the landing first, except at the doors the landing itself links to.
+  const known = hasData || !!session
+  const newVisitor = !known && !authLoading && !steppedIn
+  let redirect: Route | null = null
+  if (route.kind === 'view' && newVisitor && !isOpenDoor(route)) redirect = { kind: 'home' }
+  const redirectPath = redirect ? pathFor(redirect) : null
+  useEffect(() => {
+    if (redirectPath) go(parsePath(redirectPath), true)
+  }, [redirectPath, go])
+
+  // Hold a quiet frame while the account is still being looked up, so nobody
+  // sees the landing's buttons change (or a screen they're about to leave)
+  // flash first.
+  const waiting =
+    !!redirectPath ||
+    (route.kind === 'home' && authLoading) ||
+    (authLoading && !hasData && route.kind === 'view' && !isOpenDoor(route))
+
+  useEffect(() => {
+    if (route.kind === 'view' && !waiting) setSteppedIn(true)
+  }, [route, waiting])
+
+  // Tidy other spellings (/year-sheet, /Quiz/) to the one canonical address.
+  useEffect(() => {
+    if (route.kind !== 'notFound' && !redirectPath && window.location.pathname !== pathFor(route)) {
+      window.history.replaceState(null, '', pathFor(route))
+    }
+  }, [route, redirectPath])
+
+  const showLanding = route.kind === 'home' && !authLoading
+  useEffect(() => {
+    document.title = titleFor(route)
+  }, [route])
+  useEffect(
+    () => track('nav.view', { view: showLanding ? 'landing' : route.kind === 'view' ? route.view : route.kind }),
+    [route, showLanding],
+  )
+
+  if (waiting) return <ViewFallback full />
 
   if (showLanding) {
-    const leaveTo = (v: View) => {
-      setLeftLanding(true)
-      setView(v)
-    }
+    const offerAccount = accountsEnabled && !session
     return (
       <Landing
         onTrySample={() => {
           loadSample()
-          setView('dashboard')
+          go(viewRoute('dashboard'))
         }}
-        onImport={() => leaveTo('import')}
-        onSignUp={
-          accountsEnabled
-            ? () => {
-                setAccountMode('signup')
-                leaveTo('account')
-              }
-            : undefined
-        }
-        onSignIn={
-          accountsEnabled
-            ? () => {
-                setAccountMode('signin')
-                leaveTo('account')
-              }
-            : undefined
-        }
+        onImport={() => {
+          setSteppedIn(true)
+          go(viewRoute('import'))
+        }}
+        onSignUp={offerAccount ? () => go(viewRoute('account', 'signup')) : undefined}
+        onSignIn={offerAccount ? () => go(viewRoute('account', 'signin')) : undefined}
+        onOpenApp={hasData ? () => go(viewRoute('dashboard')) : undefined}
       />
     )
   }
+
+  if (route.kind === 'notFound' && !known && !steppedIn) {
+    return <NotFound standalone path={route.path} onHome={() => go({ kind: 'home' })} />
+  }
+
+  const view: View | null = route.kind === 'view' ? route.view : null
+  const accountMode = route.kind === 'view' && route.mode ? route.mode : 'signin'
 
   return (
     <div className="flex min-h-screen flex-col bg-linen-50 dark:bg-linen-950 text-linen-900 dark:text-linen-100 md:flex-row">
       <Sidebar
         view={view}
         onNavigate={navigate}
+        onHome={() => navigateTo({ kind: 'home' })}
         onClear={() => setConfirmClear(true)}
         hasData={hasData}
         theme={theme}
@@ -189,6 +260,7 @@ function Shell() {
       <MobileTopNav
         view={view}
         onNavigate={navigate}
+        onHome={() => navigateTo({ kind: 'home' })}
         onClear={() => setConfirmClear(true)}
         hasData={hasData}
         theme={theme}
@@ -200,20 +272,26 @@ function Shell() {
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
           <Suspense fallback={<ViewFallback />}>
-            {view === 'import' && <ImportView onNavigate={navigate} />}
-            {view === 'dashboard' && <Dashboard onNavigate={navigate} />}
-            {view === 'yearly' && <YearSheetView onNavigate={navigate} />}
-            {view === 'quiz' && (
-              <QuizView
-                onNavigate={navigate}
-                onDirtyChange={(d) => {
-                  quizDirtyRef.current = d
-                }}
-              />
-            )}
-            {view === 'settings' && <SettingsView onClear={() => setConfirmClear(true)} />}
-            {view === 'account' && <AccountView initialMode={accountMode} />}
-            {view === 'admin' && (isAdmin ? <AdminView /> : <AccountView initialMode={accountMode} />)}
+            {/* Keyed by address, so each screen settles in fresh as it arrives. */}
+            <div key={pathFor(route)} className="view-in">
+              {view === 'import' && <ImportView onNavigate={navigate} />}
+              {view === 'dashboard' && <Dashboard onNavigate={navigate} />}
+              {view === 'yearly' && <YearSheetView onNavigate={navigate} />}
+              {view === 'quiz' && (
+                <QuizView
+                  onNavigate={navigate}
+                  onDirtyChange={(d) => {
+                    quizDirtyRef.current = d
+                  }}
+                />
+              )}
+              {view === 'settings' && <SettingsView onClear={() => setConfirmClear(true)} />}
+              {view === 'account' && <AccountView initialMode={accountMode} />}
+              {view === 'admin' && (isAdmin ? <AdminView /> : <AccountView initialMode="signin" />)}
+              {route.kind === 'notFound' && (
+                <NotFound path={route.path} onHome={() => navigateTo({ kind: 'home' })} />
+              )}
+            </div>
           </Suspense>
         </div>
       </main>
@@ -226,18 +304,18 @@ function Shell() {
             clearAll()
             void sync.clearCloud()
             setConfirmClear(false)
-            setView('import')
+            go(viewRoute('import'))
           }}
         />
       )}
 
-      {pendingView && (
+      {pendingRoute && (
         <ConfirmLeaveQuiz
-          onStay={() => setPendingView(null)}
+          onStay={() => setPendingRoute(null)}
           onLeave={() => {
             quizDirtyRef.current = false
-            setView(pendingView)
-            setPendingView(null)
+            go(pendingRoute)
+            setPendingRoute(null)
           }}
         />
       )}
