@@ -180,22 +180,21 @@ function Shell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Where this route should really go. "/" is the landing for anyone with no
-  // data yet, signed in or not; with data it goes straight to the dashboard.
-  // A brand-new visitor who opens an in-app address meets the landing first,
-  // except at the doors the landing itself links to.
+  // Where this route should really go. "/" is always the landing, signed in
+  // or not, data or not. A brand-new visitor who opens an in-app address
+  // meets the landing first, except at the doors the landing itself links to.
   const known = hasData || !!session
   const newVisitor = !known && !authLoading && !steppedIn
   let redirect: Route | null = null
-  if (route.kind === 'home' && !authLoading && hasData) redirect = viewRoute('dashboard')
-  else if (route.kind === 'view' && newVisitor && !isOpenDoor(route)) redirect = { kind: 'home' }
+  if (route.kind === 'view' && newVisitor && !isOpenDoor(route)) redirect = { kind: 'home' }
   const redirectPath = redirect ? pathFor(redirect) : null
   useEffect(() => {
     if (redirectPath) go(parsePath(redirectPath), true)
   }, [redirectPath, go])
 
   // Hold a quiet frame while the account is still being looked up, so nobody
-  // sees the landing (or a screen they're about to leave) flash first.
+  // sees the landing's buttons change (or a screen they're about to leave)
+  // flash first.
   const waiting =
     !!redirectPath ||
     (route.kind === 'home' && authLoading) ||
@@ -212,7 +211,7 @@ function Shell() {
     }
   }, [route, redirectPath])
 
-  const showLanding = route.kind === 'home' && !hasData && !authLoading
+  const showLanding = route.kind === 'home' && !authLoading
   useEffect(() => {
     document.title = titleFor(route)
   }, [route])
@@ -237,6 +236,7 @@ function Shell() {
         }}
         onSignUp={offerAccount ? () => go(viewRoute('account', 'signup')) : undefined}
         onSignIn={offerAccount ? () => go(viewRoute('account', 'signin')) : undefined}
+        onOpenApp={hasData ? () => go(viewRoute('dashboard')) : undefined}
       />
     )
   }

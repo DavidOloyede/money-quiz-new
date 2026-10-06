@@ -227,12 +227,15 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     straight in are the ones the welcome page itself points to: `/import`,
     `/signin` and `/signup`. Once they've stepped in, they can move around
     freely for that visit.
-  - **People with data skip it.** Anyone with data who opens `/` goes
-    straight to their Dashboard. Anyone with no data, signed in or not, sees
-    the welcome page there (signed in, it leaves off the "Sign in" and
-    "Create a free account" buttons).
+  - **`/` is always the welcome page**, for everyone: signed in or not, with
+    data or without. It adjusts its buttons to who's looking. Signed in, it
+    leaves off "Sign in" and "Create a free account". With data, "Try it
+    with sample data" becomes **"Go to my dashboard"** (loading the sample
+    would replace your own year).
   - **The Manna Money name and logo** at the top of every screen are a link
-    to `/`: the welcome page with no data, the Dashboard with data.
+    to `/`, so they always lead back to the welcome page.
+  - **Signing in with Google** brings you back to the Account screen (the
+    same place signing in with email leaves you), not to `/`.
   - Other spellings work too (`/year-sheet`, `/login`, `/Quiz/`) and get
     tidied to the one proper address.
   - An address that doesn't exist shows a friendly **"This page wandered
@@ -246,7 +249,7 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   Each screen settles in with a short fade as it arrives, and every popup
   fades and settles in too. All of that switches off if your device asks for
   less motion.
-- **`landing/`** — The **welcome page** a first-time visitor sees. It's five
+- **`landing/`** — The **welcome page** that lives at `/` (built for a first-time visitor, though everyone lands there). It's five
   parts stacked top to bottom: the opening ("Enough for today. A plan for
   tomorrow." beside a phone showing a right quiz answer), **how it works**,
   **small wins, every morning** (see below), **why "Manna"** (the story behind the name, plus room to give and keeping
