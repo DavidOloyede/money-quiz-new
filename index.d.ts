@@ -25,3 +25,4 @@ export declare function MonthlyTrend(props: any): any;
 export declare function TopMerchantsCard(props: any): any;
 export declare function TrendsCard(props: any): any;
 export declare function DailyQuestionCard(props: any): any;
+export declare function Omer(props: any): any;

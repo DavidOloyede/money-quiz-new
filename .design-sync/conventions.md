@@ -38,6 +38,16 @@ that isn't there renders unstyled.
 | Size | `text-xs`, `text-sm`, `text-lg`, `text-2xl`, `font-semibold`, `font-bold`, `font-extrabold`; labels `uppercase tracking-wide text-xs` |
 | Layout | `flex`, `grid`, `grid-cols-2`, `grid-cols-3`, `sm:grid-cols-3`, `gap-2`/`gap-3`/`gap-4`, `p-4`/`p-5`/`p-6`, `space-y-3`, `items-center`, `justify-between`, `max-w-md`, `max-w-2xl` |
 
+## Omer, the mascot
+
+`<Omer pose="cheer" size={120} />` is the honey-gold manna bowl who shows up
+at the moments: a right answer, a finished quiz, a level-up, a badge, a
+streak goal. Give him an `outfit` for one kind of moment (the Graduate for a
+finished quiz, the Coach for a streak goal, the Dreamer for "come back
+tomorrow"); outfits show only at 64px and up. Keep him off the money: never
+on a dashboard, a table, a budget or next to an amount. Use `motion="still"`
+in static mockups.
+
 ## Where the truth lives
 
 - `styles.css` and the `_ds_bundle.css` it imports: every class and token
