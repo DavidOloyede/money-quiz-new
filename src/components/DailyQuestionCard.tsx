@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 import { useSound } from '../lib/sound'
 import { AnswerChoice } from './AnswerChoice'
+import { Omer } from './Omer'
 import { QuizEvidence } from './QuizEvidence'
 import { StreakFlame } from './StreakFlame'
 import { CheckIcon, SparkIcon, XIcon } from './icons'
@@ -108,14 +110,18 @@ export function DailyQuestionCard() {
             <span>{q.takeaway}</span>
           </div>
           <QuizEvidence evidence={q.evidence} compact />
-          <p className="text-center text-xs text-linen-500 dark:text-linen-400">
-            <span
-              className={`mr-1 inline-block rounded-full bg-honey-400 px-2 py-0.5 font-rounded font-black text-linen-900 ${justAnswered ? 'chip-pop' : ''}`}
-            >
-              +{dailyQuestionXp(correct)} XP
-            </span>
-            Come back tomorrow for a new one
-          </p>
+          {/* Done for today: the Dreamer naps at the foot, apart from the receipts above. */}
+          <div className="flex items-center justify-center gap-2 pt-1">
+            <Omer {...omerFor({ kind: 'daily-done' })} size={64} />
+            <p className="text-xs text-linen-500 dark:text-linen-400">
+              <span
+                className={`mr-1 inline-block rounded-full bg-honey-400 px-2 py-0.5 font-rounded font-black text-linen-900 ${justAnswered ? 'chip-pop' : ''}`}
+              >
+                +{dailyQuestionXp(correct)} XP
+              </span>
+              Come back tomorrow for a new one
+            </p>
+          </div>
         </div>
       )}
     </div>
