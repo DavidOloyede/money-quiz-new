@@ -251,7 +251,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 
   Each screen settles in with a short fade as it arrives, and every popup
   fades and settles in too. All of that switches off if your device asks for
-  less motion.
+  less motion. The fades let go once they finish, on purpose: if a screen
+  held on to its fade, every popup opened from it would get stuck partway
+  down the page instead of appearing over whatever you're looking at.
 - **`landing/`** — The **welcome page** that lives at `/` (built for a first-time visitor, though everyone lands there). It's four
   parts stacked top to bottom: the opening ("Enough for today. A plan for
   tomorrow." beside a phone showing a right quiz answer), **how it works**,
