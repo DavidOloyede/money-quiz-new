@@ -29,9 +29,9 @@ export function TopMerchantsCard({ transactions, onOpenGroup, onViewAll, habitCo
   const max = top[0]?.total ?? 0
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Top merchants</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Top merchants</h3>
         {onViewAll && all.length > 0 && (
           <button
             onClick={onViewAll}

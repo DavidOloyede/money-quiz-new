@@ -12,6 +12,7 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 
+import { CelebrationHost } from '@/components/celebrate/CelebrationHost'
 import { AuthProvider } from '@/lib/auth'
 import { ensureReminderScheduled } from '@/lib/reminder'
 import { SyncDialogs, SyncProvider } from '@/lib/sync'
@@ -83,6 +84,8 @@ function ThemedShell() {
           contentStyle: { backgroundColor: colors.background },
         }}
       />
+      {/* The day's streak, level-ups and new badges, over whatever screen earned them. */}
+      <CelebrationHost />
       <SyncDialogs />
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>

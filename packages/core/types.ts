@@ -187,10 +187,15 @@ export interface QuizResult {
 export interface GameState {
   /** Lifetime points; levels are derived from this. */
   xp: number
-  /** Consecutive days the app has been used, counting today. */
+  /**
+   * Consecutive days the question of the day was answered, up to
+   * lastActiveDay. Read it through lib/streak's
+   * liveStreak: after a missed day this still holds the old run until the
+   * next answer restarts it.
+   */
   streak: number
   bestStreak: number
-  /** YYYY-MM-DD (local) of the last counted check-in day. */
+  /** YYYY-MM-DD (local) of the last day that counted toward the streak. */
   lastActiveDay: string
   /** Earned badge ids -> ISO date earned (see lib/badges). Never un-awarded. */
   badges: Record<string, string>

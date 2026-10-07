@@ -1,26 +1,15 @@
+/**
+ * Past quiz scores at a glance. The day streak is the app's one streak (kept
+ * by the question of the day), so it matches the flame everywhere else.
+ */
+import { useStore } from '@moneyquiz/core/store'
+import { liveStreak } from '@moneyquiz/core/lib/streak'
 import type { QuizResult } from '@moneyquiz/core/types'
-
-function dayStreak(history: QuizResult[]): number {
-  if (history.length === 0) return 0
-  const days = new Set(history.map((h) => h.at.slice(0, 10)))
-  const d = new Date()
-  const today = d.toISOString().slice(0, 10)
-  if (!days.has(today)) d.setUTCDate(d.getUTCDate() - 1)
-  let streak = 0
-  for (;;) {
-    const key = d.toISOString().slice(0, 10)
-    if (days.has(key)) {
-      streak++
-      d.setUTCDate(d.getUTCDate() - 1)
-    } else break
-  }
-  return streak
-}
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="min-w-16">
-      <div className="font-display text-xl font-semibold text-linen-800 dark:text-linen-100">{value}</div>
+      <div className="font-rounded text-xl font-extrabold tabular-nums text-linen-800 dark:text-linen-100">{value}</div>
       <div className="text-[11px] uppercase tracking-wide text-linen-400 dark:text-linen-500">
         {label}
       </div>
@@ -29,15 +18,16 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export function QuizHistory({ history }: { history: QuizResult[] }) {
+  const { game } = useStore()
   if (history.length === 0) return null
   const attempts = history.length
   const bestPct = Math.round(Math.max(...history.map((h) => (h.total ? h.correct / h.total : 0))) * 100)
   const last = history[attempts - 1]
   const lastPct = Math.round(last.total ? (last.correct / last.total) * 100 : 0)
-  const streak = dayStreak(history)
+  const streak = liveStreak(game)
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-4">
+    <div className="card p-4">
       <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
         <Stat label="Attempts" value={attempts} />
         <Stat label="Best" value={`${bestPct}%`} />

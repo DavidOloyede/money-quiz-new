@@ -15,7 +15,7 @@ export function VerseOfDay() {
           📖
         </span>
         <div className="min-w-0">
-          <p className="font-display text-[15px] italic leading-relaxed text-linen-800 dark:text-honey-100">
+          <p className="font-display font-soft text-[15px] italic leading-relaxed text-linen-800 dark:text-honey-100">
             “{verse.text}”
           </p>
           <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2">

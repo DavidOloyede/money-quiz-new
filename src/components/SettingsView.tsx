@@ -9,6 +9,7 @@ import {
   transactionsToJson,
 } from '../lib/exportData'
 import { SupportCard } from './SupportCard'
+import { playSound } from '../lib/sound'
 import { DownloadIcon, MoonIcon, SunIcon, TrashIcon } from './icons'
 import { counterpartyLabel } from '@moneyquiz/core/lib/owner'
 import { countRuleMatches } from '@moneyquiz/core/lib/categoryRules'
@@ -25,6 +26,8 @@ export function SettingsView({ onClear }: Props) {
     sources,
     theme,
     setTheme,
+    sound,
+    setSound,
     categoryConfig,
     addCustomCategory,
     updateCategory,
@@ -58,12 +61,12 @@ export function SettingsView({ onClear }: Props) {
 
   return (
     <div>
-      <h2 className="mb-4 font-display text-[22px] font-semibold text-linen-800 dark:text-linen-100">Settings</h2>
+      <h2 className="mb-4 font-rounded text-[26px] font-extrabold text-linen-900 dark:text-linen-50">Settings</h2>
 
       <div className="space-y-4">
         {/* Appearance */}
-        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Appearance</h3>
+        <section className="card p-5">
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Appearance</h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">Choose your theme.</p>
           <div className="mt-3 inline-flex rounded-lg border border-linen-200 dark:border-linen-700 p-0.5">
             {([
@@ -89,9 +92,42 @@ export function SettingsView({ onClear }: Props) {
           </div>
         </section>
 
+        {/* Sounds (docs/DESIGN.md: always mutable, saved per device) */}
+        <section className="card flex items-center justify-between gap-4 p-5">
+          <div>
+            <h3 id="sounds-label" className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
+              Sounds
+            </h3>
+            <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
+              A soft chime for a right answer, a little fanfare when you finish a quiz or level up. Only
+              in those moments, never on your money screens.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={sound}
+            aria-labelledby="sounds-label"
+            onClick={() => {
+              setSound(!sound)
+              // A taste of what it sounds like, as it turns on.
+              if (!sound) playSound('chime')
+            }}
+            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors duration-200 ${
+              sound ? 'bg-forest-600' : 'bg-linen-300 dark:bg-linen-600'
+            }`}
+          >
+            <span
+              className={`absolute top-1 left-1 h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                sound ? 'translate-x-6' : ''
+              }`}
+            />
+          </button>
+        </section>
+
         {/* Categories */}
-        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Categories</h3>
+        <section className="card p-5">
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Categories</h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
             Rename or recolor any category, or add your own. Deleting a custom category moves its
             transactions to Other.
@@ -128,7 +164,7 @@ export function SettingsView({ onClear }: Props) {
                 {customIds.has(d.id) ? (
                   <button
                     onClick={() => deleteCategory(d.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600"
+                    className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-700"
                     aria-label={`Delete ${d.label}`}
                   >
                     <TrashIcon className="h-4 w-4" />
@@ -170,7 +206,7 @@ export function SettingsView({ onClear }: Props) {
             <button
               onClick={addCustom}
               disabled={!newLabel.trim()}
-              className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+              className="btn-primary px-3 py-1.5 text-sm"
             >
               Add category
             </button>
@@ -178,8 +214,8 @@ export function SettingsView({ onClear }: Props) {
         </section>
 
         {/* Data */}
-        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+        <section className="card p-5">
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">
             My names &amp; accounts
           </h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -229,7 +265,7 @@ export function SettingsView({ onClear }: Props) {
                 setNewOwnerName('')
               }}
               disabled={!newOwnerName.trim()}
-              className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+              className="btn-primary px-3 py-1.5 text-sm"
             >
               Add
             </button>
@@ -275,8 +311,8 @@ export function SettingsView({ onClear }: Props) {
           )}
         </section>
 
-        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">
+        <section className="card p-5">
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">
             Category rules
           </h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -346,15 +382,15 @@ export function SettingsView({ onClear }: Props) {
                 setNewRulePattern('')
               }}
               disabled={!newRulePattern.trim()}
-              className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+              className="btn-primary px-3 py-1.5 text-sm"
             >
               Add rule
             </button>
           </div>
         </section>
 
-        <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
-          <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Your data</h3>
+        <section className="card p-5">
+          <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Your data</h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
             Everything is stored only in this browser. Export it or wipe it anytime.
           </p>
@@ -364,7 +400,7 @@ export function SettingsView({ onClear }: Props) {
                 downloadText('money-quiz-transactions.csv', transactionsToCsv(transactions, sourceName), 'text/csv;charset=utf-8')
               }
               disabled={transactions.length === 0}
-              className="flex items-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-40"
+              className="btn-secondary flex items-center gap-2 px-3 py-1.5 text-sm"
             >
               <DownloadIcon className="h-4 w-4" /> CSV
             </button>
@@ -373,21 +409,21 @@ export function SettingsView({ onClear }: Props) {
                 downloadText('money-quiz-transactions.json', transactionsToJson(transactions), 'application/json')
               }
               disabled={transactions.length === 0}
-              className="flex items-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-40"
+              className="btn-secondary flex items-center gap-2 px-3 py-1.5 text-sm"
             >
               <DownloadIcon className="h-4 w-4" /> JSON
             </button>
             <button
               onClick={() => downloadText('money-quiz-report.txt', buildReport(transactions))}
               disabled={transactions.length === 0}
-              className="flex items-center gap-2 rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-40"
+              className="btn-secondary flex items-center gap-2 px-3 py-1.5 text-sm"
             >
               <DownloadIcon className="h-4 w-4" /> Report
             </button>
             <button
               onClick={() => printReport(buildReport(transactions))}
               disabled={transactions.length === 0}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800 disabled:opacity-40"
+              className="btn-secondary px-3 py-1.5 text-sm"
             >
               Print report
             </button>
@@ -395,7 +431,7 @@ export function SettingsView({ onClear }: Props) {
           <button
             onClick={onClear}
             disabled={transactions.length === 0}
-            className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 dark:border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-40"
+            className="mt-4 flex items-center gap-2 rounded-lg border border-rose-200 dark:border-rose-500/30 px-3 py-1.5 text-sm font-medium text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-40"
           >
             <TrashIcon className="h-4 w-4" /> Clear all data
           </button>

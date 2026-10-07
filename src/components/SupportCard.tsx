@@ -126,7 +126,7 @@ export function TicketThread({
         <button
           onClick={() => void send()}
           disabled={busy || !reply.trim()}
-          className="shrink-0 rounded-lg bg-forest-600 px-3 py-2 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+          className="btn-primary shrink-0 px-3 py-2 text-sm"
         >
           Reply
         </button>
@@ -179,10 +179,10 @@ export function SupportCard() {
   }
 
   return (
-    <section className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <section className="card p-5">
       <div className="flex items-center gap-2">
         <LifeBuoyIcon className="h-5 w-5 text-forest-600" />
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Help &amp; support</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Help &amp; support</h3>
       </div>
       <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
         Found a bug or need a hand? Send us a ticket and we&apos;ll reply right here.
@@ -197,7 +197,7 @@ export function SupportCard() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="mt-3 rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary mt-3 px-4 py-2 text-sm"
             >
               New ticket
             </button>
@@ -233,19 +233,19 @@ export function SupportCard() {
                 rows={4}
                 className={inputCls}
               />
-              {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+              {error && <p className="text-sm text-coral-700 dark:text-coral-300">{error}</p>}
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="rounded-lg border border-linen-300 dark:border-linen-600 px-3 py-1.5 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+                  className="btn-secondary px-3 py-1.5 text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={busy || !subject.trim() || !body.trim()}
-                  className="rounded-lg bg-forest-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+                  className="btn-primary px-4 py-1.5 text-sm"
                 >
                   {busy ? 'Sending…' : 'Send ticket'}
                 </button>

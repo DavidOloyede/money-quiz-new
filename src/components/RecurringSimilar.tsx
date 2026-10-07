@@ -32,7 +32,7 @@ export function useRecurringSimilar() {
 
   const node = pending ? (
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
-      <div className="flex w-full max-w-md items-center gap-2 rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-3 shadow-lg">
+      <div className="modal-panel flex w-full max-w-md items-center gap-2 card p-3 shadow-lg">
         <div className="min-w-0 flex-1 text-sm text-linen-600 dark:text-linen-300">
           Also mark the other {pending.count}{' '}
           <span className="font-semibold">{pending.label}</span> charge
@@ -43,7 +43,7 @@ export function useRecurringSimilar() {
             setGroupRecurring(pending.ids, true)
             setPending(null)
           }}
-          className="flex shrink-0 items-center gap-1 rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
+          className="btn-primary flex shrink-0 items-center gap-1 px-3 py-1.5 text-sm"
         >
           <CheckIcon className="h-4 w-4" /> Mark all
         </button>

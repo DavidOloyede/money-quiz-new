@@ -48,9 +48,9 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
   }
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Budgets</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Budgets</h3>
         <span className="text-xs text-linen-400 dark:text-linen-500">{formatMonth(monthKey)}</span>
       </div>
 
@@ -107,7 +107,7 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
                           onSetBudget(s.category, 0)
                           setConfirmRemove(null)
                         }}
-                        className="rounded-lg bg-rose-600 px-2 py-1 font-medium text-white hover:bg-rose-700"
+                        className="btn-danger px-2 py-1"
                       >
                         Remove
                       </button>
@@ -120,7 +120,7 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
                     </span>
                   ) : (
                     <span className="flex shrink-0 items-center gap-1">
-                      <span className={`tabular-nums ${s.over ? 'text-rose-600 dark:text-rose-400 font-medium' : 'text-linen-500 dark:text-linen-400'}`}>
+                      <span className={`tabular-nums ${s.over ? 'text-coral-700 dark:text-coral-300 font-medium' : 'text-linen-500 dark:text-linen-400'}`}>
                         {formatCurrency(s.spent)} / {formatCurrency(s.budget)}
                       </span>
                       <button
@@ -145,12 +145,12 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
                 </div>
                 <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-linen-100 dark:bg-linen-800">
                   <div
-                    className={`h-full rounded-full ${s.over ? 'bg-rose-500' : 'bg-forest-500'}`}
+                    className={`h-full rounded-full ${s.over ? 'bg-coral-500' : 'bg-forest-500'}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
                 {s.over && (
-                  <div className="mt-0.5 text-xs text-rose-600 dark:text-rose-400">
+                  <div className="mt-0.5 text-xs text-coral-700 dark:text-coral-300">
                     {formatCurrency(s.spent - s.budget)} over budget
                   </div>
                 )}
@@ -184,7 +184,7 @@ export function BudgetsCard({ transactions, monthKey, budgets, onSetBudget }: Pr
           <button
             onClick={add}
             disabled={!addCat || !(parseFloat(addAmt) > 0)}
-            className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700 disabled:opacity-40"
+            className="btn-primary px-3 py-1.5 text-sm"
           >
             Add
           </button>

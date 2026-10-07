@@ -72,8 +72,8 @@ function hasLocalData(): boolean {
 
 function DialogShell({ children }: { children: ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl">
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4">
+      <div className="modal-panel w-full max-w-sm rounded-2xl bg-cream dark:bg-linen-900 p-6 shadow-xl">
         {children}
       </div>
     </div>
@@ -220,8 +220,8 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
       {children(epoch)}
 
       {pulling && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4">
-          <div className="rounded-2xl bg-cream dark:bg-linen-900 px-6 py-4 text-sm font-medium text-linen-600 dark:text-linen-300 shadow-xl">
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-linen-900/40 p-4">
+          <div className="modal-panel rounded-2xl bg-cream dark:bg-linen-900 px-6 py-4 text-sm font-medium text-linen-600 dark:text-linen-300 shadow-xl">
             Syncing your account…
           </div>
         </div>
@@ -229,7 +229,7 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
 
       {dialog.kind === 'upload' && (
         <DialogShell>
-          <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+          <h3 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
             Save this device&apos;s data to your account?
           </h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -239,13 +239,13 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={decline}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary px-4 py-2 text-sm"
             >
               Sign out
             </button>
             <button
               onClick={() => void acceptUpload()}
-              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary px-4 py-2 text-sm"
             >
               Save to my account
             </button>
@@ -255,7 +255,7 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
 
       {dialog.kind === 'replace' && (
         <DialogShell>
-          <h3 className="font-display text-lg font-semibold text-linen-800 dark:text-linen-100">
+          <h3 className="font-rounded text-lg font-extrabold text-linen-800 dark:text-linen-100">
             Use your account&apos;s data?
           </h3>
           <p className="mt-1 text-sm text-linen-500 dark:text-linen-400">
@@ -274,13 +274,13 @@ export function SyncGate({ children }: { children: (epoch: number) => ReactNode 
           <div className="mt-6 flex justify-end gap-3">
             <button
               onClick={decline}
-              className="rounded-lg border border-linen-300 dark:border-linen-600 px-4 py-2 text-sm font-medium text-linen-700 dark:text-linen-200 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary px-4 py-2 text-sm"
             >
               Sign out
             </button>
             <button
               onClick={() => acceptReplace(dialog.rows)}
-              className="rounded-lg bg-forest-600 px-4 py-2 text-sm font-medium text-white hover:bg-forest-700"
+              className="btn-primary px-4 py-2 text-sm"
             >
               Use account data
             </button>

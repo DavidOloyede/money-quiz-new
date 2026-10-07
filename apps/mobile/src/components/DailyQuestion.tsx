@@ -5,25 +5,35 @@
  * the daily habit starts before any account is connected. Answering earns XP
  * (a little more when correct); the same question stays up all day and a new
  * one arrives at midnight. Once answered it shows the same receipts the quiz
- * does — the transactions the figure came from.
+ * does — the transactions the figure came from. Answering counts today
+ * toward the streak (the only thing that does) and plays the same moment as the quiz: the answer pops
+ * (or shakes), a chime (or soft tone) with a haptic, and the streak flame
+ * lights (it stays dim until something is answered today).
  */
 import { useState } from 'react'
 import { Text, View } from 'react-native'
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated'
 import { useStore } from '@moneyquiz/core'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { QuizEvidence } from '@/components/QuizEvidence'
 import { Card, CardTitle } from '@/components/ui'
+import { haptic } from '@/lib/haptics'
+import { useSound } from '@/lib/sound'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 
 export function DailyQuestion() {
   const { colors } = useAppTheme()
-  const { transactions, budgets, aliases, dismissedRecurring, recurringKinds, awardXp, game } =
+  const { transactions, budgets, aliases, dismissedRecurring, recurringKinds, awardXp, recordDailyAnswer, game } =
     useStore()
+  const play = useSound()
   const [daily, setDaily] = useState(() =>
     getDailyState(transactions, { budgets, aliases, dismissedRecurring, recurringKinds }),
   )
+  // Answered in this visit (not earlier today): only then does the moment play.
+  const [justAnswered, setJustAnswered] = useState(false)
 
   const q = daily.question
   const answered = daily.answer !== null
@@ -31,17 +41,27 @@ export function DailyQuestion() {
 
   const choose = (idx: number) => {
     if (answered) return
-    awardXp(dailyQuestionXp(idx === q.correctIndex))
+    const right = idx === q.correctIndex
+    awardXp(dailyQuestionXp(right))
+    recordDailyAnswer()
     setDaily(answerDaily(daily, idx))
+    setJustAnswered(true)
+    play(right ? 'chime' : 'soft')
+    if (right) haptic.success()
+    else haptic.notQuite()
   }
 
   return (
     <Card tone="warm">
       <CardTitle
         right={
-          <Text style={{ fontFamily: fonts.sansMedium, fontSize: 12, color: colors.accentDeep }}>
-            🔥 {game.streak}-day streak
-          </Text>
+          <Animated.Text
+            key={justAnswered ? 'lit' : 'still'}
+            entering={justAnswered ? ZoomIn.springify().damping(7) : undefined}
+            style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}
+          >
+            <Text style={{ opacity: countedToday(game) ? 1 : 0.4 }}>🔥</Text> {liveStreak(game)}-day streak
+          </Animated.Text>
         }
       >
         📅 Question of the day
@@ -52,7 +72,7 @@ export function DailyQuestion() {
         </Text>
       )}
 
-      <Text style={{ fontFamily: fonts.rounded, fontSize: 15, lineHeight: 21, color: colors.ink }}>
+      <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 16, lineHeight: 22, color: colors.ink }}>
         {q.prompt}
       </Text>
 
@@ -61,16 +81,19 @@ export function DailyQuestion() {
           <AnswerOption
             key={i}
             label={opt}
+            index={i}
             answered={answered}
             isCorrect={i === q.correctIndex}
             isChosen={i === daily.answer}
+            celebrate={justAnswered}
+            xp={dailyQuestionXp(true)}
             onPress={() => choose(i)}
           />
         ))}
       </View>
 
       {answered && (
-        <View style={{ gap: spacing.sm }}>
+        <Animated.View entering={justAnswered ? FadeInDown.duration(320) : undefined} style={{ gap: spacing.sm }}>
           <View
             style={{
               borderRadius: radii.md,
@@ -108,9 +131,10 @@ export function DailyQuestion() {
           </View>
           <QuizEvidence evidence={q.evidence} />
           <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint, textAlign: 'center' }}>
-            +{dailyQuestionXp(correct)} XP · come back tomorrow for a new one
+            <Text style={{ fontFamily: fonts.roundedHeavy, color: colors.accentDeep }}>+{dailyQuestionXp(correct)} XP</Text> · come
+            back tomorrow for a new one
           </Text>
-        </View>
+        </Animated.View>
       )}
     </Card>
   )

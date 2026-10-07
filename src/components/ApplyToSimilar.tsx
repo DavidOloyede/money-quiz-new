@@ -96,7 +96,7 @@ export function useApplyToSimilar() {
 
   const node = pending ? (
     <div className="fixed inset-x-0 bottom-4 z-[60] flex justify-center px-4">
-      <div className="w-full max-w-md rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 shadow-lg">
+      <div className="modal-panel w-full max-w-md card shadow-lg">
         {expanded && (
           <SimilarRowsList
             rows={expanded.rows}
@@ -127,14 +127,14 @@ export function useApplyToSimilar() {
                   setExcluded(new Set())
                 }
               }}
-              className="shrink-0 rounded-lg border border-linen-300 dark:border-linen-600 px-2.5 py-1.5 text-xs font-medium text-linen-600 dark:text-linen-300 hover:bg-linen-50 dark:hover:bg-linen-800"
+              className="btn-secondary shrink-0 px-2.5 py-1.5 text-xs"
             >
               {expanded === pending.secondary ? 'Apply to these' : pending.secondary.label}
             </button>
           )}
           <button
             onClick={() => apply(expanded ?? pending.primary)}
-            className="flex shrink-0 items-center gap-1 rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
+            className="btn-primary flex shrink-0 items-center gap-1 px-3 py-1.5 text-sm"
           >
             <CheckIcon className="h-4 w-4" /> Apply
           </button>

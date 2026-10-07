@@ -1,8 +1,8 @@
 /**
  * Points (XP), levels, and the daily streak. Pure helpers — the store owns the
- * persisted GameState and calls these to update it. Using the app each day
- * keeps the streak alive; quizzes and imports earn extra XP; XP adds up to
- * levels with fun titles.
+ * persisted GameState and calls these to update it. Answering the question of
+ * the day keeps the streak alive; quizzes and imports earn extra XP; XP adds up to levels with fun titles.
+ * The streak's goals and its "still alive today?" reading live in streak.ts.
  */
 import type { GameState } from '../types'
 
@@ -16,7 +16,7 @@ export const DEFAULT_GAME_STATE: GameState = {
 
 /** How many points each action is worth. */
 export const XP = {
-  /** Opening the app on a new day. */
+  /** Answering the question of the day, once per day (the streak's day). */
   dailyCheckIn: 10,
   /** Extra per consecutive day, on top of the check-in (capped). */
   streakBonusPerDay: 2,
@@ -51,18 +51,23 @@ export function prevDayKey(day: string): string {
   return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`
 }
 
+/** XP for the day a streak reaches `streak`: the check-in plus the (capped) streak bonus. */
+export function streakDayXp(streak: number): number {
+  return XP.dailyCheckIn + Math.min(streak * XP.streakBonusPerDay, XP.streakBonusCap)
+}
+
 /**
- * Record a day of activity. Idempotent per day: the first visit of the day
- * extends (or restarts) the streak and awards check-in + streak-bonus XP;
- * later visits the same day change nothing.
+ * Count a day toward the streak. The store calls it when the question of the
+ * day is answered, right or wrong; it's idempotent per day, so only the
+ * first call of the day extends (or restarts) the streak and awards
+ * check-in + streak-bonus XP.
  */
 export function checkIn(state: GameState, day: string = todayKey()): GameState {
   if (state.lastActiveDay === day) return state
   const streak = state.lastActiveDay === prevDayKey(day) ? state.streak + 1 : 1
-  const bonus = Math.min(streak * XP.streakBonusPerDay, XP.streakBonusCap)
   return {
     ...state, // keep badges (and future fields) intact
-    xp: state.xp + XP.dailyCheckIn + bonus,
+    xp: state.xp + streakDayXp(streak),
     streak,
     bestStreak: Math.max(streak, state.bestStreak),
     lastActiveDay: day,

@@ -72,7 +72,9 @@ interface StoreValue {
   budgets: Budgets
   quizHistory: QuizResult[]
   theme: ThemeMode
-  /** XP / level / daily-streak progress (auto-checked-in on app open). */
+  /** Celebration sounds on/off (per device; only the game moments ever play one). */
+  sound: boolean
+  /** XP / level / daily-streak progress (a day counts when the question of the day is answered; see recordDailyAnswer). */
   game: GameState
   /** Year Sheet starting balance per year ("2026" -> dollars). */
   startingBalances: StartingBalances
@@ -156,8 +158,15 @@ interface StoreValue {
   setDebtPaidOff: (groupKey: string, paidOff: boolean) => void
   /** Add points toward the next level (quizzes/imports award automatically). */
   awardXp: (amount: number) => void
+  /**
+   * Answering the question of the day, right or wrong, counts today toward
+   * the streak and earns the day's streak XP. Quiz answers don't. Only the
+   * first call of the day changes anything.
+   */
+  recordDailyAnswer: () => void
   recordQuizResult: (correct: number, total: number) => void
   setTheme: (mode: ThemeMode) => void
+  setSound: (on: boolean) => void
   saveMapping: (m: ColumnMapping) => void
   clearAll: () => void
 }
@@ -287,12 +296,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ...loadJSON<GameState>(STORAGE_KEYS.game, DEFAULT_GAME_STATE),
   }))
   const [theme, setThemeState] = useState<ThemeMode>(initialTheme)
-
-  // Count today toward the daily streak (idempotent — only the first visit of
-  // the day moves the streak and awards check-in XP).
-  useEffect(() => {
-    setGame((g) => checkIn(g))
-  }, [])
+  const [sound, setSoundState] = useState<boolean>(() => loadJSON<boolean>(STORAGE_KEYS.sound, true) !== false)
 
   // Refs so callbacks can read current state without nesting state updaters
   // (React StrictMode double-invokes updaters, which would duplicate appends).
@@ -440,7 +444,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // Stamp any newly earned badges whenever their inputs change. awardBadges
   // returns the same object when nothing is new, so this can't loop; it reads
-  // the streak off the current state, so `game` itself isn't a dependency.
+  // the streak off the current state, so only bestStreak (which a day's first
+  // answer can raise) joins the dependencies, not all of `game`.
   useEffect(() => {
     setGame((g) =>
       awardBadges(g, {
@@ -450,7 +455,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         paidOffCount: Object.keys(paidOffDebts).length,
       }),
     )
-  }, [transactions, quizHistory, sources, paidOffDebts])
+  }, [transactions, quizHistory, sources, paidOffDebts, game.bestStreak])
   // Card installment plans arrive as three rows (charge, credit, plan charge).
   // Pair the credit with the plan charge so only the original purchase counts.
   // autoDetectLinks skips rows already linked or deliberately unlinked, so
@@ -464,6 +469,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveJSON(STORAGE_KEYS.theme, theme)
     getThemeAdapter().apply(theme)
   }, [theme])
+  useEffect(() => saveJSON(STORAGE_KEYS.sound, sound), [sound])
 
   /**
    * Re-apply remembered category edits to a fresh set (exact description first,
@@ -484,6 +490,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const awardXp = useCallback((amount: number) => {
     if (amount > 0) setGame((g) => ({ ...g, xp: g.xp + amount }))
   }, [])
+
+  const recordDailyAnswer = useCallback(() => setGame((g) => checkIn(g)), [])
 
   const addImport = useCallback(
     (tx: Transaction[], source: ImportSource) => {
@@ -1059,6 +1067,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   )
 
   const setTheme = useCallback((mode: ThemeMode) => setThemeState(mode), [])
+  const setSound = useCallback((on: boolean) => setSoundState(on), [])
 
   const saveMapping = useCallback((m: ColumnMapping) => setMapping(m), [])
 
@@ -1102,6 +1111,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      sound,
       game,
       startingBalances,
       givingGoal,
@@ -1146,8 +1156,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setGivingGoal,
       setDebtPaidOff,
       awardXp,
+      recordDailyAnswer,
       recordQuizResult,
       setTheme,
+      setSound,
       saveMapping,
       clearAll,
     }),
@@ -1160,6 +1172,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       budgets,
       quizHistory,
       theme,
+      sound,
       game,
       startingBalances,
       givingGoal,
@@ -1204,8 +1217,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setGivingGoal,
       setDebtPaidOff,
       awardXp,
+      recordDailyAnswer,
       recordQuizResult,
       setTheme,
+      setSound,
       saveMapping,
       clearAll,
     ],

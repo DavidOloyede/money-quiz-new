@@ -59,9 +59,9 @@ export function GivingCard({
   const maxMonth = Math.max(1, ...months.map((m) => m.total))
 
   return (
-    <div className="rounded-xl border border-linen-200 dark:border-linen-700 bg-cream dark:bg-linen-900 p-5">
+    <div className="card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 className="font-display font-semibold text-linen-800 dark:text-linen-100">Giving &amp; Generosity</h3>
+        <h3 className="font-rounded text-[17px] font-extrabold text-linen-800 dark:text-linen-100">Giving &amp; Generosity</h3>
         <span className="text-xs text-linen-400 dark:text-linen-500">{scopeLabel}</span>
       </div>
 
@@ -73,7 +73,7 @@ export function GivingCard({
       ) : (
         <>
           <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-display text-[26px] font-semibold text-forest-700 dark:text-forest-400">
+            <span className="font-sans text-[26px] font-semibold tabular-nums text-forest-700 dark:text-forest-400">
               {formatCurrency(stats.total)}
             </span>
             <span className="text-xs text-linen-500 dark:text-linen-400 tabular-nums">
@@ -163,7 +163,7 @@ export function GivingCard({
                 <span className="text-sm text-linen-500 dark:text-linen-400">% of income</span>
                 <button
                   onClick={saveGoal}
-                  className="rounded-lg bg-forest-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-forest-700"
+                  className="btn-primary px-3 py-1.5 text-sm"
                 >
                   Save
                 </button>
@@ -195,7 +195,7 @@ export function GivingCard({
         </div>
       )}
 
-      <p className="mt-4 font-display text-[13px] italic text-linen-400 dark:text-linen-500">
+      <p className="mt-4 font-display font-soft text-[13px] italic text-linen-400 dark:text-linen-500">
         “God loves a cheerful giver.” — 2 Corinthians 9:7
       </p>
     </div>

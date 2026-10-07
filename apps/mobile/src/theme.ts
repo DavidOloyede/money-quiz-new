@@ -52,6 +52,15 @@ export interface ThemeColors {
   overlay: string
   /** The tile behind company logos: always white, since brand colours are chosen for white. */
   logoTile: string
+  /** The reward button and XP chips (honey-400) with their darker press edge and ink. */
+  reward: string
+  rewardEdge: string
+  onReward: string
+  /** Solid fills for the ✓ / ✕ marks on answers (white sits on both). */
+  markRight: string
+  markWrong: string
+  /** Outline of a "not quite" answer. */
+  dangerBorder: string
 }
 
 export const palette: Record<ThemeMode, ThemeColors> = {
@@ -78,6 +87,12 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     infoSoft: sky['50'],
     overlay: `${linen['900']}66`,
     logoTile: '#ffffff',
+    reward: honey['400'],
+    rewardEdge: honey['600'],
+    onReward: linen['900'],
+    markRight: forest['600'],
+    markWrong: coral['600'],
+    dangerBorder: coral['400'],
   },
   dark: {
     background: linen['950'],
@@ -102,6 +117,12 @@ export const palette: Record<ThemeMode, ThemeColors> = {
     // Darker than the web's shared value so it still dims behind linen-900 cards.
     overlay: `${linen['950']}99`,
     logoTile: '#ffffff',
+    reward: honey['400'],
+    rewardEdge: honey['600'],
+    onReward: linen['900'],
+    markRight: forest['600'],
+    markWrong: coral['600'],
+    dangerBorder: `${coral['500']}b3`,
   },
 }
 

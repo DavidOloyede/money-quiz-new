@@ -7,6 +7,12 @@ optical sizing doesn't exist there either — so mobile ships static instances
 cut at the exact weights/opsz the design uses, one fontFamily name per weight
 (the reliable React Native pattern).
 
+Each cut is renamed to its own family and PostScript name ("Nunito ExtraBold",
+"Nunito-ExtraBold"). The instancer leaves every cut with the source's names
+(all Inter weights called "Inter-Regular", all Nunito ones
+"Nunito-ExtraLight"), and iOS registers fonts by PostScript name, so same-named
+cuts collapse into whichever loaded first: every weight rendered as one.
+
 Run after changing the font files or adding a weight:
     python3 -m venv .venv && .venv/bin/pip install fonttools brotli
     .venv/bin/python scripts/gen-mobile-fonts.py
@@ -36,13 +42,29 @@ JOBS = [
 OUT_DIR = "apps/mobile/assets/fonts"
 
 
+def rename(font: TTFont, out: str) -> None:
+    """Give the cut a unique family/full/PostScript name (see the module note)."""
+    family = out.replace("-", " ")  # "Nunito-ExtraBold" -> "Nunito ExtraBold"
+    name = font["name"]
+    for nid in (16, 17, 25):  # typographic family/subfamily, variations prefix
+        name.removeNames(nameID=nid)
+    for nid, value in ((1, family), (2, "Regular"), (3, f"{out};manna-money"), (4, family), (6, out)):
+        name.setName(value, nid, 3, 1, 0x409)  # Windows / Unicode BMP / en-US
+        name.setName(value, nid, 1, 0, 0)  # Mac / Roman / English
+
+
 def main() -> None:
     os.chdir(os.path.join(os.path.dirname(__file__), ".."))
     os.makedirs(OUT_DIR, exist_ok=True)
+    seen: set[str] = set()
     for src, axes, out in JOBS:
         font = TTFont(src)
         instantiateVariableFont(font, axes, inplace=True)
         font.flavor = None  # woff2 -> plain ttf
+        rename(font, out)
+        ps = font["name"].getDebugName(6)
+        assert ps not in seen, f"two cuts share the PostScript name {ps!r}; iOS would merge them"
+        seen.add(ps)
         dst = os.path.join(OUT_DIR, f"{out}.ttf")
         font.save(dst)
         print(f"{dst} ({os.path.getsize(dst) // 1024} KB)")
