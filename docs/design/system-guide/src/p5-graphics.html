@@ -1,0 +1,382 @@
+
+    <!-- ===================================================== 3 -->
+    <section class="sec" id="graphics">
+      <div class="eyebrow">Section 3</div>
+      <h2>Graphics system</h2>
+      <p class="sec-intro">One story, drawn two ways: manna falls from the logo and lands in Omer, the bowl. The mark, the mascot, the rewards and the confetti all follow the same few rules, so the art sits inside the interface instead of on top of it.</p>
+
+      <h3 id="logic"><span class="num">3.1</span>The graphic language</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 640 190" role="img" aria-label="The logo's bowl and falling manna become Omer: logo mark, plus manna flakes, equals Omer">
+          <g transform="translate(40,40)"><!--logoin:96--></g>
+          <text x="88" y="172" class="svg-label" text-anchor="middle">The mark</text>
+          <text x="176" y="98" class="svg-op" text-anchor="middle">+</text>
+          <g stroke="#ad720d" stroke-width="1.6"><ellipse cx="236" cy="56" rx="11" ry="8" fill="#f5dfa3"/><ellipse cx="266" cy="84" rx="13" ry="9.4" fill="#eecb6b"/><ellipse cx="240" cy="116" rx="15" ry="11" fill="#e5b13c"/><ellipse cx="270" cy="130" rx="9" ry="6.5" fill="#eecb6b"/></g>
+          <text x="252" y="172" class="svg-label" text-anchor="middle">Manna, every morning</text>
+          <text x="334" y="98" class="svg-op" text-anchor="middle">=</text>
+          <g transform="translate(372,6) scale(.8)"><!--omerin:{"pose":"giving"}--></g>
+          <text x="452" y="172" class="svg-strong" text-anchor="middle">Omer</text>
+          <text x="560" y="78" class="svg-label" text-anchor="middle">An omer was the</text>
+          <text x="560" y="96" class="svg-label" text-anchor="middle">daily measure each</text>
+          <text x="560" y="114" class="svg-label" text-anchor="middle">person gathered</text>
+          <text x="560" y="132" class="svg-label" text-anchor="middle" style="font-style:italic">(Exodus 16:16)</text>
+        </svg>
+      </div>
+      <p>Manna arrived every morning, enough for the day. So the logo is a bowl receiving three flakes, the mascot is that bowl with a face, and every reward is a flake falling into it. People who know the story will smile; everyone else just sees a friendly bowl.</p>
+      <h4>Why the graphic language works</h4>
+      <div class="logic">
+        <div><b>Round, never sharp</b><p>Round caps and joins, circles and pills everywhere. The drawing echoes Nunito, the coach's voice, so the art and the type feel like one hand.</p></div>
+        <div><b>Bold, clean outlines</b><p>Omer's outline is 2.5% of his rim width in linen-900. Icons use a 1.8 stroke on 24; the logo 1.6 on 32. Outlines keep the art legible at 48px.</p></div>
+        <div><b>Flat color, one cel shade</b><p>Palette colors only. Light comes from the top left; one shade, one step darker, sits on the lower right. No gradients on characters.</p></div>
+        <div><b>Manna is the particle</b><p>Rewards fall as flakes into the bowl, not coins or stars. Confetti is saved for milestones so it stays special.</p></div>
+        <div><b>Comic energy only at rewards</b><p>Halftone bursts, speed lines and one-word shouts ("NICE!", "+10 XP") appear only in moments, never on money screens.</p></div>
+        <div><b>Calm at the money</b><p>No characters on the dashboard, tables, budgets or imports. Money screens get icons and empty states at most.</p></div>
+      </div>
+
+      <h3 id="logo"><span class="num">3.2</span>Logo mark</h3>
+      <p>A forest tile, a honey bowl, and three flakes on their way in. Drawn on a 32-unit grid; it ships as <code>public/manna.svg</code> and the <code>MannaLogo</code> component. Hover any mark below: the flakes fall into the bowl.</p>
+      <div class="stage">
+        <div class="sheet">
+          <div class="paper">
+            <svg viewBox="0 0 320 320" role="img" aria-label="Logo construction on a 32-unit grid with numbered parts">
+              <g transform="translate(32,32) scale(8)">
+                <rect width="32" height="32" fill="url(#grid1)"/>
+                <!--logoin:32-->
+                <rect width="32" height="32" rx="9" class="cons" style="stroke-width:.15;stroke-dasharray:.5 .4"/>
+                <path d="M6.5 16.4c0 5.3 4.1 9 9.5 9s9.5-3.7 9.5-9Z" class="cons" style="stroke-width:.15;stroke-dasharray:.5 .4"/>
+                <line x1="16" y1="-2" x2="16" y2="34" class="axis" style="stroke-width:.12;stroke-dasharray:.4 .4"/>
+              </g>
+              <g class="mk">
+                <g transform="translate(44,44)"><circle r="9"/><text>1</text></g>
+                <g transform="translate(96,84)"><circle r="9"/><text>2</text></g>
+                <g transform="translate(194,124)"><circle r="9"/><text>3</text></g>
+                <g transform="translate(250,200)"><circle r="9"/><text>4</text></g>
+                <g transform="translate(232,262)"><circle r="9"/><text>5</text></g>
+              </g>
+            </svg>
+          </div>
+          <div>
+            <ol>
+              <li><b>Tile.</b> 32 × 32 units, 9-unit corner radius (28%), forest-700 #1C5A32.</li>
+              <li><b>Outer flakes.</b> Two honey-200 #F5DFA3 dots, r 1.6, at the top corners of the bowl's reach.</li>
+              <li><b>Center flake.</b> One honey-400 #E5B13C dot, r 2.1, lower and on the centerline: the one about to land.</li>
+              <li><b>Bowl.</b> A closed half-ellipse 19 units wide, 1.6 honey-400 stroke, round joins.</li>
+              <li><b>Foot.</b> A 9-unit line under the bowl, round caps.</li>
+            </ol>
+            <ul class="rules" style="margin-top:16px">
+              <li><b>Clear space:</b> a quarter of the mark's width on every side.</li>
+              <li><b>Minimum size:</b> 16px. Below 24px the hover motion is off.</li>
+              <li><b>Motion:</b> on hover the flakes fall (1.5s loop, staggered) and the bowl dips half a unit. Reduce motion keeps it still.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="logo-live" style="margin-top:20px">
+          <figure><!--logo:96-->96px</figure><figure><!--logo:48-->48px</figure><figure><!--logo:32-->32px</figure><figure><!--logo:16-->16px</figure>
+        </div>
+      </div>
+
+      <h3 id="model-sheet"><span class="num">3.3</span>Omer model sheet</h3>
+      <p>Omer is a round, honey-gold manna bowl with a friendly face, two stubby arms and two stubby legs. Cheerful and kind, not babyish. He is built on one unit: <b>the rim width</b>. Every other measurement is a fraction of it, so he stays on model at any size. <span class="tag tag--new">New</span> These drawings are the construction brief; the commissioned art is still in progress.</p>
+      <div class="stage">
+        <div class="sheet">
+          <div class="paper">
+            <svg viewBox="0 0 240 240" role="img" aria-label="Omer construction drawing on a grid with numbered parts">
+              <g transform="translate(20,20)">
+                <rect width="200" height="200" fill="url(#grid10)"/>
+                <g opacity=".35"><!--omerin:{"pose":"idle"}--></g>
+                <ellipse cx="100" cy="78" rx="80" ry="16" class="cons"/>
+                <path d="M20 78C20 128 56 160 100 160C144 160 180 128 180 78" class="cons"/>
+                <ellipse cx="76" cy="112" rx="11" ry="14" class="cons"/><ellipse cx="124" cy="112" rx="11" ry="14" class="cons"/>
+                <path d="M88 150Q87 168 85 183M112 150Q113 168 115 183" class="cons"/>
+                <line x1="100" y1="0" x2="100" y2="200" class="axis"/>
+                <line x1="8" y1="112" x2="192" y2="112" class="axis"/>
+                <line x1="20" y1="204" x2="180" y2="204" class="dim"/><line x1="20" y1="199" x2="20" y2="209" class="dim"/><line x1="180" y1="199" x2="180" y2="209" class="dim"/>
+                <text x="100" y="218" class="svg-strong" text-anchor="middle">1 unit = rim width</text>
+                <g class="mk">
+                  <g transform="translate(176,62)"><circle r="7.5"/><text>1</text></g>
+                  <g transform="translate(42,112)"><circle r="7.5"/><text>2</text></g>
+                  <g transform="translate(160,124)"><circle r="7.5"/><text>3</text></g>
+                  <g transform="translate(140,96)"><circle r="7.5"/><text>4</text></g>
+                  <g transform="translate(58,145)"><circle r="7.5"/><text>5</text></g>
+                  <g transform="translate(100,147)"><circle r="7.5"/><text>6</text></g>
+                  <g transform="translate(193,132)"><circle r="7.5"/><text>7</text></g>
+                  <g transform="translate(130,176)"><circle r="7.5"/><text>8</text></g>
+                  <g transform="translate(152,190)"><circle r="7.5"/><text>9</text></g>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div>
+            <ol>
+              <li><b>Rim.</b> 1 unit wide, an ellipse 0.2 tall. Cream with a honey-200 opening and a small heap of flakes peeking over.</li>
+              <li><b>Bowl.</b> 0.51 deep from rim line to base, honey-400 #E5B13C. Head and body are one shape.</li>
+              <li><b>Shade.</b> One honey-500 #CE9118 crescent on the lower right, plus a white gloss stroke on the upper left at 55%.</li>
+              <li><b>Eyes.</b> 0.14 × 0.18, centers 0.3 apart, on the eye line 0.41 down the bowl. Linen-900 with a white four-point star and a dot.</li>
+              <li><b>Cheeks.</b> Coral-300 #E9AEA0 ovals, 0.12 × 0.08, below and outside each eye.</li>
+              <li><b>Mouth.</b> 0.12 wide, centered, its top level with the eye bottoms.</li>
+              <li><b>Arms.</b> About 0.15 long: a 7px honey limb inside a 14px ink outline, round ends. No hands or fingers.</li>
+              <li><b>Legs.</b> Built exactly like the arms. Hips 0.15 apart under the bowl, about 0.16 showing, a tiny rounded foot turning outward. No knees, toes or shoes.</li>
+              <li><b>Ground.</b> A linen-900 shadow at 12%, 0.6 wide. It shrinks when Omer jumps.</li>
+            </ol>
+            <p class="small muted" style="margin-top:12px">Outline: linen-900 #201A13 at 2.5% of the rim width (4px at 200px, never under 2px). Red dashed lines are the centerline and eye line; blue dashes are the construction shapes.</p>
+          </div>
+        </div>
+      </div>
+      <h4>Turnaround</h4>
+      <p>Because the bowl is round, Omer turns cleanly: only the face and limbs move. In the side view the one visible arm hangs at the middle of the body, in front of the bowl and above the legs.</p>
+      <div class="gallery">
+        <figure><div class="paper"><!--omer:{"view":"front","size":190}--></div><figcaption>Front</figcaption></figure>
+        <figure><div class="paper"><!--omer:{"view":"34","size":190}--></div><figcaption>Three-quarter</figcaption></figure>
+        <figure><div class="paper"><!--omer:{"view":"side","size":190}--></div><figcaption>Side</figcaption></figure>
+        <figure><div class="paper"><!--omer:{"view":"back","size":190}--></div><figcaption>Back</figcaption></figure>
+      </div>
+      <h4>The eight poses</h4>
+      <p>Expressions come from four controls: the eyes (open, happy, looking up), the mouth, the arms and the legs. The bowl itself is never redrawn.</p>
+      <div class="gallery">
+        <figure><div class="paper"><!--omer:{"pose":"idle","size":190}--></div><figcaption>Idle<span>Gentle breathing. Loading, the level card.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"wave","size":190}--></div><figcaption>Wave hello<span>Welcome, first visit. One foot taps.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"cheer","size":190}--></div><figcaption>Cheer<span>Right answer, quiz finished.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"jump","size":190}--></div><figcaption>Jump<span>Level up. The shadow shrinks.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"thinking","size":190}--></div><figcaption>Thinking<span>Loading, a question. Legs crossed.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"oops","size":190}--></div><figcaption>Oops<span>Not quite. Knees in, still smiling.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"proud","size":190}--></div><figcaption>Proud<span>New badge, pinned on the lower right.</span></figcaption></figure>
+        <figure><div class="paper"><!--omer:{"pose":"giving","size":190}--></div><figcaption>Giving<span>Generosity: holding out a flake.</span></figcaption></figure>
+      </div>
+
+      <h3 id="wardrobe"><span class="num">3.4</span>Omer's wardrobe</h3>
+      <p>A costume for each kind of moment, so the outfit tells you what is happening before anyone reads a word. Base Omer stays the default. <b>Earned</b> outfits unlock with a badge or level and then appear in that moment; <b>contextual</b> outfits show up with matching content. The cape is the recurring superhero look, and only the Hero flies. <span class="tag tag--new">New</span></p>
+      <!--wardrobe-->
+      <ul class="rules">
+        <li><b>One look:</b> one outfit at a time, at most a hat, one or two wearables and one prop.</li>
+        <li><b>One meaning:</b> each outfit means one kind of moment. Don't borrow the Chef for a savings win because it's cute.</li>
+        <li><b>Face first:</b> outfits never cover the eyes or the smile. The Detective's lens magnifies; it never hides. Hats sit on the rim and may cover the manna heap.</li>
+        <li><b>Same hand:</b> palette colors only, the same ink outline, one cel shade. Simple checks, dots or stripes at most.</li>
+        <li><b>Never preachy:</b> no clerical costumes or religious symbols as outfits. Generosity is shown by giving, not by vestments.</li>
+        <li><b>Calm money:</b> outfits appear in moments, lesson cards, badges and empty states, never next to amounts in tables or budgets.</li>
+      </ul>
+
+      <h3 id="rendering"><span class="num">3.5</span>Light &amp; icons</h3>
+      <p>Every illustrated shape uses at most three flat values plus the ink outline. The shade is the same step as that hue's button edge, which is what ties the art to the interface.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 600 180" role="img" aria-label="Rendering in four steps: base color, plus a shade on the lower right, plus a highlight on the upper left, plus the ink outline">
+          <g transform="translate(20,20)">
+            <path d="M10 30C10 80 46 112 80 112C114 112 150 80 150 30Z" fill="#e5b13c"/>
+          </g>
+          <g transform="translate(165,20)">
+            <path d="M10 30C10 80 46 112 80 112C114 112 150 80 150 30Z" fill="#e5b13c"/>
+            <path d="M150 30C150 80 114 112 80 112C106 104 132 78 134 32Z" fill="#ce9118"/>
+          </g>
+          <g transform="translate(310,20)">
+            <path d="M10 30C10 80 46 112 80 112C114 112 150 80 150 30Z" fill="#e5b13c"/>
+            <path d="M150 30C150 80 114 112 80 112C106 104 132 78 134 32Z" fill="#ce9118"/>
+            <path d="M24 44C26 58 32 70 42 78" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </g>
+          <g transform="translate(455,20)">
+            <path d="M10 30C10 80 46 112 80 112C114 112 150 80 150 30Z" fill="#e5b13c"/>
+            <path d="M150 30C150 80 114 112 80 112C106 104 132 78 134 32Z" fill="#ce9118"/>
+            <path d="M24 44C26 58 32 70 42 78" stroke="#fff" stroke-opacity=".55" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M10 30C10 80 46 112 80 112C114 112 150 80 150 30Z" fill="none" stroke="#201a13" stroke-width="4" stroke-linejoin="round"/>
+            <ellipse cx="80" cy="30" rx="70" ry="13" fill="#fffcf5" stroke="#201a13" stroke-width="4"/>
+          </g>
+          <text x="100" y="162" class="svg-strong" text-anchor="middle">1 · Base</text>
+          <text x="245" y="162" class="svg-strong" text-anchor="middle">2 · Shade, lower right</text>
+          <text x="390" y="162" class="svg-strong" text-anchor="middle">3 · Gloss, upper left</text>
+          <text x="535" y="162" class="svg-strong" text-anchor="middle">4 · Ink outline</text>
+        </svg>
+      </div>
+      <ul class="rules">
+        <li><b>Light comes from the top left, always.</b> Shades sit lower right; the gloss stroke sits upper left. Buttons obey the same rule with their bottom edge.</li>
+        <li><b>Shade = the hue's edge step:</b> honey-400 shades to honey-500, forest-600 to forest-800, coral to coral-700.</li>
+        <li><b>The darkest value is linen-900,</b> never pure black, so the art never out-shouts the text beside it.</li>
+        <li><b>Skin and hair become theme tokens</b> in <code>theme.ts</code> before any person is drawn.</li>
+      </ul>
+      <h4>Icon construction</h4>
+      <p>Interface icons are line icons: a 24px grid, a 2px safe margin (the dashed keyline), a 1.8 stroke with round caps and joins, drawn in <code>currentColor</code> so they take the text color. The streak flame is the one filled, two-color glyph. <span class="tag tag--code">Code</span></p>
+      <!--icons-->
+      <ul class="rules">
+        <li><b>Sizes:</b> 16 inside chips and feedback, 18–20 in buttons and card headers, 24 in navigation, 32 in the 64px icon tile.</li>
+        <li><b>Company logos are bundled,</b> matched from Simple Icons or Plaid's own logo. Never hotlink a logo service: it would hand a third party every merchant the person pays.</li>
+      </ul>
+
+      <h3 id="motifs"><span class="num">3.6</span>Celebration motifs</h3>
+      <p>The small set of shapes that make the moments. Six moments use them; everything else stays calm.</p>
+      <!--motifs-->
+
+      <h3 id="inventory"><span class="num">3.7</span>Asset inventory</h3>
+      <p>Every custom graphic in the product, where it lives, and its state as of October 2026.</p>
+      <div class="tbl"><table>
+        <thead><tr><th>Asset</th><th>What it is</th><th>Format</th><th>Lives in</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Logo mark</b></td><td>Forest tile, honey bowl, three flakes. Animates on hover.</td><td>SVG, 32-unit grid</td><td><code>public/manna.svg</code>, <code>MannaLogo</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
+          <tr><td><b>Manna bowl</b></td><td>The logo's bowl drawn large with a heap of gathered flakes.</td><td>Inline SVG 100 × 64</td><td><code>landing/MannaBowl.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
+          <tr><td><b>UI icons</b></td><td>Check, cross, spark, quiz, speaker, star, search, user and more.</td><td>SVG 24, 1.8 stroke</td><td><code>src/components/icons.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
+          <tr><td><b>Manna burst, confetti</b></td><td>Flakes from a right answer; milestone confetti in five brand colors.</td><td>CSS particles</td><td><code>celebrate/RewardBurst.tsx</code>, <code>Confetti.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
+          <tr><td><b>Company logos</b></td><td>Merchant marks beside transactions. Never hotlinked.</td><td>Bundled SVG or Plaid logo_url</td><td><code>core data/brandIcons.ts</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
+          <tr><td><b>Streak flame</b></td><td>Today the flame emoji; a drawn flame is ready (3.5).</td><td>SVG 24, filled</td><td><code>ProgressWidget</code>, <code>StreakOverlay</code></td><td><span class="tag tag--spec">Partial</span></td></tr>
+          <tr><td><b>Badges</b></td><td>Seven badges: First Steps, Week of Diligence, Month of Faithfulness, Know Your Flock, Cheerful Giver, First Fruits, Debt Slayer.</td><td>Emoji + name today</td><td><code>core lib/badges.ts</code></td><td><span class="tag tag--spec">Partial</span></td></tr>
+          <tr><td><b>Omer master + turnaround</b></td><td>The definitive drawing every pose is traced from. 3.3 is its brief.</td><td>Layered master + PNG</td><td><code>docs/design/mascot/</code></td><td><span class="tag tag--new">In progress</span></td></tr>
+          <tr><td><b>Omer poses × 8, outfits × 9</b></td><td>The poses in 3.3 and the wardrobe in 3.4.</td><td>Transparent WebP, &lt; 150 KB, 2× display size</td><td><code>public/mascot/</code>, <code>apps/mobile/assets</code></td><td><span class="tag tag--new">To draw</span></td></tr>
+          <tr><td><b>Cape + "PAID OFF!" burst</b></td><td>The debt-paid-off party: the Hero and a comic burst.</td><td>SVG + WebP</td><td><code>celebrate/</code> (to add)</td><td><span class="tag tag--new">To draw</span></td></tr>
+          <tr><td><b>Illustrated people</b></td><td>A diverse cast for the landing, level-up crowd and welcome; leans toward the deepest skin tones.</td><td>SVG, skin and hair as tokens</td><td>v1 on <code>archive/illustrated-people-v1</code></td><td><span class="tag tag--spec">Removed for redraw</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="small"><b>Naming:</b> <code>omer-{pose}.webp</code>, <code>omer-{outfit}-{pose}.webp</code>, <code>omer-{pose}-sprite.webp</code>, <code>motif-{name}.svg</code>. Lowercase, hyphens only. Raster art is transparent WebP, sRGB, exported at 2× its largest display size.</p>
+
+      <h3 id="do-dont"><span class="num">3.8</span>Do and don't</h3>
+      <!--dodont-->
+    </section>
+
+    <!-- ===================================================== 4 -->
+    <section class="sec" id="style-guide">
+      <div class="eyebrow">Section 4</div>
+      <h2>Style guide</h2>
+      <p class="sec-intro">Spacing, corners and shadows are where consistency is won or lost. Everything sits on a 4px grid and every value is a token: if you are typing a number that is not on these scales, pick the nearest one.</p>
+
+      <h3 id="spacing"><span class="num">4.1</span>Spacing &amp; layout</h3>
+      <p>Spacing runs on Tailwind's 4px base (<code>--spacing: 0.25rem</code>), so <code>space/4</code> is <code>p-4</code> is 16px. The bars are drawn at actual size.</p>
+      <div class="space-scale">
+        <div class="space-row"><code>space/0-5</code><span class="px">2</span><span class="bar-s" style="--s:2px"></span><span class="use">Segmented-control inset, hairline nudges</span></div>
+        <div class="space-row"><code>space/1</code><span class="px">4</span><span class="bar-s" style="--s:4px"></span><span class="use">Icon to text in chips; label to value in stat cards</span></div>
+        <div class="space-row"><code>space/1-5</code><span class="px">6</span><span class="bar-s" style="--s:6px"></span><span class="use">Field label to field</span></div>
+        <div class="space-row"><code>space/2</code><span class="px">8</span><span class="bar-s" style="--s:8px"></span><span class="use">Icon to label in buttons; tight lists</span></div>
+        <div class="space-row"><code>space/2-5</code><span class="px">10</span><span class="bar-s" style="--s:10px"></span><span class="use">Answer tiles in a card (compact)</span></div>
+        <div class="space-row"><code>space/3</code><span class="px">12</span><span class="bar-s" style="--s:12px"></span><span class="use">Rhythm inside cards; form fields; quiz answer tiles</span></div>
+        <div class="space-row"><code>space/4</code><span class="px">16</span><span class="bar-s" style="--s:16px"></span><span class="use">Stat-card padding; gaps between cards and page padding on phones</span></div>
+        <div class="space-row"><code>space/5</code><span class="px">20</span><span class="bar-s" style="--s:20px"></span><span class="use">Standard card padding (<code>.card p-5</code>)</span></div>
+        <div class="space-row"><code>space/6</code><span class="px">24</span><span class="bar-s" style="--s:24px"></span><span class="use">Large card padding; button padding; gaps between cards on desktop</span></div>
+        <div class="space-row"><code>space/8</code><span class="px">32</span><span class="bar-s" style="--s:32px"></span><span class="use">Result-card padding; space above a card's actions</span></div>
+        <div class="space-row"><code>space/12</code><span class="px">48</span><span class="bar-s" style="--s:48px"></span><span class="use">Between major blocks on a screen</span></div>
+        <div class="space-row"><code>space/20</code><span class="px">80</span><span class="bar-s" style="--s:80px"></span><span class="use">Landing section padding, minimum</span></div>
+        <div class="space-row"><code>space/30</code><span class="px">120</span><span class="bar-s" style="--s:120px"></span><span class="use">Landing section padding, maximum</span></div>
+      </div>
+      <ul class="rules">
+        <li><b>Proximity sets the step:</b> 12 between related items inside a card, 16 between groups, 16–24 between cards, 32–48 between screen sections.</li>
+        <li><b>Touch targets are at least 44 × 44,</b> even when the visible glyph is smaller.</li>
+        <li><b>Use gap, not margins,</b> for sibling spacing in flex and grid.</li>
+      </ul>
+      <h4>App shell</h4>
+      <div class="shell-diagram" role="img" aria-label="Sidebar 240 beside a page of up to 1152, holding a 672 reading column and a 448 form column">
+        <div class="sd-side">Sidebar<b>240</b>from 768 up</div>
+        <div class="sd-main"><span>Page <b style="display:inline">max 1152</b></span><div class="sd-col" style="--w:73%">Reading column <b style="display:inline">672</b></div><div class="sd-col" style="--w:49%">Forms &amp; dialogs <b style="display:inline">448</b></div></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Width</th><th>Navigation</th><th>Content</th></tr></thead>
+        <tbody>
+          <tr><td class="nowrap"><b>Below 768</b></td><td>Top bar with the level chip</td><td>Full width, 16px page padding (24 from 640)</td></tr>
+          <tr><td class="nowrap"><b>768 and up</b></td><td>Cream sidebar, 240 (<code>w-60</code>), linen-200 right edge, sticky</td><td>Page max 1152 (<code>max-w-6xl</code>); 32px padding from 1024</td></tr>
+          <tr><td class="nowrap"><b>Reading</b></td><td>—</td><td>The quiz and question flows: 672 (<code>max-w-2xl</code>)</td></tr>
+          <tr><td class="nowrap"><b>Forms &amp; dialogs</b></td><td>—</td><td>448 (<code>max-w-md</code>); modals sit over a linen-900/40 scrim, 16px from the edges on phones</td></tr>
+          <tr><td class="nowrap"><b>Grids</b></td><td>—</td><td>Stat cards: 2 columns on phones, 3 from 640, 5 from 1024</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="radii"><span class="num">4.2</span>Corner radii</h3>
+      <div class="radii">
+        <figure><i style="--r:4px"></i><figcaption><b>sm · 4</b>Highlights, tiny tags</figcaption></figure>
+        <figure><i style="--r:6px"></i><figcaption><b>md · 6</b>Active segment, code chips</figcaption></figure>
+        <figure><i style="--r:8px"></i><figcaption><b>lg · 8</b>Inputs, key tags, badge tiles</figcaption></figure>
+        <figure><i style="--r:12px"></i><figcaption><b>xl · 12</b>Buttons, feedback blocks</figcaption></figure>
+        <figure><i style="--r:16px"></i><figcaption><b>2xl · 16</b>Cards, answer tiles, icon tile</figcaption></figure>
+        <figure><i style="--r:24px"></i><figcaption><b>3xl · 24</b>Sheets, large frames</figcaption></figure>
+        <figure><i style="--r:999px"></i><figcaption><b>full</b>Chips, bars, level circle</figcaption></figure>
+      </div>
+      <ul class="rules">
+        <li><b>Three everyday shapes:</b> cards 16 (<code>rounded-2xl</code>), buttons 12 (<code>rounded-xl</code>), chips fully round. The rest are for nesting.</li>
+        <li><b>Nesting rule:</b> inner radius = outer radius − the padding between them, never below 4. A 16px card with a 4px inset holds 12px blocks.</li>
+        <li><b>Siblings match.</b> Items in one row or list share a radius.</li>
+      </ul>
+
+      <h3 id="elevation"><span class="num">4.3</span>Edges &amp; shadows</h3>
+      <p>Two kinds of shadow, never mixed. <b>Press edges</b> are hard and solid: they mean "you can tap this". <b>Soft shadows</b> are rare: they mean "this floats above the page". Resting cards have no shadow at all, just a 1px linen-200 edge. Press the live ones.</p>
+      <div class="elev">
+        <figure><div class="spec-box e-flat">Card</div><figcaption><b>Flat</b>1px linen-200 edge, no shadow. Every resting card and table.</figcaption></figure>
+        <figure><button class="spec-box e-chip" type="button">+10 XP</button><figcaption><b>Chip edge · 2px</b><code>0 2px 0</code> honey-600. XP chips.</figcaption></figure>
+        <figure><button class="spec-box e-tile" type="button">Answer tile</button><figcaption><b>Tile edge · 3px</b><code>0 3px 0</code> linen-200. Tiles, secondary buttons, the sticker in ink.</figcaption></figure>
+        <figure><button class="spec-box e-btn" type="button">Button</button><figcaption><b>Button edge · 4px</b><code>0 4px 0</code> one step darker than the face.</figcaption></figure>
+        <figure><div class="spec-box e-pop">Popover</div><figcaption><b>Elevation/Popover</b><code>shadow-lg</code>. Menus and the bulk-action bar.</figcaption></figure>
+        <figure><div class="spec-box e-modal">Modal</div><figcaption><b>Elevation/Modal</b><code>shadow-xl</code> over a linen-900/40 scrim.</figcaption></figure>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Effect style</th><th>Value</th><th>Rule</th></tr></thead>
+        <tbody>
+          <tr><td><code>Press/Primary</code></td><td>0 4px 0 forest-800 → 0 1px 0 pressed</td><td>Primary buttons; the face drops 3px</td></tr>
+          <tr><td><code>Press/Secondary</code></td><td>0 3px 0 linen-200</td><td>Secondary buttons and idle answer tiles</td></tr>
+          <tr><td><code>Press/Reward · Danger</code></td><td>0 4px 0 honey-600 · rose-800</td><td>Reward and danger buttons</td></tr>
+          <tr><td><code>Press/Answer</code></td><td>0 3px 0 forest-500 · coral-400</td><td>Right and not-quite tiles</td></tr>
+          <tr><td><code>Press/Chip · Sticker</code></td><td>0 2px 0 honey-600 · 0 3px 0 linen-900</td><td>XP chips; the comic verdict sticker</td></tr>
+          <tr><td><code>Elevation/Showcase</code></td><td>0 18px 40px −18px black 25%</td><td>Landing phone mocks and floating hero cards only</td></tr>
+          <tr><td><code>Focus/Input ring</code></td><td>0 0 0 2px forest-500 at 25%</td><td>Focused inputs, with a forest-500 border</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="rules">
+        <li><b>An edge is a promise.</b> If it has a press edge, it responds to a press. If it doesn't, remove the edge.</li>
+        <li><b>Soft shadows are black at 10–25%,</b> never colored, never glowing. One level of float per screen.</li>
+        <li><b>Dark mode:</b> soft shadows barely read, so floating layers use a lighter surface (linen-800) and a linen-700 edge; the primary edge becomes forest-700.</li>
+      </ul>
+
+      <h3 id="motion"><span class="num">4.4</span>Motion &amp; moments</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Kind</th><th>Duration</th><th>Easing</th><th>Examples</th></tr></thead>
+        <tbody>
+          <tr><td><b>UI feedback</b></td><td class="num-col">150–250ms</td><td>ease</td><td>Hover, press, open and close</td></tr>
+          <tr><td><b>Screen in</b></td><td class="num-col">220ms</td><td><code>cubic-bezier(0.22, 1, 0.36, 1)</code></td><td>Each screen settles up 6px</td></tr>
+          <tr><td><b>Modal</b></td><td class="num-col">180 · 240ms</td><td><code>cubic-bezier(0.22, 1, 0.36, 1)</code></td><td>Scrim fades; panel rises 8px from 97%</td></tr>
+          <tr><td><b>Rewards</b></td><td class="num-col">600–1200ms</td><td><code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td><td>Answer pop, +XP float, bar fill, a flake landing</td></tr>
+          <tr><td><b>Milestones</b></td><td class="num-col">up to ~3s</td><td>overshoot, then settle</td><td>Level up, new badge, debt paid off</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl moments"><table>
+        <thead><tr><th>Moment</th><th>What you see</th><th>Sound</th><th>iPhone</th></tr></thead>
+        <tbody>
+          <tr><td><b>Right answer</b></td><td>The tile pops green, flakes burst, "+10 XP" floats up</td><td>Two-note chime</td><td>Success</td></tr>
+          <tr><td><b>Not quite</b></td><td>A gentle shake, a coral outline, an encouraging line</td><td>Soft low tone</td><td>Light warning</td></tr>
+          <tr><td><b>Quiz finished</b></td><td>Confetti in honey, forest and cream; the score counts up</td><td>Short fanfare</td><td>Success</td></tr>
+          <tr><td><b>Streak</b></td><td>The flame lights and flickers, the day flips up, the goal fills; "Keep going" with a 10s countdown</td><td>Soft drop</td><td>Light tap</td></tr>
+          <tr><td><b>Level up / badge</b></td><td>The bowl fills and glows; the title or badge flips in with a shine</td><td>Sparkle chord</td><td>Success</td></tr>
+          <tr><td><b>Debt paid off</b> <span class="tag tag--spec">Spec</span></td><td>The biggest party: the Hero in his cape and a "PAID OFF!" burst</td><td>Fanfare</td><td>Heavy</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="rules">
+        <li><b>Never block input.</b> The next tap always works, and tapping anywhere dismisses a celebration.</li>
+        <li><b>Reduce motion:</b> skip particles and bounces, show the check mark, jump bars to their value. Sound also stays off.</li>
+        <li><b>Five sounds at most,</b> each under a second (the fanfare up to 2s), quiet, on by default only in quizzes, always mutable.</li>
+        <li><b>Celebrate learning and wise choices, never spending.</b> Money screens only celebrate milestones the person confirms.</li>
+      </ul>
+    </section>
+
+    <!-- ===================================================== Appendices -->
+    <section class="sec" id="tokens">
+      <div class="eyebrow">Appendix A</div>
+      <h2>Design tokens</h2>
+      <p>The Tailwind v4 <code>@theme</code> block generated from <code>packages/core/theme.ts</code> (<code>npm run gen:theme</code>), plus the shared shapes. Edit <code>theme.ts</code>, never the generated CSS.</p>
+      <div class="code-wrap">
+        <button class="btn btn--sm btn--secondary" type="button" id="copy-tokens">Copy</button>
+<pre id="token-code"><code><!--tokens--></code></pre>
+      </div>
+    </section>
+
+    <section class="sec" id="checklist">
+      <div class="eyebrow">Appendix B</div>
+      <h2>Pre-ship checklist</h2>
+      <p>Run every new screen through this list, on web and on iPhone. Ticks are for your own pass and aren't saved.</p>
+      <ul class="checklist">
+        <li><label><input type="checkbox" id="ck1"><span><b>Moment or money?</b> Learning and celebrating get the party; reading money stays calm.</span></label></li>
+        <li><label><input type="checkbox" id="ck2"><span><b>Page is linen-50; cards are cream</b> with 16px corners and a 1px linen-200 edge.</span></label></li>
+        <li><label><input type="checkbox" id="ck3"><span><b>Press edges match behavior.</b> Everything pressable has one; nothing static does.</span></label></li>
+        <li><label><input type="checkbox" id="ck4"><span><b>One primary per view,</b> labeled with a verb in sentence case.</span></label></li>
+        <li><label><input type="checkbox" id="ck5"><span><b>Honey stays near 10%</b> and only marks something earned.</span></label></li>
+        <li><label><input type="checkbox" id="ck6"><span><b>Three voices:</b> Nunito for headlines and buttons, Inter with tabular figures for money, Fraunces only for scripture.</span></label></li>
+        <li><label><input type="checkbox" id="ck7"><span><b>Contrast passes:</b> 700/800 text on tints; dark text on honey; no white on sky-600.</span></label></li>
+        <li><label><input type="checkbox" id="ck8"><span><b>No red on money screens.</b> Over budget is coral with a next step; rose only for delete.</span></label></li>
+        <li><label><input type="checkbox" id="ck9"><span><b>Right and not quite carry ✓ / ✕ or a word,</b> never color alone.</span></label></li>
+        <li><label><input type="checkbox" id="ck10"><span><b>Spacing is on the 4px scale;</b> radii come from the scale; touch targets are 44px.</span></label></li>
+        <li><label><input type="checkbox" id="ck11"><span><b>Omer is on model,</b> one outfit at a time, and never next to an amount.</span></label></li>
+        <li><label><input type="checkbox" id="ck12"><span><b>Dark mode, reduce motion and sound-off</b> all checked, and every progress bar has ARIA values.</span></label></li>
+      </ul>
+    </section>
+
+    <footer class="doc-foot">
+      <p>Manna Money Design System · Reference guide v1.0 · October 2026. Sources: <code>packages/core/theme.ts</code>, <code>src/index.css</code>, <code>src/celebrate.css</code>, <code>docs/DESIGN.md</code>. Omer drawings are construction references for the commissioned art. Sample figures in the live specimens are examples, not anyone's real data.</p>
+    </footer>
+  </main>
+</div>

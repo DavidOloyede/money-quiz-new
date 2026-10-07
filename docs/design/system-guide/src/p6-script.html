@@ -1,0 +1,237 @@
+
+<style>
+.linkbtn{border:0;background:none;padding:0;color:var(--forest-ink);font:600 12px var(--font-ledger);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.flame{display:inline-block;transform-origin:50% 70%}
+.review{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px;text-align:left;width:100%}
+.review li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.45}
+.review .m{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:50%;color:#fff;margin-top:1px}
+.review .m svg{width:12px;height:12px}
+.review .ok{background:var(--forest)}
+.review .no{background:var(--coral)}
+.review b{display:block;color:var(--ink);font-weight:500}
+</style>
+<script>
+(function(){
+  var root = document.documentElement;
+
+  /* ---- Theme preview ---- */
+  function applyTheme(t){
+    if(t === 'system'){ root.removeAttribute('data-theme'); } else { root.setAttribute('data-theme', t); }
+    document.querySelectorAll('[data-theme-set]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.themeSet === t)); });
+    try { localStorage.setItem('mm-ds-theme', t); } catch(e) {}
+  }
+  var saved = 'system';
+  try { saved = localStorage.getItem('mm-ds-theme') || 'system'; } catch(e) {}
+  applyTheme(saved);
+  document.querySelectorAll('[data-theme-set]').forEach(function(b){ b.addEventListener('click', function(){ applyTheme(b.dataset.themeSet); }); });
+
+  /* ---- Copy helpers ---- */
+  function selectText(el){ var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+  function copy(text, el, done){
+    var p;
+    try { p = navigator.clipboard.writeText(text); } catch(e) { p = Promise.reject(e); }
+    p.then(done).catch(function(){ selectText(el); });
+  }
+  document.querySelectorAll('.sw-hex').forEach(function(b){
+    b.addEventListener('click', function(){ copy(b.dataset.copy, b, function(){ b.classList.add('copied'); setTimeout(function(){ b.classList.remove('copied'); }, 1200); }); });
+  });
+  var tokBtn = document.getElementById('copy-tokens'), tokCode = document.getElementById('token-code');
+  tokBtn.addEventListener('click', function(){ copy(tokCode.textContent, tokCode, function(){ tokBtn.textContent = 'Copied'; setTimeout(function(){ tokBtn.textContent = 'Copy'; }, 1400); }); });
+
+  var CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>';
+  var CROSS = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg>';
+  var SPARK = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spark"/></svg>';
+  var CAL = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-calendar"/></svg>';
+  function flame(cls){ return '<svg class="flame ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>'; }
+  function replay(el, cls){ el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  /* One answer tile, shared by the question of the day and the quiz (AnswerChoice.tsx). */
+  function tile(label, i, st, motion, xp){
+    var cls = 'tile' + (st ? ' is-' + st : '') + (motion ? ' ' + motion : '');
+    var mark = st === 'right' ? '<span class="mark' + (motion ? ' mark-in' : '') + '">' + CHECK + '</span>' : st === 'wrong' ? '<span class="mark' + (motion ? ' mark-in' : '') + '">' + CROSS + '</span>' : '';
+    var sr = st === 'right' ? '<span class="vh" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">, correct</span>' : st === 'wrong' ? '<span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">, not quite</span>' : '';
+    var float = xp ? '<span class="chip chip--xp xp-float" aria-hidden="true">+' + xp + ' XP</span>' : '';
+    return '<button class="' + cls + '" type="button" data-i="' + i + '"' + (st ? ' disabled' : '') + '><span class="key">' + (i + 1) + '</span><span class="lbl">' + label + sr + '</span>' + mark + float + '</button>';
+  }
+  function tileState(i, pick, ans){
+    if(pick < 0) return '';
+    if(i === ans) return 'right';
+    if(i === pick) return 'wrong';
+    return 'faded';
+  }
+
+  /* ---- Level card: XP from the question of the day ---- */
+  var TITLES = ['Steward in Training','Coin Counter','Faithful With Little','Diligent Planner','Wise Builder','Generous Manager','Faithful With Much','Trusted Steward','Good & Faithful Steward'];
+  function floorXp(L){ return 50 * L * (L - 1); }
+  function levelFor(x){ var L = 1; while(floorXp(L + 1) <= x) L++; return L; }
+  var XP0 = 420, xp = XP0, streak = 5;
+  var lvBadge = document.getElementById('lv-badge'), lvTitle = document.getElementById('lv-title'), lvSub = document.getElementById('lv-sub');
+  var lvBar = document.getElementById('lv-bar'), lvFill = lvBar.querySelector('i'), lvWrap = document.getElementById('lv-barwrap');
+  var lvStreak = document.getElementById('lv-streak'), lvFlame = document.getElementById('lv-flame');
+  function renderLevel(gain, leveled){
+    var L = levelFor(xp), into = xp - floorXp(L), span = floorXp(L + 1) - floorXp(L);
+    lvBadge.textContent = L;
+    lvTitle.textContent = TITLES[Math.min(L, TITLES.length) - 1];
+    lvSub.textContent = into + ' / ' + span + ' XP to level ' + (L + 1);
+    lvFill.style.setProperty('--v', (into / span * 100) + '%');
+    lvBar.setAttribute('aria-valuemax', span); lvBar.setAttribute('aria-valuenow', into);
+    lvStreak.textContent = streak;
+    if(gain){ var t = document.createElement('span'); t.className = 'xp-tick'; t.setAttribute('aria-hidden', 'true'); t.textContent = '+' + gain + ' XP'; lvWrap.appendChild(t); setTimeout(function(){ t.remove(); }, 1200); }
+    if(leveled) replay(lvBadge, 'level-pop');
+  }
+  document.getElementById('xp-daily').addEventListener('click', function(){
+    var before = levelFor(xp); xp += 15; streak += 1;
+    renderLevel(15, levelFor(xp) > before); replay(lvFlame, 'flame-grow');
+  });
+  document.getElementById('xp-reset').addEventListener('click', function(){ xp = XP0; streak = 5; renderLevel(); });
+
+  /* ---- Question of the day (sample data) ---- */
+  var QD = { p: 'Which day of the week do you usually spend the most?', o: ['Monday', 'Friday', 'Saturday', 'Sunday'], a: 2,
+    right: 'Saturdays averaged $96, nearly twice a weekday.', wrong: 'It was Saturday: $96 on average, nearly twice a weekday.',
+    take: 'Weekends are where plans meet real life. A Saturday number to aim for helps.' };
+  var qotd = document.getElementById('qotd'), qPick = -1, qStreak = 5;
+  function renderQotd(just){
+    var answered = qPick > -1, right = qPick === QD.a;
+    var h = '<div class="qotd-head"><h5>' + CAL + 'Question of the day</h5><span class="chip chip--streak">' + flame(answered ? (just ? 'flame-grow' : '') : 'unlit') + (answered ? qStreak + 1 : qStreak) + '-day streak</span></div>';
+    h += '<p class="prompt" id="qotd-prompt">' + QD.p + '</p><div class="choices compact" role="group" aria-labelledby="qotd-prompt">';
+    QD.o.forEach(function(o, i){
+      var st = tileState(i, qPick, QD.a), motion = just && i === qPick ? (right ? 'answer-pop' : 'answer-shake') : '';
+      h += tile(o, i, st, motion, just && right && i === qPick ? 15 : 0);
+    });
+    h += '</div>';
+    if(answered){
+      h += '<div class="fb ' + (right ? 'fb--right' : 'fb--wrong') + (just ? ' feedback-in' : '') + '" role="status"><b>' + (right ? CHECK + 'Correct!' : CROSS + 'Not quite.') + '</b> ' + (right ? QD.right : QD.wrong) + '</div>';
+      h += '<div class="take">' + SPARK + '<span>' + QD.take + '</span></div>';
+      h += '<div class="qotd-foot"><span class="chip chip--xp' + (just ? ' chip-pop' : '') + '">+' + (right ? 15 : 10) + ' XP</span><span>Come back tomorrow for a new one</span></div>';
+      h += '<div class="qotd-foot"><button type="button" class="linkbtn" data-reset>Reset the specimen</button></div>';
+    }
+    qotd.innerHTML = h;
+  }
+  qotd.addEventListener('click', function(e){
+    if(e.target.closest('[data-reset]')){ qPick = -1; renderQotd(false); return; }
+    var t = e.target.closest('.tile'); if(!t || qPick > -1) return;
+    qPick = +t.dataset.i; renderQotd(true);
+  });
+  renderQotd(false);
+
+  /* ---- Quiz (sample data) ---- */
+  var Q = [
+    { p: 'Which category took the most of your spending in September?', o: ['Groceries', 'Dining out', 'Gas & transport', 'Subscriptions'], a: 1,
+      d: 'Dining out led at $412, ahead of Groceries by $38.', w: 'It was Dining out, at $412, ahead of Groceries by $38.',
+      t: 'Eating out adds up quietly. A weekly dining budget keeps it a joy, not a leak.' },
+    { p: 'About how much did you spend on subscriptions last month?', o: ['$12', '$48', '$86', '$140'], a: 2,
+      d: '$86, across five services. Two of them renew this week.', w: 'It was $86, across five services. Two of them renew this week.',
+      t: 'Small monthly charges hide well. A yearly look at them is one of the easiest wins there is.' },
+    { p: 'How much did you give in September?', o: ['$120', '$260', '$420', '$610'], a: 2,
+      d: '$420, about a tenth of what came in.', w: 'It was $420, about a tenth of what came in.',
+      t: 'Generosity you can see. That month counts toward the First Fruits badge.' }
+  ];
+  var quiz = document.getElementById('quiz');
+  var S = { i: 0, pick: -1, right: 0, run: 0, picks: [], done: false };
+  function renderQuiz(just){
+    if(S.done){ renderResult(); return; }
+    var q = Q[S.i], answered = S.pick > -1, ok = S.pick === q.a, step = S.i + (answered ? 1 : 0);
+    var h = '<div class="quiz-head"><span>Question ' + (S.i + 1) + ' of ' + Q.length + '</span><span class="row"><span class="in-a-row">' + (S.run >= 2 ? flame(just && ok ? 'flame-grow' : '') + S.run + ' in a row' : '') + '</span><span>' + S.right + ' right so far</span></span></div>';
+    h += '<div class="qbar" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="' + Q.length + '" aria-valuenow="' + step + '"><i class="' + (step ? '' : 'zero') + '" style="--v:' + (step / Q.length * 100) + '%"></i></div>';
+    h += '<div class="quiz-card"><h5 id="quiz-q">' + q.p + '</h5><div class="choices" role="group" aria-labelledby="quiz-q">';
+    q.o.forEach(function(o, i){
+      var st = tileState(i, S.pick, q.a), motion = just && i === S.pick ? (ok ? 'answer-pop' : 'answer-shake') : '';
+      h += tile(o, i, st, motion, just && ok && i === S.pick ? 10 : 0);
+    });
+    h += '</div>';
+    if(answered){
+      h += '<div class="fb fb--quiz ' + (ok ? 'fb--right' : 'fb--wrong') + (just ? ' feedback-in' : '') + '" role="status"><b>' + (ok ? CHECK + 'Nice!' : CROSS + 'Not quite') + '</b><div style="margin-top:4px">' + (ok ? q.d : q.w) + '</div></div>';
+      h += '<div class="take">' + SPARK + '<span>' + q.t + '</span></div>';
+      h += '<div class="quiz-next"><span>Press Enter</span><button class="btn" type="button" data-next>' + (S.i === Q.length - 1 ? 'See results' : 'Next question') + '</button></div>';
+    } else {
+      h += '<div class="quiz-next"><span>Pick an answer, or press 1–4</span></div>';
+    }
+    h += '</div>';
+    quiz.innerHTML = h;
+    if(answered){ var nb = quiz.querySelector('[data-next]'); if(nb && just) nb.focus({ preventScroll: true }); }
+  }
+  function pick(i){
+    if(S.done || S.pick > -1) return;
+    var q = Q[S.i]; S.pick = i; S.picks[S.i] = i;
+    if(i === q.a){ S.right++; S.run++; } else { S.run = 0; }
+    renderQuiz(true);
+  }
+  function next(){
+    if(S.pick < 0) return;
+    S.i++; S.pick = -1;
+    if(S.i >= Q.length) S.done = true;
+    renderQuiz(false);
+    quiz.focus({ preventScroll: true });
+  }
+  function renderResult(){
+    var total = Q.length, perfect = S.right === total, pct = Math.round(S.right / total * 100);
+    var earned = S.right * 10 + 15 + (perfect ? 25 : 0);
+    var verdict = perfect ? 'You know exactly where your money goes.' : S.right === total - 1 ? 'You know where your money goes. One answer was a close call worth a second look.' : 'A good start. Every answer showed you something new about your month.';
+    var C = 339.29;
+    var h = '<div class="result feedback-in"><div class="over">Quiz complete</div>';
+    h += '<div class="ring" role="img" aria-label="Score ' + S.right + ' of ' + total + '"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke-width="10" class="ring-track"/><circle id="res-ring" class="ring-fill" cx="60" cy="60" r="54" fill="none" stroke-width="10" stroke="' + (perfect ? '#e5b13c' : '#2f8749') + '" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" transform="rotate(-90 60 60)"/></svg><div class="ring-mid"><b><span id="res-n">0</span><small> / ' + total + '</small></b><span>' + pct + '%</span></div></div>';
+    h += '<span class="sticker chip-pop">' + (perfect ? 'Perfect score!' : S.right >= 2 ? 'Nice work!' : 'Good start!') + '</span>';
+    h += '<span class="chip chip--streak chip-pop">+' + earned + ' XP earned</span><p>' + verdict + '</p>';
+    h += '<div class="row" style="justify-content:center;gap:12px"><button class="btn" type="button" data-retake>Retake quiz</button><button class="btn btn--secondary" type="button" data-review aria-expanded="false">Review answers</button></div>';
+    h += '<ul class="review" hidden>' + Q.map(function(q, i){ var ok = S.picks[i] === q.a; return '<li><span class="m ' + (ok ? 'ok' : 'no') + '">' + (ok ? CHECK : CROSS) + '</span><span><b>' + q.p + '</b>' + (ok ? q.d : q.w) + '</span></li>'; }).join('') + '</ul></div>';
+    quiz.innerHTML = h;
+    var ring = document.getElementById('res-ring'), n = document.getElementById('res-n');
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ ring.style.strokeDashoffset = C * (1 - S.right / total); }); });
+    var k = 0, timer = setInterval(function(){ k++; n.textContent = Math.min(k, S.right); if(k >= S.right) clearInterval(timer); }, 260);
+    if(S.right === 0) n.textContent = '0';
+  }
+  quiz.addEventListener('click', function(e){
+    var t = e.target.closest('.tile'); if(t){ pick(+t.dataset.i); return; }
+    if(e.target.closest('[data-next]')){ next(); return; }
+    if(e.target.closest('[data-retake]')){ S = { i: 0, pick: -1, right: 0, run: 0, picks: [], done: false }; renderQuiz(false); quiz.focus({ preventScroll: true }); return; }
+    var rv = e.target.closest('[data-review]');
+    if(rv){ var list = quiz.querySelector('.review'); list.hidden = !list.hidden; rv.setAttribute('aria-expanded', String(!list.hidden)); }
+  });
+  quiz.addEventListener('keydown', function(e){
+    if(S.done) return;
+    if(S.pick < 0 && /^[1-4]$/.test(e.key)){ pick(+e.key - 1); e.preventDefault(); }
+    else if(e.key === 'Enter' && S.pick > -1 && !e.target.closest('button')){ next(); e.preventDefault(); }
+  });
+  renderQuiz(false);
+
+  /* ---- Sign-in module (validates, sends nothing) ---- */
+  var form = document.getElementById('signin'), email = document.getElementById('si-email'), pass = document.getElementById('si-pass');
+  var emailMsg = document.getElementById('si-email-msg'), passMsg = document.getElementById('si-pass-msg');
+  var submit = document.getElementById('si-submit'), note = document.getElementById('si-note'), intro = document.getElementById('si-intro');
+  var mode = 'signin';
+  function setErr(input, msg, text){ input.setAttribute('aria-invalid', 'true'); msg.textContent = text; msg.hidden = false; }
+  function clearErr(){ [email, pass].forEach(function(i){ i.removeAttribute('aria-invalid'); }); [emailMsg, passMsg].forEach(function(m){ m.hidden = true; m.textContent = ''; }); }
+  form.querySelectorAll('[data-mode]').forEach(function(b){
+    b.addEventListener('click', function(){
+      mode = b.dataset.mode;
+      form.querySelectorAll('[data-mode]').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      submit.textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+      intro.textContent = mode === 'signin' ? 'Welcome back. Your data syncs to this device when you sign in.' : 'An account keeps your data backed up and lets you use it on any device.';
+      pass.placeholder = mode === 'signin' ? 'Password' : 'Password (8+ characters)';
+      clearErr(); note.textContent = '';
+    });
+  });
+  email.addEventListener('input', function(){ email.removeAttribute('aria-invalid'); emailMsg.hidden = true; });
+  pass.addEventListener('input', function(){ pass.removeAttribute('aria-invalid'); passMsg.hidden = true; });
+  form.addEventListener('submit', function(e){
+    e.preventDefault(); clearErr(); note.textContent = '';
+    if(!/^\S+@\S+\.\S+$/.test(email.value.trim())){ setErr(email, emailMsg, 'Enter a full email address, like name@example.com.'); email.focus(); return; }
+    if(!pass.value){ setErr(pass, passMsg, 'Enter your password.'); pass.focus(); return; }
+    if(mode === 'signup' && pass.value.length < 8){ setErr(pass, passMsg, 'Passwords need 8 or more characters. Add a few more?'); pass.focus(); return; }
+    var label = submit.textContent; submit.disabled = true; submit.textContent = 'Working…';
+    setTimeout(function(){ submit.disabled = false; submit.textContent = label; pass.value = ''; note.textContent = 'Specimen only. Nothing was sent anywhere.'; }, 900);
+  });
+  document.getElementById('si-google').addEventListener('click', function(){ note.textContent = 'Specimen only. In the app this opens Google sign-in.'; });
+
+  /* ---- Contents highlight ---- */
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+  var targets = links.map(function(a){ return document.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
+  function onScroll(){
+    var y = window.scrollY + 120, current = targets[0];
+    targets.forEach(function(t){ if(t.getBoundingClientRect().top + window.scrollY <= y) current = t; });
+    links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#' + current.id); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
