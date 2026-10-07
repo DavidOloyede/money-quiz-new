@@ -275,14 +275,16 @@ export function StatusLine({ kind, children }: { kind: 'error' | 'success'; chil
   )
 }
 
-/** Centered empty-state block used inside a Card. */
+/** Centered empty-state block used inside a Card. `art` (Omer, where he belongs) takes the emoji's place. */
 export function Empty({
   emoji,
+  art,
   title,
   message,
   children,
 }: {
-  emoji: string
+  emoji?: string
+  art?: ReactNode
   title: string
   message: string
   children?: ReactNode
@@ -290,7 +292,7 @@ export function Empty({
   const { colors } = useAppTheme()
   return (
     <View style={{ alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.sm }}>
-      <Text style={{ fontSize: 34 }}>{emoji}</Text>
+      {art ?? (emoji ? <Text style={{ fontSize: 34 }}>{emoji}</Text> : null)}
       <Text style={{ fontFamily: fonts.rounded, fontSize: 17, color: colors.ink, textAlign: 'center' }}>
         {title}
       </Text>
