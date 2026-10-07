@@ -111,3 +111,19 @@ export const FLAME_PATHS = {
     'M32 24C37 33 46 40 46 53C46 65 40 72 32 72C24 72 18 65 18 55C18 48 22 43 26 40C26 46 28 49 31 50C29 41 29 32 32 24Z',
   core: 'M32 44C35 50 40 54 40 61C40 67 36 71 32 71C28 71 24 67 24 62C24 56 29 52 32 44Z',
 } as const
+
+/**
+ * The small streak flame, which replaces the 🔥 emoji wherever the streak is
+ * shown (the design-system guide's flame): a coral-400 body with a coral-700
+ * edge and a honey-300 core when today has counted, faded and grey until
+ * then. Both apps draw it from these two paths. The guide draws it on a 24px
+ * icon grid; the view box is cropped to the flame itself (12 wide, 17.5
+ * tall) so it fills a line of text the way the emoji did.
+ */
+export const FLAME_ICON_VIEWBOX = '6 1.5 12 17.5'
+/** Width over height of that view box, for sizing it beside text. */
+export const FLAME_ICON_ASPECT = 12 / 17.5
+export const FLAME_ICON_PATHS = {
+  body: 'M12 2.5c.6 3.2 4.8 5.2 4.8 10.3A4.8 4.8 0 0 1 7.2 13c0-2.2 1-3.7 2.3-4.8.1 1.7.9 2.8 2 3 .1-3.2-.8-5.6.5-8.7z',
+  core: 'M12 13.2c1.3 1.3 2.3 2.3 2.3 3.7a2.3 2.3 0 0 1-4.6 0c0-1.4 1-2.4 2.3-3.7z',
+} as const

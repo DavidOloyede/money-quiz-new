@@ -31,6 +31,7 @@ import { BadgesCard } from '@/components/BadgesCard'
 import { QuizEvidence } from '@/components/QuizEvidence'
 import { QuizStatsRow } from '@/components/QuizStatsRow'
 import { SoundToggle } from '@/components/SoundToggle'
+import { StreakFlame } from '@/components/StreakFlame'
 import { Confetti } from '@/components/celebrate/Confetti'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, StatusLine } from '@/components/ui'
 import { haptic } from '@/lib/haptics'
@@ -202,13 +203,14 @@ export default function QuizScreen() {
             Question {index + 1} of {questions.length}
           </Text>
           {inARow >= 3 ? (
-            <Animated.Text
+            <Animated.View
               key={inARow}
               entering={fresh ? ZoomIn.springify().damping(13) : undefined}
-              style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
             >
-              🔥 {inARow} in a row!
-            </Animated.Text>
+              <StreakFlame size={16} />
+              <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}>{inARow} in a row!</Text>
+            </Animated.View>
           ) : (
             <Text style={{ fontFamily: fonts.rounded, fontSize: 13, color: colors.muted, fontVariant: ['tabular-nums'] }}>
               {score(questions, answers)} right so far

@@ -19,6 +19,7 @@ import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { QuizEvidence } from '@/components/QuizEvidence'
+import { StreakFlame } from '@/components/StreakFlame'
 import { Card, CardTitle } from '@/components/ui'
 import { haptic } from '@/lib/haptics'
 import { useSound } from '@/lib/sound'
@@ -55,13 +56,16 @@ export function DailyQuestion() {
     <Card tone="warm">
       <CardTitle
         right={
-          <Animated.Text
+          <Animated.View
             key={justAnswered ? 'lit' : 'still'}
             entering={justAnswered ? ZoomIn.springify().damping(7) : undefined}
-            style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
           >
-            <Text style={{ opacity: countedToday(game) ? 1 : 0.4 }}>🔥</Text> {liveStreak(game)}-day streak
-          </Animated.Text>
+            <StreakFlame lit={countedToday(game)} size={15} />
+            <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}>
+              {liveStreak(game)}-day streak
+            </Text>
+          </Animated.View>
         }
       >
         📅 Question of the day

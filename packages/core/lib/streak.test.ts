@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { GameState } from '../types'
 import { DEFAULT_GAME_STATE } from './gamification'
-import { countedToday, liveStreak, STREAK_GOALS, streakProgress } from './streak'
+import { readFileSync } from 'node:fs'
+import { countedToday, FLAME_ICON_PATHS, liveStreak, STREAK_GOALS, streakProgress } from './streak'
 
 const game = (streak: number, lastActiveDay: string): GameState => ({
   ...DEFAULT_GAME_STATE,
@@ -77,5 +78,15 @@ describe('liveStreak', () => {
   it('handles month boundaries and a brand-new state', () => {
     expect(liveStreak(game(9, '2026-09-30'), '2026-10-01')).toBe(9)
     expect(liveStreak(DEFAULT_GAME_STATE, '2026-10-06')).toBe(0)
+  })
+})
+
+describe('the small streak flame', () => {
+  it('is the flame the design-system guide draws', () => {
+    // The guide's icon sprite (docs/design/system-guide), so the docs and the apps can't drift apart.
+    const guide = readFileSync(new URL('../../../docs/design/system-guide/src/p3-intro.html', import.meta.url), 'utf8')
+    const symbol = guide.match(/<symbol id="i-flame"[\s\S]*?<\/symbol>/)?.[0] ?? ''
+    expect(symbol).toContain(`d="${FLAME_ICON_PATHS.body}"`)
+    expect(symbol).toContain(`d="${FLAME_ICON_PATHS.core}"`)
   })
 })

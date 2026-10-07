@@ -19,6 +19,7 @@ import { BadgesCard } from './BadgesCard'
 import { DailyQuestionCard } from './DailyQuestionCard'
 import { EmptyState } from './EmptyState'
 import { SoundToggle } from './SoundToggle'
+import { StreakFlame } from './StreakFlame'
 import { Confetti } from './celebrate/Confetti'
 import { useCountUp } from './celebrate/useCountUp'
 import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
@@ -234,9 +235,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
             </span>
             {inARow >= 3 ? (
               <span key={inARow} className="text-honey-700 dark:text-honey-300">
-                <span className={fresh ? 'flame-grow' : ''} aria-hidden>
-                  🔥
-                </span>{' '}
+                <StreakFlame grow={fresh} />{' '}
                 {inARow} in a row!
               </span>
             ) : (
