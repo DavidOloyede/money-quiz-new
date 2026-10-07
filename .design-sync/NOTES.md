@@ -54,7 +54,8 @@ and infra are intentionally excluded.
   CSS imports), so `_ds_bundle.css` is empty by design.
 - **Fonts:** self-hosted variable fonts since the Manna Money redesign
   (Jul 2026): Fraunces (display serif, `font-display`) + Inter (body), plus
-  Nunito (`font-rounded`, Sep 2026; no tracked component uses it yet), served
+  Nunito (`font-rounded`, Sep 2026; since Oct 2026 the headings of every
+  tracked card and the ProgressWidget/DailyQuestionCard game text), served
   from `/fonts/*.woff2` via `@font-face` in `src/index.css`. Those `url()`s do
   NOT resolve in the preview host, so **previews fall back to the system
   serif/sans stacks** — metrics differ slightly from the real app; grade
@@ -64,6 +65,16 @@ and infra are intentionally excluded.
   Components no longer use slate/emerald/amber/bg-white utilities — if a
   preview renders unstyled after edits, the frozen `app.css` is stale
   (regenerate per below).
+
+- **Shared utilities and motion (Oct 2026):** tracked components now use
+  the custom Tailwind utilities `card` and `btn-*` (defined with `@utility`
+  in `src/index.css`) and the game-moment keyframes in `src/celebrate.css`
+  (`answer-pop`, `flame-grow`, `level-pop`, `xp-tick`…). Both reach the
+  previews only through the frozen `app.css`, so regenerate it after
+  touching either file. `celebrate.css` is imported by `index.css`, never by
+  a component, so the bundle stays free of CSS imports.
+  `DailyQuestionCard` imports `src/lib/sound.ts`; it does nothing at import
+  time (no AudioContext until a sound plays), so previews stay inert.
 
 ## Re-sync risks (what can silently go stale)
 
@@ -99,4 +110,7 @@ and infra are intentionally excluded.
 - **Store seeding for gamification.** `ProgressWidget`/`ProgressChip` previews
   seed `localStorage['moneyquiz.game.v1']` before the StoreProvider mounts to
   show a populated Level 4 / 12-day-streak state. If the storage key or
-  GameState shape changes, update those two previews.
+  GameState shape changes, update those two previews. Since Oct 2026 the
+  widgets show the *live* streak (core `lib/streak.ts`): it reads 0 unless
+  `lastActiveDay` is today or yesterday on the viewer's local clock, so the
+  previews seed the local date, not the UTC one.

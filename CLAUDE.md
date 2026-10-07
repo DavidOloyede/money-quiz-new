@@ -22,6 +22,7 @@ npm run lint       # typechecks the app, packages/core (tsc -b), server/, and ap
 npm run build      # typecheck + production build into dist/
 npm run gen:theme  # regenerate src/theme.css from packages/core/theme.ts
 npm run gen:brands # regenerate core data/brandIcons.ts (company logos) from Simple Icons
+npm run gen:sounds # render core lib/sounds.ts to WAV for both apps (public/sounds, apps/mobile/assets/sounds)
 
 # Mobile (run from apps/mobile; see apps/mobile/AGENTS.md for the rules)
 npm run ios        # build + launch the dev client on the iOS Simulator
@@ -61,6 +62,14 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
   (`npm run gen:theme`) — edit theme.ts, never theme.css. Use
   tokens/utilities, not hardcoded hex in components. Dark mode is
   class-based (`.dark` on `<html>`, toggled by the store).
+- Buttons and cards use the shared utilities in `src/index.css`
+  (`btn-primary`, `btn-secondary`, `btn-reward`, `btn-danger`, `card`), not
+  hand-rolled class strings. Game-moment keyframes live in `src/celebrate.css`
+  (imported by index.css, never by a component, so the design-sync bundle
+  stays CSS-free). Every animation needs a `prefers-reduced-motion` rest state.
+- Web routing is the in-house History API router in `src/lib/routes.ts` (no
+  routing library). A new screen needs a `View`, a path in `VIEW_PATHS`, a
+  label, and a decision on whether it's an "open door" for new visitors.
 
 ## Testing conventions
 
@@ -103,10 +112,10 @@ don't re-derive it). The portability seams landed in July 2026; the full rule
 lives in the roadmap's "code-sharing rule" section. The short version:
 
 - Shared code lives in `packages/core` and must stay free of DOM,
-  `localStorage`, and `import.meta.env` (fatal under Metro). The five
+  `localStorage`, and `import.meta.env` (fatal under Metro). The seven
   web-only lib files stay in `src/lib/` and must never be imported from
   core: `supabase.ts`, `track.ts`, `exportData.ts`, `plaidLink.ts`,
-  `configure.ts`.
+  `configure.ts`, `routes.ts` (the web addresses), `sound.ts` (Web Audio).
 - The seams are `setStorageBackend()` (core `lib/storage.ts`),
   `configureApi()` (core `lib/api.ts` — web wires it in
   `src/lib/configure.ts`, imported first in `main.tsx`), and
