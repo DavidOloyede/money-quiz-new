@@ -1,0 +1,36 @@
+/*
+ * The app's brand fonts for the design-sync bundle (wired via `extraFonts` in
+ * config.json). src/index.css declares the same faces with root-absolute
+ * urls (/fonts/...) that only resolve on the app's own server, so the
+ * converter can't find the files; these point at the real woff2s in
+ * public/fonts/ so they ship in the bundle's fonts/. Keep in step with the
+ * @font-face block in src/index.css.
+ */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../public/fonts/fraunces-latin-soft-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../public/fonts/fraunces-latin-soft-italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../public/fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("../public/fonts/nunito-latin-wght-normal.woff2") format("woff2");
+}
