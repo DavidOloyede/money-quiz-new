@@ -23,7 +23,7 @@ import Animated, {
 import { SvgXml } from 'react-native-svg'
 import { omerSvg, type OmerOutfit, type OmerPose } from '@moneyquiz/core/lib/omer'
 
-export type OmerMotion = 'breathe' | 'hop' | 'wobble' | 'none'
+export type OmerMotion = 'breathe' | 'hop' | 'wobble' | 'none' | 'still'
 
 function motionFor(pose: OmerPose): OmerMotion {
   if (pose === 'cheer' || pose === 'jump') return 'hop'
@@ -42,7 +42,7 @@ export function Omer({
   pose?: OmerPose
   outfit?: OmerOutfit
   size?: number
-  /** Defaults to what suits the pose; 'none' still pops in. */
+  /** Defaults to what suits the pose; 'none' only pops in; 'still' doesn't move at all. */
   motion?: OmerMotion
   /** Read aloud by VoiceOver when he carries meaning; leave unset when he's decoration. */
   label?: string
@@ -51,11 +51,12 @@ export function Omer({
   const reduce = useReducedMotion()
   const xml = useMemo(() => omerSvg({ pose, outfit, size }), [pose, outfit, size])
   const kind = motion ?? motionFor(pose)
-  const enter = useSharedValue(reduce ? 1 : 0)
+  const still = reduce || kind === 'still'
+  const enter = useSharedValue(still ? 1 : 0)
   const loop = useSharedValue(0)
 
   useEffect(() => {
-    if (reduce) return
+    if (still) return
     // The reward overshoot (DESIGN.md), so he lands with a little bounce.
     enter.value = withTiming(1, { duration: 500, easing: Easing.bezier(0.34, 1.56, 0.64, 1) })
     const ease = Easing.inOut(Easing.sin)
@@ -83,7 +84,7 @@ export function Omer({
         ),
       )
     }
-  }, [reduce, kind, enter, loop])
+  }, [still, kind, enter, loop])
 
   const animated = useAnimatedStyle(() => ({
     opacity: Math.min(1, enter.value * 1.7),

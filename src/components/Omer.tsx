@@ -12,14 +12,14 @@
 import { useMemo } from 'react'
 import { omerSvg, type OmerOutfit, type OmerPose } from '@moneyquiz/core/lib/omer'
 
-export type OmerMotion = 'breathe' | 'hop' | 'wobble' | 'none'
+export type OmerMotion = 'breathe' | 'hop' | 'wobble' | 'none' | 'still'
 
 interface Props {
   pose?: OmerPose
   outfit?: OmerOutfit
   /** Width and height in px. */
   size?: number
-  /** Defaults to what suits the pose; 'none' still pops in. */
+  /** Defaults to what suits the pose; 'none' only pops in; 'still' doesn't move at all (static mockups). */
   motion?: OmerMotion
   /** Alt text when he carries meaning; leave unset when he's decoration. */
   label?: string
