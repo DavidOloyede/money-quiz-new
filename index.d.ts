@@ -8,7 +8,7 @@
 // Vite never imports it, and esbuild ignores .d.ts when bundling.
 //
 // The real per-component prop contracts are emitted from `dtsPropsFor` in
-// design-sync.config.json — these `any` params are just placeholders so the
+// .design-sync/config.json — these `any` params are just placeholders so the
 // export surface parses. Keep this list in sync with `componentSrcMap`.
 
 export declare function StoreProvider(props: any): any;

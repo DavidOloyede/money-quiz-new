@@ -91,7 +91,7 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
 them — the pipeline breaks silently. The contract:
 
 - These four move **together**: `.design-sync/entry.tsx`, `componentSrcMap`
-  in `design-sync.config.json`, root `index.d.ts`, and `dtsPropsFor` (also in
+  in `.design-sync/config.json`, root `index.d.ts`, and `dtsPropsFor` (also in
   the config). Add/rename/remove a tracked component → update all four in the
   same commit.
 - `dtsPropsFor` is hand-maintained. If a tracked component's props change,
