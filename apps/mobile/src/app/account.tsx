@@ -225,7 +225,7 @@ function SignInCard({
       </View>
 
       {error && (
-        <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: '#dc2626' }}>{error}</Text>
+        <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.danger }}>{error}</Text>
       )}
       {info && (
         <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: colors.primary }}>{info}</Text>
