@@ -1,17 +1,21 @@
 /**
- * Watches the game state and shows each milestone (a level-up, new badges)
- * as it happens, wherever it was earned: the quiz, the daily question, an
- * import, or opening the app on a new day. Mounted once at the root, inside
- * the StoreProvider; the detection and pacing are core's useMilestones,
- * shared with the web.
+ * Watches the game state and shows each milestone (the day's streak, a
+ * level-up, new badges) as it happens, wherever it was earned: the quiz, the
+ * daily question, or an import. Mounted once at the root, inside the
+ * StoreProvider; the detection and pacing are core's useMilestones, shared
+ * with the web. Sound and haptic per docs/DESIGN.md: the streak a soft "drop"
+ * and a light tap (a sparkle and success on the day it reaches a goal), a
+ * level-up or badge the sparkle and success.
  */
 import { useEffect } from 'react'
 import { useStore } from '@moneyquiz/core'
 import { useMilestones } from '@moneyquiz/core/lib/milestones'
+import { streakProgress } from '@moneyquiz/core/lib/streak'
 
 import { haptic } from '@/lib/haptics'
 import { useSound } from '@/lib/sound'
 import { MilestoneOverlay } from './MilestoneOverlay'
+import { StreakOverlay } from './StreakOverlay'
 
 export function CelebrationHost() {
   const { game } = useStore()
@@ -20,6 +24,11 @@ export function CelebrationHost() {
 
   useEffect(() => {
     if (!current) return
+    if (current.kind === 'streak' && !streakProgress(current.to).reached) {
+      play('drop')
+      haptic.tap()
+      return
+    }
     play('sparkle')
     haptic.success()
     // Once per milestone shown; flipping the Sounds switch mid-moment shouldn't replay it.
@@ -27,5 +36,7 @@ export function CelebrationHost() {
   }, [current])
 
   if (!current) return null
-  return <MilestoneOverlay milestone={current} onClose={dismiss} />
+  // Keyed per milestone, so two in a row each get a fresh entrance.
+  if (current.kind === 'streak') return <StreakOverlay key={`streak-${current.to}`} milestone={current} onClose={dismiss} />
+  return <MilestoneOverlay key={`${current.kind}-${current.kind === 'level' ? current.to : current.badges[0].id}`} milestone={current} onClose={dismiss} />
 }

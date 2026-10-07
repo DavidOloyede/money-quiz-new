@@ -10,12 +10,14 @@
  *
  * Either way a row of sparkles cheers in a wave and confetti falls.
  * Tapping anywhere (or Esc, or the button) closes it, so it never blocks the
- * next thing; reduce motion shows the finished picture.
+ * next thing; reduce motion shows the finished picture. (The day's streak has
+ * its own, quicker moment: StreakOverlay.)
  */
 import { useEffect, useId, useRef, type CSSProperties } from 'react'
 import { levelTitle, xpForLevel } from '@moneyquiz/core/lib/gamification'
-import type { Milestone } from '@moneyquiz/core/lib/milestones'
+import type { BadgesEarned, LevelUp } from '@moneyquiz/core/lib/milestones'
 import { Confetti } from './Confetti'
+import { useRestoreFocus } from './useRestoreFocus'
 
 const BOWL = 'M3 7c0 26.5 20.5 45 47 45s47-18.5 47-45Z'
 
@@ -46,9 +48,12 @@ const SPARKLES = [
   { size: 26, fill: 'fill-honey-300' },
 ]
 
-export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone; onClose: () => void }) {
+type BigMilestone = LevelUp | BadgesEarned
+
+export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilestone; onClose: () => void }) {
   const button = useRef<HTMLButtonElement>(null)
   const clip = useId()
+  useRestoreFocus()
   useEffect(() => {
     button.current?.focus({ preventScroll: true })
     const onKey = (e: KeyboardEvent) => {
@@ -187,7 +192,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone;
   )
 }
 
-function LevelText({ milestone }: { milestone: Extract<Milestone, { kind: 'level' }> }) {
+function LevelText({ milestone }: { milestone: LevelUp }) {
   const next = milestone.to + 1
   return (
     <>
@@ -218,7 +223,7 @@ function LevelText({ milestone }: { milestone: Extract<Milestone, { kind: 'level
   )
 }
 
-function BadgeText({ milestone }: { milestone: Extract<Milestone, { kind: 'badges' }> }) {
+function BadgeText({ milestone }: { milestone: BadgesEarned }) {
   const [first] = milestone.badges
   const one = milestone.badges.length === 1
   return (

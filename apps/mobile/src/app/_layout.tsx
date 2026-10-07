@@ -84,7 +84,7 @@ function ThemedShell() {
           contentStyle: { backgroundColor: colors.background },
         }}
       />
-      {/* Level-ups and new badges, over whatever screen earned them. */}
+      {/* The day's streak, level-ups and new badges, over whatever screen earned them. */}
       <CelebrationHost />
       <SyncDialogs />
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />

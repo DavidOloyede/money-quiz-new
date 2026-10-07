@@ -11,6 +11,7 @@
  * A row of sparkles cheers in a wave and confetti falls. It's a full-screen
  * overlay view rather than a native Modal (iOS won't present two modals at
  * once). A tap anywhere closes it; reduce motion shows the finished picture.
+ * (The day's streak has its own, quicker moment: StreakOverlay.)
  */
 import { useEffect, useState } from 'react'
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
@@ -31,7 +32,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import Svg, { ClipPath, Defs, Ellipse, G, LinearGradient, Path, Polygon, Rect, Stop } from 'react-native-svg'
 import { levelTitle, xpForLevel } from '@moneyquiz/core/lib/gamification'
-import type { Milestone } from '@moneyquiz/core/lib/milestones'
+import type { BadgesEarned, LevelUp } from '@moneyquiz/core/lib/milestones'
 import { coral, cream, forest, honey, linen, sky } from '@moneyquiz/core/theme'
 
 import { Button } from '@/components/ui'
@@ -66,6 +67,8 @@ const SPARKLES = [
   { size: 26, fill: honey['300'] },
 ]
 
+type BigMilestone = LevelUp | BadgesEarned
+
 const flipIn = (delay: number) =>
   new Keyframe({
     0: { opacity: 0, transform: [{ perspective: 600 }, { rotateY: '95deg' }] },
@@ -82,7 +85,7 @@ const numberIn = new Keyframe({
   .delay(1150)
   .duration(420)
 
-export function MilestoneOverlay({ milestone, onClose }: { milestone: Milestone; onClose: () => void }) {
+export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilestone; onClose: () => void }) {
   const { theme } = useAppTheme()
   const { width } = useWindowDimensions()
   // Where the stage landed on screen, so the sunburst (drawn in its own layer
@@ -257,7 +260,7 @@ function FallingFlake({ x, delay }: { x: number; delay: number }) {
   )
 }
 
-function Medals({ milestone }: { milestone: Extract<Milestone, { kind: 'badges' }> }) {
+function Medals({ milestone }: { milestone: BadgesEarned }) {
   return (
     <View style={{ position: 'absolute', bottom: 4, flexDirection: 'row', gap: spacing.sm + 4 }}>
       {milestone.badges.slice(0, 3).map((b, i) => (
@@ -314,7 +317,7 @@ function TitleCard({ children, delay }: { children: string; delay: number }) {
   )
 }
 
-function LevelText({ milestone }: { milestone: Extract<Milestone, { kind: 'level' }> }) {
+function LevelText({ milestone }: { milestone: LevelUp }) {
   const { colors } = useAppTheme()
   const next = milestone.to + 1
   return (
@@ -351,7 +354,7 @@ function LevelText({ milestone }: { milestone: Extract<Milestone, { kind: 'level
   )
 }
 
-function BadgeText({ milestone }: { milestone: Extract<Milestone, { kind: 'badges' }> }) {
+function BadgeText({ milestone }: { milestone: BadgesEarned }) {
   const { colors } = useAppTheme()
   const [first] = milestone.badges
   const one = milestone.badges.length === 1

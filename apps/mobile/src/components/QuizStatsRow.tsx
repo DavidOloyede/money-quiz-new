@@ -1,28 +1,14 @@
 /**
- * Attempts / best / last quiz stats — the mobile QuizHistory. The day-streak
- * stat mirrors the web's calculation (UTC-day set walk).
+ * Attempts / best / last quiz stats — the mobile QuizHistory. The day streak
+ * is the app's one streak (kept by the daily question), so it matches the
+ * flame everywhere else.
  */
 import { Text, View } from 'react-native'
-import type { QuizResult } from '@moneyquiz/core'
+import { useStore, type QuizResult } from '@moneyquiz/core'
+import { liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { Card } from '@/components/ui'
 import { fonts, useAppTheme } from '@/theme'
-
-function dayStreak(history: QuizResult[]): number {
-  if (history.length === 0) return 0
-  const days = new Set(history.map((h) => h.at.slice(0, 10)))
-  const d = new Date()
-  const today = d.toISOString().slice(0, 10)
-  if (!days.has(today)) d.setUTCDate(d.getUTCDate() - 1)
-  let streak = 0
-  for (;;) {
-    const key = d.toISOString().slice(0, 10)
-    if (!days.has(key)) break
-    streak++
-    d.setUTCDate(d.getUTCDate() - 1)
-  }
-  return streak
-}
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   const { colors } = useAppTheme()
@@ -45,6 +31,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export function QuizStatsRow({ history }: { history: QuizResult[] }) {
+  const { game } = useStore()
   if (history.length === 0) return null
   const attempts = history.length
   const bestPct = Math.round(
@@ -59,7 +46,7 @@ export function QuizStatsRow({ history }: { history: QuizResult[] }) {
         <Stat label="Attempts" value={attempts} />
         <Stat label="Best" value={`${bestPct}%`} />
         <Stat label="Last" value={`${lastPct}%`} />
-        <Stat label="Day streak" value={dayStreak(history)} />
+        <Stat label="Day streak" value={liveStreak(game)} />
       </View>
     </Card>
   )

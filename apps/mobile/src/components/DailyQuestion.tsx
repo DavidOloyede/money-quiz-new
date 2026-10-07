@@ -5,15 +5,17 @@
  * the daily habit starts before any account is connected. Answering earns XP
  * (a little more when correct); the same question stays up all day and a new
  * one arrives at midnight. Once answered it shows the same receipts the quiz
- * does — the transactions the figure came from. Answering plays the same
- * moment as the quiz: the answer pops (or shakes), a chime (or soft tone)
- * with a haptic, and the streak flame flickers.
+ * does — the transactions the figure came from. Answering counts today
+ * toward the streak (the only thing that does) and plays the same moment as the quiz: the answer pops
+ * (or shakes), a chime (or soft tone) with a haptic, and the streak flame
+ * lights (it stays dim until something is answered today).
  */
 import { useState } from 'react'
 import { Text, View } from 'react-native'
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated'
 import { useStore } from '@moneyquiz/core'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { QuizEvidence } from '@/components/QuizEvidence'
@@ -24,7 +26,7 @@ import { fonts, radii, spacing, useAppTheme } from '@/theme'
 
 export function DailyQuestion() {
   const { colors } = useAppTheme()
-  const { transactions, budgets, aliases, dismissedRecurring, recurringKinds, awardXp, game } =
+  const { transactions, budgets, aliases, dismissedRecurring, recurringKinds, awardXp, recordDailyAnswer, game } =
     useStore()
   const play = useSound()
   const [daily, setDaily] = useState(() =>
@@ -41,6 +43,7 @@ export function DailyQuestion() {
     if (answered) return
     const right = idx === q.correctIndex
     awardXp(dailyQuestionXp(right))
+    recordDailyAnswer()
     setDaily(answerDaily(daily, idx))
     setJustAnswered(true)
     play(right ? 'chime' : 'soft')
@@ -57,7 +60,7 @@ export function DailyQuestion() {
             entering={justAnswered ? ZoomIn.springify().damping(7) : undefined}
             style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}
           >
-            🔥 {game.streak}-day streak
+            <Text style={{ opacity: countedToday(game) ? 1 : 0.4 }}>🔥</Text> {liveStreak(game)}-day streak
           </Animated.Text>
         }
       >

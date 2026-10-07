@@ -1,7 +1,8 @@
 /**
- * Level / XP / streak readout — the mobile ProgressWidget. Checking in daily
- * keeps the 🔥 streak alive; XP from check-ins, the daily question, quizzes,
- * and imports levels you up through the stewardship titles. Like the web's
+ * Level / XP / streak readout — the mobile ProgressWidget. Answering the
+ * daily question keeps the 🔥 streak alive, and the flame stays dim until
+ * today's is answered; XP from the streak, the daily question, quizzes, and
+ * imports levels you up through the stewardship titles. Like the web's
  * widget it answers every gain: the bar fills with the reward overshoot and
  * "+N XP" floats up; a level-up pops the level circle.
  */
@@ -12,6 +13,7 @@ import { FloatUp } from '@/components/celebrate/FloatUp'
 import { useStore } from '@moneyquiz/core'
 import { BADGES } from '@moneyquiz/core/lib/badges'
 import { levelProgress } from '@moneyquiz/core/lib/gamification'
+import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { Bar, Card } from '@/components/ui'
 import { fonts, spacing, useAppTheme } from '@/theme'
@@ -65,7 +67,8 @@ export function ProgressCard() {
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.muted }}>
-          🔥 <Text style={{ fontFamily: fonts.sansSemiBold, color: colors.ink }}>{game.streak}</Text>
+          <Text style={{ opacity: countedToday(game) ? 1 : 0.4 }}>🔥</Text>{' '}
+          <Text style={{ fontFamily: fonts.sansSemiBold, color: colors.ink }}>{liveStreak(game)}</Text>
           -day streak
         </Text>
         <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.muted }}>

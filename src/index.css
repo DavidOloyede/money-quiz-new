@@ -1,7 +1,7 @@
 @import "tailwindcss";
 /* Design tokens — GENERATED from packages/core/theme.ts (`npm run gen:theme`). */
 @import "./theme.css";
-/* Motion for the game moments (answers, results, level-up). */
+/* Motion for the game moments (answers, results, the streak, level-up). */
 @import "./celebrate.css";
 
 /* Class-based dark mode: the store toggles `.dark` on <html>. */

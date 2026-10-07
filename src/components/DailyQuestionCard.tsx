@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 import { useSound } from '../lib/sound'
 import { AnswerChoice } from './AnswerChoice'
 import { QuizEvidence } from './QuizEvidence'
@@ -10,9 +11,10 @@ import { CheckIcon, SparkIcon, XIcon } from './icons'
  * One question a day — the streak's habit hook. Personalized from the user's
  * own transactions when there's data; a general financial-literacy question
  * when there isn't, so the daily habit starts before any account is connected.
- * Answering earns XP (a little more when correct) and plays the same moment
- * as the quiz: the answer pops (or shakes), a chime (or soft tone), and the
- * streak flame flickers. The same question stays up all day and a new one
+ * Answering earns XP (a little more when correct), counts today toward the
+ * streak (the only thing that does), and plays the same moment as the quiz: the answer pops (or
+ * shakes), a chime (or soft tone), and the streak flame lights (it stays grey
+ * until something is answered today). The same question stays up all day and a new one
  * arrives at midnight. Once answered it shows the same receipts the quiz
  * does — the transactions the figure came from — so the day's number is
  * never something to take on faith.
@@ -25,6 +27,7 @@ export function DailyQuestionCard() {
     dismissedRecurring,
     recurringKinds,
     awardXp,
+    recordDailyAnswer,
     game,
   } = useStore()
   const play = useSound()
@@ -42,6 +45,7 @@ export function DailyQuestionCard() {
     if (answered) return
     const right = idx === q.correctIndex
     awardXp(dailyQuestionXp(right))
+    recordDailyAnswer()
     setDaily(answerDaily(daily, idx))
     setJustAnswered(true)
     play(right ? 'chime' : 'soft')
@@ -54,10 +58,13 @@ export function DailyQuestionCard() {
           <span aria-hidden>📅</span> Question of the day
         </h3>
         <span className="rounded-full bg-honey-100 px-2.5 py-1 font-rounded text-xs font-extrabold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">
-          <span className={justAnswered ? 'flame-grow' : ''} aria-hidden>
+          <span
+            className={justAnswered ? 'flame-grow' : countedToday(game) ? '' : 'opacity-50 grayscale'}
+            aria-hidden
+          >
             🔥
           </span>{' '}
-          {game.streak}-day streak
+          {liveStreak(game)}-day streak
         </span>
       </div>
       {daily.source === 'general' && (

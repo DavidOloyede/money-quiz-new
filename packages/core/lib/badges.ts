@@ -30,13 +30,13 @@ export const BADGES: BadgeDef[] = [
     id: 'streak-7',
     label: 'Week of Diligence',
     emoji: '🔥',
-    description: 'Check in 7 days in a row.',
+    description: 'Answer the question of the day 7 days in a row.',
   },
   {
     id: 'streak-30',
     label: 'Month of Faithfulness',
     emoji: '🗓️',
-    description: 'Check in 30 days in a row.',
+    description: 'Answer the question of the day 30 days in a row.',
     verse: '“He who is faithful in a very little is faithful also in much.” — Luke 16:10',
   },
   {

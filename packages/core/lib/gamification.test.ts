@@ -8,6 +8,7 @@ import {
   levelTitle,
   prevDayKey,
   quizXp,
+  streakDayXp,
   XP,
   xpForLevel,
 } from './gamification'
@@ -51,6 +52,14 @@ describe('checkIn', () => {
     const withBadge: GameState = { ...base, badges: { 'first-import': '2026-06-01' } }
     const s = checkIn(withBadge, '2026-06-09')
     expect(s.badges).toEqual({ 'first-import': '2026-06-01' })
+  })
+})
+
+describe('streakDayXp', () => {
+  it('matches what a check-in awards, bonus capped', () => {
+    expect(streakDayXp(1)).toBe(checkIn(base, '2026-06-09').xp)
+    expect(streakDayXp(4)).toBe(XP.dailyCheckIn + 4 * XP.streakBonusPerDay)
+    expect(streakDayXp(500)).toBe(XP.dailyCheckIn + XP.streakBonusCap)
   })
 })
 
