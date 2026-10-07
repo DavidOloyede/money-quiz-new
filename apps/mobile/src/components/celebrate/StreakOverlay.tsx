@@ -11,7 +11,8 @@
  * It never vanishes unannounced: "Keep going" or a tap anywhere closes it,
  * and on an ordinary day a bar under the button drains over ten seconds and
  * the moment closes when it empties. The day a goal is reached (a week, two
- * weeks, a month…) adds a shout, a sunburst and confetti, and simply waits.
+ * weeks, a month…) adds a shout, a sunburst, confetti and Omer as the
+ * Coach beside the flame, and simply waits.
  * Reduce motion shows the finished picture and drops the countdown, so it
  * waits too. An overlay view, not a native Modal (iOS won't present two at
  * once).
@@ -35,9 +36,11 @@ import Animated, {
 import Svg, { Defs, Ellipse, LinearGradient, Path, Polygon, RadialGradient, Rect, Stop } from 'react-native-svg'
 import { useStore } from '@moneyquiz/core'
 import type { StreakDay } from '@moneyquiz/core/lib/milestones'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { FLAME_PATHS, FLAME_VIEWBOX, streakProgress } from '@moneyquiz/core/lib/streak'
 import { coral, cream, honey, linen } from '@moneyquiz/core/theme'
 
+import { Omer } from '@/components/Omer'
 import { Button } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 import { Confetti } from './Confetti'
@@ -96,6 +99,7 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
   const dark = theme === 'dark'
   const p = streakProgress(milestone.to)
   const goalDay = p.reached
+  const coach = omerFor({ kind: 'streak', day: milestone.to })
 
   const countdown = !goalDay && !reduce
   useEffect(() => {
@@ -181,6 +185,8 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
               </Flicker>
             </Animated.View>
           </View>
+          {/* Goal days only: an ordinary day stays the quick, flame-only moment. */}
+          {coach && <Omer {...coach} size={96} style={{ position: 'absolute', bottom: 0, left: 260 / 2 + FLAME_W / 2 - 12 }} />}
         </View>
 
         {/* The count: yesterday's number flips to today's */}
