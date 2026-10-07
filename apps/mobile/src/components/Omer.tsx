@@ -7,6 +7,8 @@
  *
  * He pops in, then moves to suit the pose: a slow breath at rest, three hops
  * for a cheer or a jump, a wobble for "oops". Reduce motion keeps him still.
+ * In dark mode a faint cream rim (an iOS layer shadow, which follows the
+ * drawing's own edge) keeps his ink outline from vanishing into a dark card.
  */
 import { useEffect, useMemo } from 'react'
 import type { ViewStyle } from 'react-native'
@@ -22,6 +24,8 @@ import Animated, {
 } from 'react-native-reanimated'
 import { SvgXml } from 'react-native-svg'
 import { omerSvg, type OmerOutfit, type OmerPose } from '@moneyquiz/core/lib/omer'
+import { linen } from '@moneyquiz/core/theme'
+import { useAppTheme } from '@/theme'
 
 export type OmerMotion = 'breathe' | 'hop' | 'wobble' | 'none' | 'still'
 
@@ -49,6 +53,7 @@ export function Omer({
   style?: ViewStyle
 }) {
   const reduce = useReducedMotion()
+  const { theme } = useAppTheme()
   const xml = useMemo(() => omerSvg({ pose, outfit, size }), [pose, outfit, size])
   const kind = motion ?? motionFor(pose)
   const still = reduce || kind === 'still'
@@ -105,7 +110,12 @@ export function Omer({
       accessibilityLabel={label}
       importantForAccessibility={label ? 'yes' : 'no-hide-descendants'}
       accessibilityElementsHidden={!label}
-      style={[{ width: size, height: size, transformOrigin: 'bottom' }, style, animated]}
+      style={[
+        { width: size, height: size, transformOrigin: 'bottom' },
+        theme === 'dark' && { shadowColor: linen['300'], shadowOpacity: 0.6, shadowRadius: 1.5, shadowOffset: { width: 0, height: 0 } },
+        style,
+        animated,
+      ]}
     >
       <SvgXml xml={xml} width={size} height={size} />
     </Animated.View>

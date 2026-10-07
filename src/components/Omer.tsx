@@ -6,7 +6,8 @@
  *
  * He pops in, then moves to suit the pose: a slow breath at rest, hops for a
  * cheer or a jump, a wobble for "oops". Reduce motion keeps him still
- * (celebrate.css). Decorative unless given a `label`. The drawing is a data:
+ * (celebrate.css). In dark mode a faint cream rim keeps his ink outline from
+ * vanishing into a dark card. Decorative unless given a `label`. The drawing is a data:
  * URL, so a Content-Security-Policy, if one is ever added, needs `img-src data:`.
  */
 import { useMemo } from 'react'
@@ -45,7 +46,7 @@ export function Omer({ pose = 'idle', outfit, size = 120, motion, label, classNa
       alt={label ?? ''}
       aria-hidden={label ? undefined : true}
       draggable={false}
-      className={`omer omer-${motion ?? motionFor(pose)} pointer-events-none shrink-0 select-none ${className}`}
+      className={`omer omer-${motion ?? motionFor(pose)} pointer-events-none shrink-0 select-none dark:drop-shadow-[0_0_1.5px_var(--color-linen-300)] ${className}`}
     />
   )
 }
