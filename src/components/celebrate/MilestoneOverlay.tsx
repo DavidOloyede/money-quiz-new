@@ -91,7 +91,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
       <div className="milestone-backdrop absolute inset-0 bg-linear-to-b from-cream/95 via-honey-100/95 to-sky-100/95 backdrop-blur-sm dark:from-linen-950/95 dark:via-honey-950/90 dark:to-sky-950/95" />
       <Confetti count={52} className="absolute inset-0" delay={350} />
 
-      <div className="relative flex max-h-full w-full max-w-md flex-col items-center overflow-y-auto px-4 py-6 text-center">
+      <div className="relative flex max-h-full w-full max-w-md flex-col items-center overflow-x-hidden overflow-y-auto px-4 py-6 text-center">
         {/* The stage: sunburst, shout, and Omer (beside the medals for a badge). */}
         <div className="relative h-56 w-72 shrink-0 sm:h-64 sm:w-80">
           <div className="milestone-rays absolute top-[58%] left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full" />

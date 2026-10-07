@@ -80,7 +80,7 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
       <div className="milestone-backdrop absolute inset-0 bg-linear-to-b from-cream/95 via-honey-100/95 to-coral-100/95 backdrop-blur-sm dark:from-linen-950/95 dark:via-honey-950/90 dark:to-coral-950/95" />
       {goalDay && <Confetti count={44} className="absolute inset-0" delay={500} />}
 
-      <div className="relative flex max-h-full w-full max-w-sm flex-col items-center overflow-y-auto px-4 py-6 text-center">
+      <div className="relative flex max-h-full w-full max-w-sm flex-col items-center overflow-x-hidden overflow-y-auto px-4 py-6 text-center">
         {/* The stage: glow, embers and the flame (plus the shout on a goal day) */}
         <div className={`relative w-64 shrink-0 ${goalDay ? 'h-56' : 'h-40'}`}>
           {goalDay && (
