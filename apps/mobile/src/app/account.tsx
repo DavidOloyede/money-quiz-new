@@ -127,7 +127,12 @@ function SignInCard({
     fontFamily: fonts.sans,
     fontSize: 15,
     color: colors.text,
+    minHeight: 44,
   }
+  // Every field has a visible label above it (the design-system guide): a
+  // placeholder vanishes while you type. VoiceOver reads the field's own
+  // accessibilityLabel, so the visible one is hidden from it.
+  const labelStyle = { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.text }
 
   return (
     <Card colors={colors}>
@@ -181,27 +186,43 @@ function SignInCard({
           : 'An account keeps your data backed up and lets you use it on any device.'}
       </Text>
 
-      <TextInput
-        style={inputStyle}
-        placeholder="Email"
-        placeholderTextColor={colors.faint}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        autoComplete="email"
-        keyboardType="email-address"
-        inputMode="email"
-      />
-      <TextInput
-        style={inputStyle}
-        placeholder={mode === 'signup' ? 'Password (8+ characters)' : 'Password'}
-        placeholderTextColor={colors.faint}
-        value={password}
-        onChangeText={setPassword}
-        autoCapitalize="none"
-        autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-        secureTextEntry
-      />
+      <View style={{ gap: 6 }}>
+        <Text style={labelStyle} accessibilityElementsHidden importantForAccessibility="no">
+          Email
+        </Text>
+        <TextInput
+          style={inputStyle}
+          accessibilityLabel="Email"
+          placeholder="you@example.com"
+          placeholderTextColor={colors.faint}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          inputMode="email"
+        />
+      </View>
+      <View style={{ gap: 6 }}>
+        <Text style={labelStyle} accessibilityElementsHidden importantForAccessibility="no">
+          Password
+        </Text>
+        <TextInput
+          style={inputStyle}
+          accessibilityLabel="Password"
+          accessibilityHint={mode === 'signup' ? '8 or more characters' : undefined}
+          value={password}
+          onChangeText={setPassword}
+          autoCapitalize="none"
+          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+          secureTextEntry
+        />
+        {mode === 'signup' && (
+          <Text style={{ fontFamily: fonts.sans, fontSize: 12, color: colors.muted }} accessibilityElementsHidden>
+            8 or more characters.
+          </Text>
+        )}
+      </View>
 
       {error && (
         <Text style={{ fontFamily: fonts.sans, fontSize: 13, color: '#dc2626' }}>{error}</Text>
