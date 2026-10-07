@@ -3,8 +3,14 @@
 *Written 2026-10-07 after two sessions of design-system work (October 6–7).
 Read this first when you bring that work into the app: Omer's new design, his
 wardrobe, the drawn streak flame, and the practices in the design-system guide.
-Nothing below has been built into the app yet. It all lives in Figma, two Claude
-artifacts, and the files in this folder.*
+It all lives in Figma, two Claude artifacts, and the files in this folder.*
+
+**Update, October 7 (`feature/omer-in-the-app`):** Omer, his poses and
+wardrobe, the drawn streak flame and the sign-in labels are now built into
+both apps; see "What is and isn't in the app" below and DESIGN.md's "Omer at
+the moments". `omer.cjs` stays the design docs' copy of the drawing code, and
+a test in `packages/core/lib/omer.test.ts` keeps it identical to the app's
+`packages/core/lib/omer.ts`.
 
 ## Where everything is
 
@@ -13,7 +19,7 @@ artifacts, and the files in this folder.*
 | **Figma file** "Manna Money — Design System" | https://www.figma.com/design/78Sw1rki7AaxCVHPPgdvX6 | Open with the Figma connector. Three pages (the Starter plan's limit): Cover + §1 Visual Language · §2 Component Library (guide on the left, editable main components on the right) · §3 Graphics System + §4 Style Guide. **Out of date on Omer**: §3.3 still shows the old pedestal foot and there is no wardrobe section yet (see "Figma follow-ups"). |
 | **Design-system guide** (single page) | https://claude.ai/artifact/UvFPZk3juASfd6vQ3jtG5c | Private Claude artifact. Same content as Figma plus live specimens (quiz, question of the day, sign-in, XP card). Source: `system-guide/`. |
 | **Omer model sheet v2** (review page) | https://claude.ai/artifact/7HNTp338LsrM33NLmUT12i | Private Claude artifact: before/after legs, turnaround, eight poses, wardrobe and rules. Source: `mascot/`. |
-| **Omer drawing source** | `docs/design/mascot/omer.cjs` | The one source of every Omer drawing: a small function that returns SVG markup for any view, pose or outfit. Everything else here is generated from it. |
+| **Omer drawing source** | `docs/design/mascot/omer.cjs` | The design docs' copy of Omer's drawing code: a small function that returns SVG markup for any view, pose or outfit. Everything else in this folder is generated from it. The app's copy is `packages/core/lib/omer.ts`; a test keeps the two identical, so change both. |
 | **Omer SVGs** | `docs/design/mascot/svg/` (21 files) | Editable vectors: 4 views, 8 poses, 9 outfits. Drag into Figma, or use as references. An older copy is in `~/Downloads/omer-model-sheet-v2/`; this folder is the source of truth. |
 | **Pending Figma update** | `docs/design/figma/figma-update.js` | One `use_figma` script that rebuilds §3.3 with legs, adds §3.4 Omer's wardrobe, renumbers motifs and inventory to §3.5 and §3.6, and adds the outfits row to the asset inventory. Syntax-checked, never run (no Figma calls were left). |
 | **Rules** | `docs/DESIGN.md` | The rulebook. Its Omer section was updated on October 7 for the legs and wardrobe. |
@@ -64,9 +70,9 @@ publish the rebuilt HTML file to its existing URL.
   no clerical costumes or religious symbols.
 - **Proud pose:** the badge is pinned on the lower right of the bowl, not
   floating above him.
-- **Proposed (not yet agreed in code):** a drawn streak flame replaces the 🔥
-  emoji; visible labels above the sign-in fields; button sizes named Small 36 /
-  Medium 44 / Large 48.
+- **Proposed (not yet agreed in code):** ~~a drawn streak flame replaces the 🔥
+  emoji; visible labels above the sign-in fields~~ (both built October 7);
+  button sizes named Small 36 / Medium 44 / Large 48.
 
 ## What is and isn't in the app
 
@@ -77,14 +83,12 @@ hover animation. The design-system guide documents these as they are.
 
 **Not in the app yet:**
 
-1. **Omer himself.** No component and no art in `public/mascot/`; the honey bowl
-   stands in for him in the level-up (`src/components/celebrate/MilestoneOverlay.tsx`).
-2. **Legs, poses and the wardrobe:** only drawings so far.
-3. **The drawn flame.** The emoji is still used in `src/components/DailyQuestionCard.tsx`,
-   `ProgressWidget.tsx`, `QuizView.tsx`, and on iPhone in
-   `apps/mobile/src/components/DailyQuestion.tsx`, `ProgressCard.tsx` and
-   `apps/mobile/src/app/(tabs)/quiz.tsx`.
-4. **Visible labels on the sign-in fields** (`src/components/AccountView.tsx`; placeholders only today).
+1. ~~**Omer himself.**~~ Built October 7: core `lib/omer.ts` and an `Omer`
+   component on each platform (he replaced the level-up's honey bowl).
+2. ~~**Legs, poses and the wardrobe.**~~ Built October 7, wired to the moments
+   by core `lib/omerMoments.ts`. The Chef isn't placed yet (see DESIGN.md).
+3. ~~**The drawn flame.**~~ Built October 7 (`StreakFlame` on each platform).
+4. ~~**Visible labels on the sign-in fields.**~~ Built October 7, web and iPhone.
 5. **The debt-paid-off party** (the Hero and a "PAID OFF!" burst), still listed as to come in DESIGN.md.
 6. **Illustrated people:** removed October 6 to be redrawn (v1 on `archive/illustrated-people-v1`).
 7. **Badge illustrations:** badges are emoji + name today (`packages/core/lib/badges.ts`).
