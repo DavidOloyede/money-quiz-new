@@ -12,11 +12,11 @@ _Started 2026-09-24._
 
 ## Now
 
-- [ ] **Import CSV screen clarity.** Clearer "where is this file from?"
+- [x] ~~**Import CSV screen clarity.** Clearer "where is this file from?"
       (checking vs. credit card) and "money out / money in" instead of
       "debit / credit", with the user's own rows shown under each column.
-      A stopgap: connecting a bank is meant to be the main way in.
-      _Built on `feature/import-csv-clarity` 2026-09-24, waiting on review._
+      A stopgap: connecting a bank is meant to be the main way in.~~
+      _Built on `feature/import-csv-clarity` 2026-09-24; merged 2026-10-07._
 - [ ] **Google sign-in, live in production.** The app already supports it
       (Supabase Auth); finish the Google Cloud + Supabase provider setup in
       docs/SETUP-backend.md and turn it on for real users.
