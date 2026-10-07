@@ -307,7 +307,27 @@ const vals = [['Omer outfits × 9', FN.iSB, 'linen/900', 220], ['Hero, Detective
 for (const [v, f, c, w] of vals) { const cc = AL(r, 'H', { w }); await tx(cc, v, { font: f, size: 13, lh: 19, color: c, fill: true }); }
 const sc = AL(r, 'H', { fillW: true }); const chip = AL(sc, 'H', { bg: 'linen/100', r: 999, p: [4, 10] }); await tx(chip, 'To draw', { font: FN.iM, size: 12, color: 'linen/600' });
 
+// ── Level card (8:316, on the §2 page): the app's formula, 50·L·(L−1), puts level 3
+// at 120 of the 300 XP to level 4 (it said 40 / 120). The bar fills 40%, not a third.
+const lc = await figma.getNodeByIdAsync('8:316');
+const levelCard = { text: [], bar: [] };
+if (lc && 'findAll' in lc) {
+  for (const t of lc.findAll(n => n.type === 'TEXT' && /XP to level/.test(n.characters))) {
+    await Promise.all(t.getStyledTextSegments(['fontName']).map(sg => figma.loadFontAsync(sg.fontName)));
+    t.characters = t.characters.replace(/[\d,]+\s*\/\s*[\d,]+(\s*XP)/, '120 / 300$1');
+    levelCard.text.push({ id: t.id, now: t.characters });
+  }
+  for (const n of lc.findAll(n => (n.type === 'RECTANGLE' || n.type === 'FRAME') && n.parent && 'width' in n.parent)) {
+    const ratio = n.width / n.parent.width;
+    if (Math.abs(ratio - 1 / 3) < 0.03 && n.parent.width > 60 && n.height <= 16) {
+      n.resize(Math.round(n.parent.width * 0.4), n.height);
+      levelCard.bar.push({ id: n.id, name: n.name, width: n.width });
+    }
+  }
+  await lc.screenshot({ scale: 1 });
+}
+
 const n33 = gs.children[idx], n34 = gs.children[idx + 1];
 await n33.screenshot({ scale: 0.35 });
 await n34.screenshot({ scale: 0.4 });
-return { renumbered, order: gs.children.map(n => n.name), height: Math.round(gs.height) };
+return { renumbered, order: gs.children.map(n => n.name), height: Math.round(gs.height), levelCard };

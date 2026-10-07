@@ -21,7 +21,7 @@ a test in `packages/core/lib/omer.test.ts` keeps it identical to the app's
 | **Omer model sheet v2** (review page) | https://claude.ai/artifact/7HNTp338LsrM33NLmUT12i | Private Claude artifact: before/after legs, turnaround, eight poses, wardrobe and rules. Source: `mascot/`. |
 | **Omer drawing source** | `docs/design/mascot/omer.cjs` | The design docs' copy of Omer's drawing code: a small function that returns SVG markup for any view, pose or outfit. Everything else in this folder is generated from it. The app's copy is `packages/core/lib/omer.ts`; a test keeps the two identical, so change both. |
 | **Omer SVGs** | `docs/design/mascot/svg/` (21 files) | Editable vectors: 4 views, 8 poses, 9 outfits. Drag into Figma, or use as references. An older copy is in `~/Downloads/omer-model-sheet-v2/`; this folder is the source of truth. |
-| **Pending Figma update** | `docs/design/figma/figma-update.js` | One `use_figma` script that rebuilds §3.3 with legs, adds §3.4 Omer's wardrobe, renumbers motifs and inventory to §3.5 and §3.6, and adds the outfits row to the asset inventory. Syntax-checked, never run (no Figma calls were left). |
+| **Pending Figma update** | `docs/design/figma/figma-update.js` | One `use_figma` script that rebuilds §3.3 with legs, adds §3.4 Omer's wardrobe, renumbers motifs and inventory to §3.5 and §3.6, and adds the outfits row to the asset inventory. Syntax-checked, never run: no Figma calls were left on October 6, and a try on October 7 still hit the Starter limit. Since October 7 it also fixes the Level card, so one call does both. |
 | **Rules** | `docs/DESIGN.md` | The rulebook. Its Omer section was updated on October 7 for the legs and wardrobe. |
 
 To read an artifact in a later session, give Claude its link (the Artifact tool's
@@ -142,12 +142,13 @@ hover animation. The design-system guide documents these as they are.
   calls a day. Starter also allows only 3 pages per file and one mode per
   variable collection (so Light and Dark are twin collections, "Color · Light"
   and "Color · Dark").
-- **To do when calls are available:**
-  1. Run `figma/figma-update.js` in one `use_figma` call (file key
-     `78Sw1rki7AaxCVHPPgdvX6`; it targets page `4:63` and frame `10:2`).
-  2. Fix the Level card component (`8:316`): its subtitle says
-     "40 / 120 XP to level 4"; the app's formula (50 · L · (L − 1)) gives
-     "120 / 300" for level 3.
+- **To do when calls are available:** run `figma/figma-update.js` in one
+  `use_figma` call (file key `78Sw1rki7AaxCVHPPgdvX6`; it targets page `4:63`
+  and frame `10:2`). Its last step also fixes the Level card component
+  (`8:316`, on page `4:62`): the subtitle "40 / 120 XP to level 4" becomes
+  "120 / 300" (the app's formula, 50 · L · (L − 1), at level 3) and the bar
+  fills 40%; it returns what it changed. Rebuild it with
+  `node docs/design/figma/assemble.cjs` after editing the header or body.
 - **Node IDs** (for scripts): pages `0:1`, `4:62`, `4:63`; frames Cover `5:2`,
   §1 `5:55`, §2 guide `9:147`, Main components `7:2`, §3 `10:2`, §4 `12:47`;
   component sets Button `7:172`, Input `7:202`, Chip `7:225`, Answer tile
