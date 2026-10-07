@@ -24,13 +24,16 @@ import Animated, {
 import Svg, { Circle } from 'react-native-svg'
 import { useStore } from '@moneyquiz/core'
 import { quizXp, XP } from '@moneyquiz/core/lib/gamification'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
 
 import { AnswerOption } from '@/components/AnswerOption'
 import { BadgesCard } from '@/components/BadgesCard'
+import { Omer } from '@/components/Omer'
 import { QuizEvidence } from '@/components/QuizEvidence'
 import { QuizStatsRow } from '@/components/QuizStatsRow'
 import { SoundToggle } from '@/components/SoundToggle'
+import { StreakFlame } from '@/components/StreakFlame'
 import { Confetti } from '@/components/celebrate/Confetti'
 import { Bar, Button, Card, CardTitle, Empty, Note, Screen, StatusLine } from '@/components/ui'
 import { haptic } from '@/lib/haptics'
@@ -96,7 +99,7 @@ export default function QuizScreen() {
       <Screen title="Quiz">
         <Card>
           <Empty
-            emoji="🎓"
+            art={<Omer {...omerFor({ kind: 'welcome' })} size={104} />}
             title="Your quiz is waiting for data"
             message="The quiz is built entirely from your own transactions. Load the sample data or connect an account, then come back to test how well you know your spending."
           >
@@ -112,9 +115,7 @@ export default function QuizScreen() {
     return (
       <Screen title="Quiz" right={<SoundToggle />}>
         <Card tone="warm" style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
-          <Text style={{ fontSize: 40 }} accessible={false}>
-            🎓
-          </Text>
+          <Omer {...omerFor({ kind: 'quiz-intro' })} size={120} />
           <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 21, color: colors.ink, textAlign: 'center' }}>
             How well do you know your money?
           </Text>
@@ -202,13 +203,14 @@ export default function QuizScreen() {
             Question {index + 1} of {questions.length}
           </Text>
           {inARow >= 3 ? (
-            <Animated.Text
+            <Animated.View
               key={inARow}
               entering={fresh ? ZoomIn.springify().damping(13) : undefined}
-              style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
             >
-              🔥 {inARow} in a row!
-            </Animated.Text>
+              <StreakFlame size={16} />
+              <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 13, color: colors.accentDeep }}>{inARow} in a row!</Text>
+            </Animated.View>
           ) : (
             <Text style={{ fontFamily: fonts.rounded, fontSize: 13, color: colors.muted, fontVariant: ['tabular-nums'] }}>
               {score(questions, answers)} right so far
@@ -295,7 +297,13 @@ export default function QuizScreen() {
                 {q.takeaway}
               </Text>
             </View>
-            <Button title={isLast ? 'See results' : 'Next question'} onPress={goNext} />
+            {/* Omer reacts beside the button, away from the answer detail above, which names amounts. */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <Omer key={index} {...omerFor({ kind: 'answer', right })} size={52} motion={fresh ? undefined : 'still'} />
+              <View style={{ flex: 1 }}>
+                <Button title={isLast ? 'See results' : 'Next question'} onPress={goNext} />
+              </View>
+            </View>
           </Animated.View>
         )}
       </Card>
@@ -427,6 +435,13 @@ function Results({
           {celebrate && pct >= 50 && (
             <Confetti mode="pop" count={perfect ? 40 : 26} delay={250} style={{ position: 'absolute', top: 70, left: 70 }} />
           )}
+          {/* Beside the ring, so the score stays centred. */}
+          <Omer
+            {...omerFor({ kind: 'quiz-finished' })}
+            size={84}
+            motion={celebrate && pct >= 50 ? 'hop' : 'breathe'}
+            style={{ position: 'absolute', left: 144, bottom: 0 }}
+          />
         </View>
         {perfect && (
           <Animated.View

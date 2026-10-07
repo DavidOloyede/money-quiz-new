@@ -15,10 +15,13 @@ import { Text, View } from 'react-native'
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated'
 import { useStore } from '@moneyquiz/core'
 import { answerDaily, dailyQuestionXp, getDailyState } from '@moneyquiz/core/lib/dailyQuestion'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 
 import { AnswerOption } from '@/components/AnswerOption'
+import { Omer } from '@/components/Omer'
 import { QuizEvidence } from '@/components/QuizEvidence'
+import { StreakFlame } from '@/components/StreakFlame'
 import { Card, CardTitle } from '@/components/ui'
 import { haptic } from '@/lib/haptics'
 import { useSound } from '@/lib/sound'
@@ -55,13 +58,16 @@ export function DailyQuestion() {
     <Card tone="warm">
       <CardTitle
         right={
-          <Animated.Text
+          <Animated.View
             key={justAnswered ? 'lit' : 'still'}
             entering={justAnswered ? ZoomIn.springify().damping(7) : undefined}
-            style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}
           >
-            <Text style={{ opacity: countedToday(game) ? 1 : 0.4 }}>🔥</Text> {liveStreak(game)}-day streak
-          </Animated.Text>
+            <StreakFlame lit={countedToday(game)} size={15} />
+            <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 12, color: colors.accentDeep }}>
+              {liveStreak(game)}-day streak
+            </Text>
+          </Animated.View>
         }
       >
         📅 Question of the day
@@ -130,10 +136,14 @@ export function DailyQuestion() {
             </Text>
           </View>
           <QuizEvidence evidence={q.evidence} />
-          <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint, textAlign: 'center' }}>
-            <Text style={{ fontFamily: fonts.roundedHeavy, color: colors.accentDeep }}>+{dailyQuestionXp(correct)} XP</Text> · come
-            back tomorrow for a new one
-          </Text>
+          {/* Done for today: the Dreamer naps at the foot, apart from the receipts above. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.xs }}>
+            <Omer {...omerFor({ kind: 'daily-done' })} size={64} />
+            <Text style={{ fontFamily: fonts.sans, fontSize: 11, color: colors.faint }}>
+              <Text style={{ fontFamily: fonts.roundedHeavy, color: colors.accentDeep }}>+{dailyQuestionXp(correct)} XP</Text> · come
+              back tomorrow for a new one
+            </Text>
+          </View>
         </Animated.View>
       )}
     </Card>

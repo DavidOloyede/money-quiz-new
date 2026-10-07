@@ -7,7 +7,7 @@
 // (passed via `--entry`) that re-exports ONLY the scoped UI components plus
 // StoreProvider (wired as cfg.provider so store-backed widgets render).
 //
-// Keep this list in sync with `componentSrcMap` in design-sync.config.json.
+// Keep this list in sync with `componentSrcMap` in .design-sync/config.json.
 
 export { StoreProvider } from '../packages/core/store'
 
@@ -22,3 +22,4 @@ export { MonthlyTrend } from '../src/components/charts/MonthlyTrend'
 export { TopMerchantsCard } from '../src/components/TopMerchantsCard'
 export { TrendsCard } from '../src/components/TrendsCard'
 export { DailyQuestionCard } from '../src/components/DailyQuestionCard'
+export { Omer } from '../src/components/Omer'

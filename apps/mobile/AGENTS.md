@@ -67,8 +67,13 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   `fontVariant: ['tabular-nums']` for money, Fraunces only for scripture.
   Charts are deliberately View-based bars; don't add a chart lib without
   David. `react-native-svg` is installed (Sep 2026) for company logos, the
-  Manna mark, and (Oct 2026) the celebration art (bowl, starburst, sunburst,
-  score ring, streak flame, sparkles), not as a license for SVG charts.
+  Manna mark, and (Oct 2026) the celebration art (starburst, sunburst, score
+  ring, streak flames, sparkles), not as a license for SVG charts. **Omer**
+  (`components/Omer.tsx`) renders core's `lib/omer.ts` markup through
+  `SvgXml`, behind the same props as the web's; which pose and outfit a
+  moment gets comes from core `lib/omerMoments.ts`, never chosen per screen.
+  `Empty` takes `art` (Omer) in place of its emoji. To scroll a screen for a
+  sim screenshot, a temporary `contentOffset` on `Screen`'s ScrollView works.
 - **Celebrations (Oct 2026):** motion is Reanimated 4 (already in the dev
   client; Expo's Babel preset adds the worklets plugin), with layout
   animations (`entering`) for one-shot entrances and shared values for

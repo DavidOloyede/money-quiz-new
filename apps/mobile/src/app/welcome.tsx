@@ -8,9 +8,10 @@
 import { ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Stack, useRouter, type Href } from 'expo-router'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { useStore } from '@moneyquiz/core'
 
-import { MannaLogo } from '@/components/MannaLogo'
+import { Omer } from '@/components/Omer'
 import { Button } from '@/components/ui'
 import { useAuth } from '@/lib/auth'
 import { answerWelcome } from '@/lib/welcome'
@@ -54,7 +55,7 @@ export default function WelcomeScreen() {
               backgroundColor: colors.infoSoft,
             }}
           >
-            <MannaLogo size={64} />
+            <Omer {...omerFor({ kind: 'welcome' })} size={128} label="Omer, the Manna Money mascot, waving hello" />
             <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 30, lineHeight: 36, textAlign: 'center', color: colors.ink }}>
               Enough for today.{'\n'}A plan for tomorrow.
             </Text>

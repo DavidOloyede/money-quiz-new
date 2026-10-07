@@ -29,10 +29,16 @@ and infra are intentionally excluded.
   `compilerOptions.jsx`), so esbuild's per-file tsconfig discovery defaults to
   the classic transform → "React is not defined" → blank previews. No cfg knob
   exists for esbuild jsx mode, hence the fork. It changes ONLY the transform,
-  not the output contract (IIFE/header/globals unchanged).
+  not the output contract (IIFE/header/globals unchanged). Rebased onto the
+  upstream lib/bundle.mjs in Oct 2026 (upstream had gained jsx/jsxs key
+  handling, an export-evidence pass and an `import.meta` define): the jsx
+  option now sits in `sharedBuildOptions` so both esbuild passes agree, and
+  its one sibling import points at `../../.ds-sync/lib/common.mjs`.
+- **Config lives at `.design-sync/config.json`** (moved from the root
+  `design-sync.config.json` in Oct 2026, when the skill changed its home).
 - **Root `index.d.ts` is a load-bearing manifest, not app code.** With no build,
   the converter reads the bundle's export list from `<repo>/index.d.ts` (the
-  entry it resolves when package.json has no `types`). It declares the 12
+  entry it resolves when package.json has no `types`). It declares the 13
   components + `StoreProvider` so the `exported` set is populated — without it,
   `exported` is empty and the converter WON'T wrap previews in `StoreProvider`
   (store-backed widgets render blank) and warns `[PROVIDER_UNEXPORTED]`. It's
@@ -50,16 +56,19 @@ and infra are intentionally excluded.
 - **CSS** ships from `.design-sync/app.css`, a committed copy of the app's
   compiled Tailwind output (`dist/assets/index--*.css`). It's the full
   Tailwind build (all utilities the app uses), self-contained (no external
-  `url()`/`@import`). The bundle has no CSS of its own (Tailwind classes aren't
-  CSS imports), so `_ds_bundle.css` is empty by design.
+  `url()`/`@import`). The converter ships it as `_ds_bundle.css`, which
+  `styles.css` imports (the bundle JS itself imports no CSS).
 - **Fonts:** self-hosted variable fonts since the Manna Money redesign
   (Jul 2026): Fraunces (display serif, `font-display`) + Inter (body), plus
   Nunito (`font-rounded`, Sep 2026; since Oct 2026 the headings of every
   tracked card and the ProgressWidget/DailyQuestionCard game text), served
-  from `/fonts/*.woff2` via `@font-face` in `src/index.css`. Those `url()`s do
-  NOT resolve in the preview host, so **previews fall back to the system
-  serif/sans stacks** — metrics differ slightly from the real app; grade
-  layout, not exact type. Emojis render via system emoji fonts.
+  from `/fonts/*.woff2` via `@font-face` in `src/index.css`. Those
+  root-absolute `url()`s don't resolve for the converter, so since Oct 2026
+  **`.design-sync/fonts.css`** (wired via `cfg.extraFonts`) repeats the four
+  faces with relative urls into `public/fonts/`; the converter copies the
+  woff2s into `fonts/` and rewrites `_ds_bundle.css`'s faces to them, so the
+  previews and every design render in the real brand fonts. Before that the
+  previews fell back to system fonts. Emojis render via system emoji fonts.
 - **Theme tokens:** the compiled `app.css` now carries the Manna Money
   `@theme` palette (linen/forest/honey/cream utilities + `--chart-*` vars).
   Components no longer use slate/emerald/amber/bg-white utilities — if a
@@ -75,6 +84,13 @@ and infra are intentionally excluded.
   a component, so the bundle stays free of CSS imports.
   `DailyQuestionCard` imports `src/lib/sound.ts`; it does nothing at import
   time (no AudioContext until a sound plays), so previews stay inert.
+- **Omer (Oct 2026)** is tracked too. His drawing is a string from core
+  `lib/omer.ts`, shown as an `<img>` with a `data:` URL, so the bundle needs
+  no assets. His motion classes (`omer-breathe`, `omer-hop`, …) live in
+  `celebrate.css` and reach the previews only through the frozen `app.css`.
+  Every motion pops him in from opacity 0, so the previews pass
+  `motion="still"`, which skips the animation and shows him on the first
+  frame.
 
 ## Re-sync risks (what can silently go stale)
 
@@ -92,6 +108,31 @@ and infra are intentionally excluded.
   check the wrapper size first (not the data).
 - The `bundle.mjs` fork is pinned to the converter's bundle.mjs as of this sync
   — diff it against the bundled lib on re-sync and fold in upstream changes.
+- **`.design-sync/fonts.css` mirrors the `@font-face` block in
+  `src/index.css`.** A new weight, family or renamed woff2 there needs the
+  same change here, or that face falls back to system fonts again.
+  `fonts/fonts.css` in the bundle still lists the four dead `/fonts/...` faces
+  ahead of the working ones (the converter keeps them); later faces win, so
+  they're harmless, but don't read them as the live ones.
+- **Preview dates must be relative to `new Date()`.** The capture harness
+  pins the clock to 2024-05-15 (`page.clock.setFixedTime` in
+  package-capture.mjs) while the DS pane uses the real date, so a hardcoded
+  date is wrong in at least one of them. TrendsCard went blank this way
+  (fixed May 2026 data); its preview now builds its months from today, and
+  its header reads "Apr 2024" in the review sheets — expected.
+- **`.design-sync/conventions.md`** (the README header the design agent
+  reads, via `readmeHeader`) names real classes from the frozen build. When
+  the palette, the `card`/`btn-*` utilities or a tracked component's props
+  change, re-validate its names against `ds-bundle/_ds_bundle.css`.
+
+## Known render warns
+
+- `[TOKENS_MISSING]` (~18 vars: `--drift`, `--spin`, `--ring-from`,
+  `--ring-to`, `--dx`, `--from`, `--s`, `--a`, …) — set inline by components
+  at runtime (Confetti, QuizView, StreakOverlay, landing mocks). Expected.
+- `[FONT_MISSING] "SF Pro Rounded"` — an OS fallback in `--font-rounded`
+  after Nunito (which ships), so it's never reached; Apple's license doesn't
+  allow shipping it.
 
 ## Sync gotchas worth knowing
 
@@ -100,17 +141,19 @@ and infra are intentionally excluded.
   the timestamp so recharts' (react-smooth) entry animation reads as fully
   elapsed on its second frame — otherwise the static screenshot catches the
   chart mid-tween (empty/collapsed). Don't remove that block.
-- **TrendsCard per-cell capture flakes blank.** Its `?story=Default` capture can
-  screenshot blank even though the component renders fine (confirmed via the
-  full-html render-check: "Trends & anomalies / May vs prior months / up+down
-  rows"). Grade it from `ds-bundle/_screenshots/general__TrendsCard.png`, not the
-  per-cell review sheet. Its data is anchored to **prevMonth** (the month before
-  today) vs the 3 months before that — `spendingTrends` compares `prevMonthKey`,
-  not the current month.
+- **TrendsCard renders nothing when there are no trends.** Its data is
+  anchored to **prevMonth** (the month before today) vs the 3 months before
+  that — `spendingTrends` compares `prevMonthKey`, not the current month — and
+  the component returns null with no moves. The "per-cell capture flakes
+  blank" note from earlier syncs was really this: the preview's fixed dates
+  had aged out of the window (see Re-sync risks on the pinned capture clock).
 - **Store seeding for gamification.** `ProgressWidget`/`ProgressChip` previews
   seed `localStorage['moneyquiz.game.v1']` before the StoreProvider mounts to
   show a populated Level 4 / 12-day-streak state. If the storage key or
-  GameState shape changes, update those two previews. Since Oct 2026 the
+  GameState shape changes, update those previews. Since Oct 2026 the
   widgets show the *live* streak (core `lib/streak.ts`): it reads 0 unless
   `lastActiveDay` is today or yesterday on the viewer's local clock, so the
-  previews seed the local date, not the UTC one.
+  previews seed the local date, not the UTC one. Only answering the question
+  of the day counts a day now, so `DailyQuestionCard`'s preview seeds a
+  12-day streak last counted *yesterday* (the morning state: live streak,
+  grey flame until today's answer).

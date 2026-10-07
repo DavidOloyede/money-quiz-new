@@ -19,12 +19,13 @@ export function Overview() {
   )
 }
 
-// Negative trend with a rose accent — the same tile reads good or bad by accent.
+// Negative trend with a coral accent (the app's color for over-budget and
+// negative months) — the same tile reads good or bad by accent.
 export function Accents() {
   return (
     <div className="grid max-w-md grid-cols-2 gap-3">
       <StatCard label="Savings rate" value="27%" sub="Up from 21%" accent="text-forest-600" />
-      <StatCard label="Over budget" value="−$148" sub="Dining + shopping" accent="text-rose-600" />
+      <StatCard label="Over budget" value="−$148" sub="Dining + shopping" accent="text-coral-700" />
     </div>
   )
 }

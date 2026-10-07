@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import { askedKinds, generateQuiz, quizInsights, type QuizQuestion } from '@moneyquiz/core/lib/quiz'
 import { quizXp, XP } from '@moneyquiz/core/lib/gamification'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { track } from '../lib/track'
 import { preloadSounds, useSound } from '../lib/sound'
 import { AnswerChoice } from './AnswerChoice'
@@ -18,10 +19,12 @@ import { QuizHistory } from './QuizHistory'
 import { BadgesCard } from './BadgesCard'
 import { DailyQuestionCard } from './DailyQuestionCard'
 import { EmptyState } from './EmptyState'
+import { Omer } from './Omer'
 import { SoundToggle } from './SoundToggle'
+import { StreakFlame } from './StreakFlame'
 import { Confetti } from './celebrate/Confetti'
 import { useCountUp } from './celebrate/useCountUp'
-import { CheckIcon, QuizIcon, SparkIcon, XIcon } from './icons'
+import { CheckIcon, SparkIcon, XIcon } from './icons'
 import type { View } from './Nav'
 
 type Phase = 'intro' | 'playing' | 'done'
@@ -144,7 +147,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
         </div>
         <div className="card">
           <EmptyState
-            icon={<QuizIcon className="h-7 w-7" />}
+            illustration={<Omer {...omerFor({ kind: 'welcome' })} size={112} />}
             title="Your quiz is waiting for data"
             message="The quiz is built entirely from your own transactions. Load the sample data or import a CSV, then come back to test how well you know your spending."
           >
@@ -167,10 +170,8 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
           <DailyQuestionCard />
         </div>
         <div className="rounded-2xl border border-linen-200 bg-linear-to-b from-cream via-honey-50 to-sky-50 px-6 pt-6 pb-8 text-center dark:border-linen-700 dark:from-linen-900 dark:via-linen-900 dark:to-sky-950/40">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-forest-600 text-white shadow-[0_4px_0_var(--color-forest-800)]">
-            <QuizIcon className="h-8 w-8" />
-          </div>
-          <h3 className="mt-4 font-rounded text-2xl font-extrabold text-linen-900 dark:text-linen-50">
+          <Omer {...omerFor({ kind: 'quiz-intro' })} size={128} className="mx-auto block" />
+          <h3 className="mt-2 font-rounded text-2xl font-extrabold text-linen-900 dark:text-linen-50">
             How well do you know your money?
           </h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-linen-600 dark:text-linen-400">
@@ -234,9 +235,7 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
             </span>
             {inARow >= 3 ? (
               <span key={inARow} className="text-honey-700 dark:text-honey-300">
-                <span className={fresh ? 'flame-grow' : ''} aria-hidden>
-                  🔥
-                </span>{' '}
+                <StreakFlame grow={fresh} />{' '}
                 {inARow} in a row!
               </span>
             ) : (
@@ -316,8 +315,10 @@ export function QuizView({ onNavigate, onDirtyChange }: Props) {
                 <SparkIcon className="mt-0.5 h-4 w-4 shrink-0 text-honey-500" />
                 <span>{q.takeaway}</span>
               </div>
-              <div className="flex items-center justify-end gap-3">
-                <span className="hidden text-xs text-linen-400 sm:inline dark:text-linen-500">Press Enter</span>
+              <div className="flex items-center gap-3">
+                {/* Away from the answer detail above, which names amounts (DESIGN.md: never beside money). */}
+                <Omer key={index} {...omerFor({ kind: 'answer', right })} size={56} motion={fresh ? undefined : 'still'} />
+                <span className="ml-auto hidden text-xs text-linen-400 sm:inline dark:text-linen-500">Press Enter</span>
                 <button onClick={goNext} className="btn-primary h-11 px-6 text-sm">
                   {isLast ? 'See results' : 'Next question'}
                 </button>
@@ -440,6 +441,13 @@ function Results({
             </div>
             <div className="font-rounded text-sm font-bold text-forest-600 dark:text-forest-400">{pct}%</div>
           </div>
+          {/* Beside the ring, so the score stays centred. */}
+          <Omer
+            {...omerFor({ kind: 'quiz-finished' })}
+            size={88}
+            motion={party ? 'hop' : 'breathe'}
+            className="absolute bottom-0 left-full ml-1"
+          />
         </div>
         {perfect && (
           <div className={`mx-auto mt-3 w-fit -rotate-3 rounded-xl border-2 border-linen-900 bg-honey-300 px-4 py-1 font-rounded text-lg font-black text-linen-900 shadow-[0_3px_0_var(--color-linen-900)] ${celebrate ? 'chip-pop' : ''}`} style={{ animationDelay: '1100ms' }}>

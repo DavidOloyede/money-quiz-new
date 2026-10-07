@@ -120,6 +120,11 @@ that file by hand. Two notes on the newer colors:
   A reward button uses the same recipe in honey (`bg-honey-400`,
   `text-linen-900`, edge `honey-600`).
 - **Touch targets** are at least 44px tall.
+- **Every field has a visible label** above it (Inter 500, 13px, `linen-700`,
+  6px above the box). A placeholder is an example ("you@example.com"), never
+  the field's only name: it vanishes as soon as you type. Hints like "8 or
+  more characters" go under the field, and errors say what's wrong in coral,
+  next to it.
 - **Landing-page sections** get 80 to 120px of space above and below.
 
 ## Motion
@@ -143,14 +148,18 @@ Six moments cover almost all the joy. Everything else stays calm.
 | --- | --- | --- | --- |
 | Right answer | The answer pops green; a few manna flakes fall into the bowl by the XP counter; "+10 XP" floats up | A bright two-note chime | Success |
 | Not quite | A gentle shake, a coral outline, Omer's "oops" face and an encouraging line | A soft low tone, never a buzzer | Light warning |
-| Quiz finished | Confetti in honey, forest and cream; Omer cheers; the score counts up | A short fanfare | Success |
-| Streak (answering the question of the day) | The flame lights and flickers, the day count flips up, and the way to the next goal fills (a pip per day to a week, a bar after). "Keep going" closes it, and a bar under the button drains over 10s and closes it when empty, so it never vanishes unannounced. On a goal day (no countdown) (a week, two weeks, a month…) a shout, sunburst and confetti | A soft "drop" (the sparkle on a goal day) | Light tap (Success on a goal day) |
-| Level up or new badge | The bowl fills and glows; the new title or badge flips in with a shine | A sparkle chord | Success |
+| Quiz finished | Confetti in honey, forest and cream; Omer cheers in his graduation cap beside the score; the score counts up | A short fanfare | Success |
+| Streak (answering the question of the day) | The flame lights and flickers, the day count flips up, and the way to the next goal fills (a pip per day to a week, a bar after). "Keep going" closes it, and a bar under the button drains over 10s and closes it when empty, so it never vanishes unannounced. On a goal day (no countdown) (a week, two weeks, a month…) a shout, sunburst, confetti and Omer as the Coach beside the flame | A soft "drop" (the sparkle on a goal day) | Light tap (Success on a goal day) |
+| Level up or new badge | Omer jumps and glows as manna falls into his rim; the new title or badge flips in with a shine, Omer beside the medal in its outfit | A sparkle chord | Success |
 | Debt paid off | The biggest party: Omer in a cape and a comic "PAID OFF!" burst | The fanfare | Heavy |
 
 - **Celebrate learning and wise choices, never spending.** Money screens only
   celebrate milestones the person confirms, like a paid-off debt.
 - **Keep big celebrations for milestones**, so they stay special.
+- **The streak flame is drawn, never the 🔥 emoji** (October 2026): a
+  coral-400 flame with a coral-700 edge and a honey-300 core, the same on
+  every device. It's grey and faded until today's question is answered.
+  Both apps draw it from `packages/core/lib/streak.ts`.
 
 ## Sound
 
@@ -202,20 +211,76 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   person gathered (Exodus 16:16). People who know the story will smile; everyone
   else just sees a cute name.
 - **The look:** honey-gold body (`honey-400`, #e5b13c) with a cream rim, big
-  glossy eyes with small star highlights, rosy cheeks, tiny arms, bold clean
-  outlines and flat cel shading. Cheerful and kind, not babyish.
+  glossy eyes with small star highlights, rosy cheeks, tiny arms, two stubby
+  legs, bold clean outlines and flat cel shading. Cheerful and kind, not
+  babyish.
+- **Arms and legs** (decided October 7, 2026, replacing the old pedestal
+  foot): the legs are built exactly like the arms, short and straight with
+  round ends, and each foot is a tiny nub that turns outward. No hands, knees,
+  toes or shoes, so a pose is just a bend. From the side, the one visible arm
+  hangs at the middle of the body, in front of the bowl.
 - **Comic energy only at reward moments:** halftone bursts, speed lines,
   one-word shouts ("NICE!", "+10 XP"). A small cape is earned at a high level
   or with the Debt Slayer badge.
 - **Eight poses:** idle (gentle breathing), wave hello, cheer (right answer),
   jump (level up), thinking (loading or a question), oops (not quite, still
-  smiling), proud (badge), giving (holding out a flake, for generosity).
+  smiling), proud (a badge pinned on the lower right of the bowl), giving
+  (holding out a flake, for generosity).
+- **The wardrobe** (decided October 7, 2026): a costume for each kind of
+  moment, so the outfit says what's happening before anyone reads a word.
+  Base Omer stays the default. Earned outfits unlock with a badge or level:
+  the Hero (the cape, and the only one who flies) for a paid-off debt, the
+  Coach (sweatband, wristbands, a barbell) for the streak, the Builder (hard
+  hat) for first steps and Wise Builder, the Gardener (straw hat, a sprout)
+  for giving. Contextual outfits appear with matching content: the Detective
+  (deerstalker, magnifier) for questions and receipts, the Chef for food, the
+  Wrangler (cowboy hat, lasso) for rounding up subscriptions, the Graduate
+  for a finished quiz, the Dreamer (nightcap) for "come back tomorrow". One
+  outfit at a time, never covering the eyes or smile, palette colors only,
+  base Omer below 64px, and no religious costumes or symbols.
 - **Stay original.** When generating art, describe traits; never prompt "in
   the style of" a studio, show or hero.
-- **Files:** the app uses transparent WebP poses and sprite sheets from
-  `public/mascot/`, each under about 150 KB. The master image and turnaround
-  sheet live in `docs/design/mascot/`, so any tool can redraw Omer
-  consistently. The art is arriving separately.
+- **Files:** in the app (since October 7, 2026) Omer is drawn by
+  `packages/core/lib/omer.ts`, a port of `docs/design/mascot/omer.cjs` (a
+  test holds the two to identical drawings, so change them together), and
+  shown by one `Omer` component on each platform: an `<img>` on the web,
+  react-native-svg's `SvgXml` on the iPhone. The commissioned art is
+  arriving separately; when it does, it replaces these construction
+  drawings inside those two components (transparent WebP, each under about
+  150 KB), and no screen that shows him has to change. The master image and
+  turnaround sheet will live in `docs/design/mascot/`, next to the
+  construction drawings of every view, pose and outfit.
+- **In dark mode** he gets a faint cream rim, so his ink outline doesn't
+  vanish into a dark card. Under "reduce motion" he stands still.
+- **References:** the Figma file, the single-page design-system guide and the
+  plan for building Omer into the app are all listed in
+  `docs/design/HANDOFF-design-system.md`.
+
+### Omer at the moments
+
+Which Omer appears where, decided October 7, 2026. Both apps read it from
+`packages/core/lib/omerMoments.ts`, so change it there (and here).
+
+| Moment | Omer | Where |
+| --- | --- | --- |
+| Quiz start | The Detective (thinking below 64px) | The quiz intro |
+| After each answer | Cheer or Oops, 56px | Beside "Next question", away from the answer detail and its amounts |
+| Quiz finished | The Graduate | Beside the score ring |
+| Level up | Jumps; the Builder at level 5 (Wise Builder), the flying Hero from level 8 (Trusted Steward) | Where the filling bowl used to be |
+| New badge | The badge's outfit (Builder, Coach, Wrangler, Gardener, Hero), or Proud when several badges disagree | Beside the medals |
+| Streak goal day | The Coach | Beside the flame; ordinary days stay flame-only |
+| Question of the day, answered | The Dreamer | Beside "Come back tomorrow", at the foot of the card |
+| No data yet, welcome | Wave (Idle in the landing hero, Cheer in its closing scene) | The quiz's empty state, the phone's welcome, the landing |
+
+- **Earned outfits appear with the moment that earns them**: the Coach with
+  the first streak goal (day 7 is also the Week of Diligence badge), the
+  Builder with First Steps and level 5, the Gardener with the giving badges,
+  the Hero with Debt Slayer and level 8.
+- **Never on the money screens**, even when they're empty: the dashboard,
+  transactions, budgets, Year Sheet and imports keep their quiet icons.
+- **Not yet placed:** the Chef (his moments, food questions and the Dining
+  budget, would sit next to amounts or give a quiz answer away), and the
+  Hero's own "PAID OFF!" party.
 
 ## Illustrated people
 
@@ -260,8 +325,18 @@ white-rimmed eyes that read on every skin tone, rosy cheeks and a big smile.
   platforms. The streak now counts answering the question of the day (right
   or wrong; quiz answers don't count) instead of opening the app, and the
   flame shows grey until today has counted. The illustrated people are out until they're redrawn.
-- **Still to come:** Omer's artwork (the bowl stands in for him in the
-  level-up), the debt-paid-off party, and the rest of the celebration list.
+- **Done (October 7, `feature/omer-in-the-app`):** Omer in the app on both
+  platforms, at the moments in "Omer at the moments", with his poses and
+  wardrobe; the drawn streak flame instead of the emoji; visible labels on
+  the sign-in fields.
+- **Still to come:** Omer's commissioned artwork (construction drawings
+  stand in for it), the debt-paid-off party, and the rest of the
+  celebration list.
+- **Designed October 6–7:** the full design system in Figma and as a
+  single-page guide (`docs/design/HANDOFF-design-system.md` lists where
+  everything is). Omer's legs and wardrobe, the drawn flame and the sign-in
+  labels were built on October 7; the button size names (Small 36, Medium
+  44, Large 48) are still only a proposal.
 
 ## Where things stood (September 2026)
 

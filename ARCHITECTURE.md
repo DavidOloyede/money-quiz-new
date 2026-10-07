@@ -1,6 +1,6 @@
 # How Manna Money Works — Explained Simply
 
-*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24; web addresses, celebrations, sound and the illustrated people added 2026-10-03; the streak moment added and the illustrated people taken out (to be redrawn) 2026-10-06.*
+*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24; web addresses, celebrations, sound and the illustrated people added 2026-10-03; the streak moment added and the illustrated people taken out (to be redrawn) 2026-10-06; Omer the mascot, the drawn streak flame and the names above the sign-in boxes added 2026-10-07.*
 
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
@@ -107,9 +107,9 @@ car so a second car can use the same engine**:
     charge, changing many rows at once, and category rules.
   - **Welcome** — someone who opens the app signed out with no data first
     sees one calm welcome screen (the phone's short version of the website's
-    landing page): what Manna Money does, three steps, and the ways in:
-    create an account, try the sample data, connect a bank, or look around
-    first.
+    landing page): Omer waving hello, what Manna Money does, three steps,
+    and the ways in: create an account, try the sample data, connect a
+    bank, or look around first.
   - **Import** — connect a bank or card through Plaid, right on the phone
     (same rules: your bank login happens inside Plaid's own screen; the app
     never sees it; connecting a bank needs you signed in), or **upload a CSV**
@@ -132,9 +132,11 @@ car so a second car can use the same engine**:
   right answer pops with a chime and a little "you got it" buzz in your hand,
   "not quite" shakes gently with a soft tone, finishing a quiz counts up
   around a ring with confetti, going up a level (or earning a badge) fills
-  the screen with the same sunburst, filling bowl, flipping title and row of
+  the screen with the same sunburst, jumping Omer, flipping title and row of
   cheering sparkles, and answering the question of the day lights the same
-  streak flame as the website (see `StreakOverlay` below). The sounds are the very same
+  streak flame as the website (see `StreakOverlay` below). Omer, the mascot,
+  turns up at exactly the same moments, in the same outfits, as on the
+  website (see `Omer.tsx` below). The sounds are the very same
   files as the website's. They stay quiet when the phone's silent switch is
   on, they play *alongside* your music instead of stopping it, and Settings
   has a **Sounds** switch.
@@ -249,7 +251,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 
   Each screen settles in with a short fade as it arrives, and every popup
   fades and settles in too. All of that switches off if your device asks for
-  less motion.
+  less motion. The fades let go once they finish, on purpose: if a screen
+  held on to its fade, every popup opened from it would get stuck partway
+  down the page instead of appearing over whatever you're looking at.
 - **`landing/`** — The **welcome page** that lives at `/` (built for a first-time visitor, though everyone lands there). It's four
   parts stacked top to bottom: the opening ("Enough for today. A plan for
   tomorrow." beside a phone showing a right quiz answer), **how it works**,
@@ -287,9 +291,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   lock glows softly while little knocks from outside bounce off a barrier
   around it and your numbers keep flowing between the account and each
   device. At the top, manna falls from morning
-  clouds into a bowl drawn like the one in the logo; at the bottom it falls
-  into the same bowl in front of the celebrating phone. Omer, the mascot,
-  takes the bowl's place once his artwork exists.
+  clouds into Omer, the mascot (a smiling honey-gold bowl on two little
+  legs); at the bottom it falls into him again while he cheers in front of
+  the celebrating phone.
   (Until October 6, 2026 there was also a "Small wins, every morning" row of
   illustrated people. It's been taken out while the people are redrawn with
   better art and motion; the old drawings are still in the project's
@@ -413,7 +417,7 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   **clickable** — it opens the drill-in list with exactly the transactions that
   cell summed (the totals rows, the frozen block, blanks, and projected cells
   aren't clickable, since there are no transactions behind them).
-- **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak 🔥, and badge
+- **`ProgressWidget.tsx`** — Your **level, XP bar, daily streak (with its little drawn flame), and badge
   count 🏅** (the full card in the sidebar, a tiny chip on phones). It
   answers every point you earn, wherever you earned it: the bar slides
   forward with a little bounce, a small "+15 XP" floats up from it, the level
@@ -485,13 +489,20 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   "+10 XP" floats up, and a bright little chime plays. Pick a wrong one and
   it gives a gentle shake with a soft coral outline and a soft low tone (never
   a buzzer), while the right answer lights up beside it. Get three or more in
-  a row and a "🔥 3 in a row!" appears. Finishing counts your score up around
+  a row and a little flame with "3 in a row!" appears. Finishing counts your score up around
   a ring that fills in; at half right or better, confetti bursts out and a
   short fanfare plays, and below half it's a gentler "drop" sound and a kind
   word instead of a party. A perfect score gets a "PERFECT!" stamp. Going
   back to review your answers stays calm: the moments only play the first
   time. Keyboard users can press 1–4 to answer and Enter to move on. A
   speaker button beside the title turns the sounds on or off.
+
+  Omer is part of it too: dressed as a detective (deerstalker hat and
+  magnifying glass) on the start screen, cheering or saying "oops" beside
+  the **Next question** button after each answer (kept away from the
+  answer's explanation, which has dollar amounts in it), and in a
+  graduation cap beside your score at the end. With no data yet, he waves
+  on the "waiting for data" screen.
 - **`AnswerChoice.tsx`** — One answer button, shared by the quiz and the
   question of the day so both play exactly the same right-answer and
   not-quite moments.
@@ -511,16 +522,20 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     a tap anywhere), and on an ordinary day a thin bar under the button
     slowly empties over ten seconds and the screen closes when it runs out.
     The day you *reach* a goal it's a bigger party ("ONE WEEK!" in a comic
-    starburst, a sunburst, confetti, the sparkle sound) and it simply waits
-    for you. If your device asks for less motion there's no countdown, so
+    starburst, a sunburst, confetti, the sparkle sound, and Omer as a coach
+    lifting his barbell beside the flame) and it simply waits for you. If your device asks for less motion there's no countdown, so
     it always waits.
   - **Going up a level** turns the whole screen to morning light: a slow
-    sunburst turns, the bowl from the logo fills with manna and glows,
-    "LEVEL UP!" lands in a comic starburst, your level number flips from
-    the old one to the new one, your new title flips in with a shine, a row
-    of colorful sparkles hops in a wave, and confetti falls, with a sparkle
-    sound. **Earning a badge** gets the same party, with the badge spinning
-    in like a medal instead of the bowl.
+    sunburst turns, Omer jumps and glows while manna falls into him (in a
+    hard hat when you reach level 5, Wise Builder, and flying in a green
+    cape from level 8, Trusted Steward), "LEVEL UP!" lands in a comic
+    starburst, your level number flips from the old one to the new one,
+    your new title flips in with a shine, a row of colorful sparkles hops
+    in a wave, and confetti falls, with a sparkle sound. **Earning a badge**
+    gets the same party, with the badge spinning in like a medal and Omer
+    beside it, dressed for that badge (a coach for the streak badges, a
+    gardener for the giving ones, a hero in a cape for Debt Slayer…) or
+    standing proud with a ribbon when several badges arrive at once.
 
   Each one shows up wherever you earned it (the quiz, the question of the
   day, or an import), waits a moment so the thing that earned it finishes
@@ -538,12 +553,14 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   it asks a general money-literacy question** (so a brand-new user can start a
   streak before connecting anything). Answering earns XP — a little more when
   you're right — counts today toward your streak (it's the only thing that
-  does), and the card shows your 🔥
-  streak (grey until today has counted). Answering plays the same moment as
+  does), and the card shows your streak with its little drawn flame (grey
+  until today has counted). Answering plays the same moment as
   the quiz (the pop or the shake, the chime or the soft tone, and the flame
   lights). Once you've answered, it
   lists the transactions behind the figure, just like the quiz does (the
   general questions have no transactions behind them, so they show none).
+  At the bottom, beside "Come back tomorrow", Omer naps in a nightcap: you're
+  done for today.
 - **`QuizHistory.tsx`** — Your past scores and your day streak (the same
   streak as everywhere else).
 - **`SettingsView.tsx`** — Theme, the **Sounds** switch (on by default; it
@@ -554,7 +571,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   per device (a laptop and a phone can differ).
 - **`AccountView.tsx`** — The **Account** screen: sign in / create an account
   (email + password, or "Continue with Google"), see your profile, **Sync now**,
-  and sign out. Only appears when the cloud backend is configured.
+  and sign out. Only appears when the cloud backend is configured. Each box
+  has its name written above it ("Email", "Password"), so you still know
+  which box is which once you start typing.
 - **`SyncGate.tsx`** — The invisible doorman between signing in and your data.
   When you sign in it fetches your account's copy, asks the right question
   ("Save this device's data to your account?" or "Use your account's data?"),
@@ -573,6 +592,25 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   and why.
 - **`StatCard.tsx`, `EmptyState.tsx`, `icons.tsx`** — Tiny shared pieces (a
   number box, a "nothing here yet" message, and all the little drawings/icons).
+  The "nothing here yet" message can show a drawing instead of its icon;
+  only the quiz uses that, for Omer.
+- **`Omer.tsx`** — **Omer, the mascot**: a smiling honey-gold manna bowl
+  with two little legs. The picture itself comes from the shared helper
+  `omer.ts` (below), so the phone draws exactly the same Omer. Each moment
+  picks what he's doing (waving, cheering, jumping, "oops", standing
+  proud…) and sometimes an outfit (a detective, a coach, a builder, a
+  graduate, a nightcap for napping…). He pops in with a little bounce and
+  then breathes, hops or wobbles to suit the moment; if your device asks
+  for less motion, he just stands still. Below a certain size an outfit
+  would be too small to make out, so he appears without it. In dark mode
+  he gets a faint light edge so his dark outline doesn't disappear into a
+  dark card. He only ever appears at the fun moments, never on your money
+  screens. These are construction drawings; when the finished artwork
+  arrives it replaces them inside this one piece, and every screen that
+  shows him stays the same.
+- **`StreakFlame.tsx`** — The **little streak flame**, drawn instead of the
+  🔥 emoji so it looks the same on every device: coral with a honey middle
+  once today has counted, grey and faded until then.
 
 ---
 
@@ -719,8 +757,22 @@ the exceptions — they need a real browser.
   months, a year, and another year after that), how far you are from the
   next one, and whether your streak is still alive today: if you skipped a
   whole day it reads 0 until your next answer starts it again at 1. It also
-  holds the outline of the streak flame, so the website and the phone draw
-  exactly the same one.
+  holds the outlines of the streak flames (the big one in the streak moment
+  and the little one beside your streak count), so the website and the
+  phone draw exactly the same ones.
+- **`omer.ts`** — **Omer's drawing kit.** Ask it for Omer in any pose or
+  outfit and it writes out the picture (as an SVG, a kind of drawing made
+  of shapes), using the app's own colors. The website and the phone both
+  draw him from it. The design notes keep their own copy of the same
+  drawing code for the design documents, and a test checks that both
+  copies draw exactly the same picture.
+- **`omerMoments.ts`** — **Which Omer shows up when.** One small table both
+  apps share: the detective starts a quiz, the graduate ends it, he cheers
+  or says "oops" after an answer, jumps at a level-up (the builder at level
+  5, the flying hero from level 8), wears each badge's outfit when it's
+  earned, comes as the coach on streak goal days, and naps once today's
+  question is done. A test keeps it honest (for example, that every badge
+  has an outfit).
 - **`dailyQuestion.ts`** — The **question-of-the-day maker**: builds one
   question per day (personalized from your data via the quiz maker, or a
   general literacy question from `data/generalQuestions.ts` when there's no

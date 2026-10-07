@@ -5,8 +5,10 @@
   "shape": "package",
   "srcDir": "src",
   "cssEntry": ".design-sync/app.css",
+  "extraFonts": [".design-sync/fonts.css"],
   "provider": { "component": "StoreProvider" },
   "guidelinesGlob": [],
+  "readmeHeader": ".design-sync/conventions.md",
   "libOverrides": {
     "bundle.mjs": "app repo, automatic JSX runtime + solution-style root tsconfig: esbuild needs jsx:'automatic' (no cfg knob for it)"
   },
@@ -23,11 +25,12 @@
     "MonthlyTrend": "src/components/charts/MonthlyTrend.tsx",
     "TopMerchantsCard": "src/components/TopMerchantsCard.tsx",
     "TrendsCard": "src/components/TrendsCard.tsx",
-    "DailyQuestionCard": "src/components/DailyQuestionCard.tsx"
+    "DailyQuestionCard": "src/components/DailyQuestionCard.tsx",
+    "Omer": "src/components/Omer.tsx"
   },
   "dtsPropsFor": {
-    "StatCard": "  label: string;\n  value: string;\n  sub?: string;\n  /** Tailwind text-color class for the value, e.g. \"text-emerald-600\". */\n  accent?: string;\n  icon?: React.ReactNode;\n  /** When set, the card becomes a button (e.g. to drill into its transactions). */\n  onClick?: () => void;",
-    "EmptyState": "  icon?: React.ReactNode;\n  title: string;\n  message: string;\n  children?: React.ReactNode;",
+    "StatCard": "  label: string;\n  value: string;\n  sub?: string;\n  /** Tailwind text-color class for the value: \"text-forest-600\" for good news, \"text-coral-700\" for over-budget or negative. */\n  accent?: string;\n  icon?: React.ReactNode;\n  /** When set, the card becomes a button (e.g. to drill into its transactions). */\n  onClick?: () => void;",
+    "EmptyState": "  icon?: React.ReactNode;\n  /** Art shown as it is above the title, in place of the icon tile (e.g. <Omer pose=\"wave\" size={112} />, only on screens where he belongs). */\n  illustration?: React.ReactNode;\n  title: string;\n  message: string;\n  children?: React.ReactNode;",
     "SortHeader": "  /** The column this header sorts. */\n  sortKey: string;\n  label: string;\n  /** The currently active sort column. */\n  current: string;\n  asc: boolean;\n  onToggle: (key: string) => void;\n  /** 'right' puts the arrow left of the label so a right-aligned column stays flush. */\n  align?: 'left' | 'right';\n  /** false renders static text at the same width, so the header never jumps when sortability changes. */\n  sortable?: boolean;",
     "BadgesCard": "  /** Earned badge ids -> ISO date earned (from GameState.badges). */\n  badges: Record<string, string>;",
     "CategoryDonut": "  /** Spending grouped by category, sorted high to low. */\n  data: { category: string; total: number; count: number }[];\n  /** Total spending shown in the donut center. */\n  total: number;\n  onSelect?: (category: string) => void;",
@@ -37,6 +40,7 @@
     "VerseOfDay": "  /* No props — renders the verse for the current day. */",
     "ProgressWidget": "  /* No props — reads level / XP / streak from the store (StoreProvider). */",
     "ProgressChip": "  /* No props — compact level/streak chip; reads from the store (StoreProvider). */",
-    "DailyQuestionCard": "  /* No props — reads the day's question and streak from the store (StoreProvider). */"
+    "DailyQuestionCard": "  /* No props — reads the day's question and streak from the store (StoreProvider). */",
+    "Omer": "  /** What he's doing. Also what he does below 64px, where outfits don't show. */\n  pose?: 'idle' | 'wave' | 'cheer' | 'jump' | 'thinking' | 'oops' | 'proud' | 'giving';\n  /** A costume for one kind of moment, drawn in its own pose (it replaces `pose`). Shows only at 64px and up. */\n  outfit?: 'hero' | 'detective' | 'coach' | 'chef' | 'wrangler' | 'builder' | 'gardener' | 'graduate' | 'dreamer';\n  /** Width and height in px (default 120). */\n  size?: number;\n  /** Default suits the pose: 'breathe' at rest, 'hop' for cheer/jump, 'wobble' for oops. 'none' only pops in; 'still' doesn't move (use it in static mockups). */\n  motion?: 'breathe' | 'hop' | 'wobble' | 'none' | 'still';\n  /** Alt text when he carries meaning; omit when he's decoration. */\n  label?: string;\n  className?: string;"
   }
 }

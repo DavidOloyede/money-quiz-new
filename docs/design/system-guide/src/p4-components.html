@@ -1,0 +1,284 @@
+
+    <!-- ===================================================== 2 -->
+    <section class="sec" id="components">
+      <div class="eyebrow">Section 2</div>
+      <h2>Component library</h2>
+      <p class="sec-intro">Every component is built the same way: a cream or colored face, a 1px hairline if it only holds content or a solid darker edge if it can be pressed, a radius from the scale, and type from one of the three voices. Learn the button and you know the answer tile, the chip and the icon tile.</p>
+
+      <h3 id="buttons"><span class="num">2.1</span>Buttons</h3>
+      <p>Primary buttons press in. A 4px edge in a darker step of the face sits along the bottom; pressing drops the face 3px while the edge shrinks to 1px, so the button feels physical and nothing around it moves. The shared utilities are <code>btn-primary</code>, <code>btn-secondary</code>, <code>btn-reward</code> and <code>btn-danger</code> in <code>src/index.css</code>.</p>
+      <div class="diagram">
+        <svg viewBox="0 0 560 214" role="img" aria-label="Button anatomy at 2x: 44px face, 4px darker edge, 12px radius, 24px side padding, Nunito 800 14px label">
+          <text x="280" y="22" class="svg-label" text-anchor="middle">Label · Nunito 800 · 14 / 20 · sentence case</text>
+          <line x1="280" y1="30" x2="280" y2="78" class="dim"/>
+          <rect x="130" y="58" width="300" height="88" rx="24" fill="#174827"/>
+          <rect x="130" y="50" width="300" height="88" rx="24" fill="#21703c"/>
+          <text x="280" y="95" fill="#ffffff" text-anchor="middle" dominant-baseline="central" style="font:800 28px var(--font-coach)">Start the quiz</text>
+          <circle cx="154" cy="74" r="24" class="cons"/>
+          <line x1="154" y1="74" x2="137" y2="57" class="dim"/>
+          <text x="118" y="52" class="svg-label" text-anchor="end">Radius 12</text>
+          <line x1="455" y1="50" x2="455" y2="138" class="dim"/><line x1="449" y1="50" x2="461" y2="50" class="dim"/><line x1="449" y1="138" x2="461" y2="138" class="dim"/>
+          <text x="466" y="98" class="svg-label">Face 44</text>
+          <line x1="522" y1="50" x2="522" y2="146" class="dim"/><line x1="516" y1="50" x2="528" y2="50" class="dim"/><line x1="516" y1="146" x2="528" y2="146" class="dim"/>
+          <text x="536" y="98" class="svg-strong" transform="rotate(90 536 98)" text-anchor="middle">Footprint 48</text>
+          <line x1="380" y1="144" x2="410" y2="182" class="dim"/>
+          <text x="414" y="190" class="svg-label">Edge 4 · forest-800</text>
+          <line x1="130" y1="168" x2="178" y2="168" class="dim"/><line x1="130" y1="162" x2="130" y2="174" class="dim"/><line x1="178" y1="162" x2="178" y2="174" class="dim"/>
+          <text x="154" y="192" class="svg-label" text-anchor="middle">Padding 24</text>
+          <text x="20" y="208" class="svg-label" style="fill:var(--fg-3)">Shown at 2×</text>
+        </svg>
+      </div>
+      <div class="stage">
+        <div class="stage-label">Variants · press any of them</div>
+        <div class="row">
+          <div class="btn-cell"><button class="btn" type="button">Start the quiz</button><small>Primary · the action</small></div>
+          <div class="btn-cell"><button class="btn btn--secondary" type="button">Not now</button><small>Secondary</small></div>
+          <div class="btn-cell"><button class="btn btn--reward" type="button">Keep going</button><small>Reward · moments only</small></div>
+          <div class="btn-cell"><button class="btn btn--danger" type="button">Delete all data</button><small>Danger · destructive only</small></div>
+          <div class="btn-cell"><button class="btn" type="button" disabled>Continue</button><small>Disabled</small></div>
+          <div class="btn-cell"><button class="btn btn--secondary" type="button"><svg viewBox="0 0 24 24"><use href="#i-google"/></svg>Continue with Google</button><small>Leading icon</small></div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-label">States, frozen for inspection</div>
+        <div class="diagram" style="margin:0">
+          <div class="matrix">
+            <span></span><span class="mh">Default</span><span class="mh">Hover</span><span class="mh">Pressed</span><span class="mh">Focus</span><span class="mh">Disabled</span>
+            <span class="mv">Primary</span><span><button class="btn" type="button" tabindex="-1">Continue</button></span><span><button class="btn is-hover" type="button" tabindex="-1">Continue</button></span><span><button class="btn is-pressed" type="button" tabindex="-1">Continue</button></span><span><button class="btn is-focus" type="button" tabindex="-1">Continue</button></span><span><button class="btn" type="button" disabled>Continue</button></span>
+            <span class="mv">Secondary</span><span><button class="btn btn--secondary" type="button" tabindex="-1">Not now</button></span><span><button class="btn btn--secondary is-hover" type="button" tabindex="-1">Not now</button></span><span><button class="btn btn--secondary is-pressed" type="button" tabindex="-1">Not now</button></span><span><button class="btn btn--secondary is-focus" type="button" tabindex="-1">Not now</button></span><span><button class="btn btn--secondary" type="button" disabled>Not now</button></span>
+            <span class="mv">Reward</span><span><button class="btn btn--reward" type="button" tabindex="-1">Keep going</button></span><span><button class="btn btn--reward is-hover" type="button" tabindex="-1">Keep going</button></span><span><button class="btn btn--reward is-pressed" type="button" tabindex="-1">Keep going</button></span><span><button class="btn btn--reward is-focus" type="button" tabindex="-1">Keep going</button></span><span class="na">Not used</span>
+            <span class="mv">Danger</span><span><button class="btn btn--danger" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn--danger is-hover" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn--danger is-pressed" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn--danger is-focus" type="button" tabindex="-1">Delete</button></span><span><button class="btn btn--danger" type="button" disabled>Delete</button></span>
+          </div>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Variant</th><th>Face</th><th>Edge</th><th>Label</th><th>Use it for</th></tr></thead>
+        <tbody>
+          <tr><td><b>Primary</b></td><td>forest-600, hover forest-500</td><td>4px forest-800 (forest-700 dark)</td><td>White, Nunito 800</td><td>The single next step: Start, Continue, Next question, Sign in.</td></tr>
+          <tr><td><b>Secondary</b></td><td>cream + 1px linen-300, hover linen-50</td><td>3px linen-200</td><td>linen-700, Nunito 700</td><td>The quieter partner: Not now, Review answers, Continue with Google.</td></tr>
+          <tr><td><b>Reward</b></td><td>honey-400, hover honey-300</td><td>4px honey-600</td><td>linen-900, Nunito 800</td><td>Moments only: Keep going after a streak, Claim. Never a money action.</td></tr>
+          <tr><td><b>Danger</b></td><td>rose-600, hover rose-700</td><td>4px rose-800</td><td>White, Nunito 800</td><td>Delete and clear all data. Never for "over budget".</td></tr>
+        </tbody>
+      </table></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Size</th><th>Height</th><th>Padding</th><th>Label</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td><b>Small</b></td><td class="num-col">36 + edge</td><td>16</td><td>14 / 800</td><td>Desktop forms and empty states only (<code>px-4 py-2</code>)</td></tr>
+          <tr><td><b>Medium</b> (default)</td><td class="num-col">44 + edge</td><td>24</td><td>14 / 800</td><td>Everywhere; meets the 44px touch target (<code>h-11 px-6</code>)</td></tr>
+          <tr><td><b>Large</b></td><td class="num-col">48 + edge</td><td>32</td><td>16 / 800</td><td>Hero actions like Start the quiz (<code>h-12 px-8</code>)</td></tr>
+        </tbody>
+      </table></div>
+      <div class="row" style="align-items:flex-end;margin:6px 0 4px"><button class="btn btn--sm" type="button">Small</button><button class="btn" type="button">Medium</button><button class="btn btn--lg" type="button">Large</button></div>
+      <ul class="rules">
+        <li><b>Pressed:</b> the face drops 3px (2px for secondary) and the edge shrinks to 1px over 150ms. Release springs back.</li>
+        <li><b>Focus:</b> a 2px forest-500 outline with a 2px offset (honey-400 in dark mode), on keyboard focus only, never removed.</li>
+        <li><b>Disabled:</b> 50% opacity, no press, not-allowed cursor. Busy buttons say "Working…" and keep their width.</li>
+        <li><b>One primary per view.</b> Pair it with a secondary, never with a second primary. Full width in forms and on phones.</li>
+        <li><b>Labels are verbs in sentence case:</b> "Start the quiz", not "START" or "Submit".</li>
+      </ul>
+
+      <h3 id="inputs"><span class="num">2.2</span>Input fields</h3>
+      <p>Inputs are the ledger's voice: quiet, warm and exact. Cream fill, 1px linen-300 border, 8px corners, a forest focus ring, and coral (never red) errors that say what to do next. Type in any of them.</p>
+      <div class="stage">
+        <div class="input-grid">
+          <div><div class="cap">Default</div><div class="field"><label for="in-1">Email</label><input class="input" id="in-1" type="email" placeholder="you@example.com" autocomplete="off"></div></div>
+          <div><div class="cap">Focus</div><div class="field"><label for="in-2">Email</label><input class="input is-focus" id="in-2" type="email" value="grace@example.com" autocomplete="off"></div></div>
+          <div><div class="cap">Money</div><div class="field"><label for="in-3">Monthly budget · Dining</label><div class="money-wrap"><input class="input input--money" id="in-3" type="text" inputmode="decimal" value="400.00" autocomplete="off"></div></div></div>
+          <div><div class="cap">Error</div><div class="field"><label for="in-4">Password</label><input class="input" id="in-4" type="password" value="manna" aria-invalid="true" aria-describedby="in-4-msg" autocomplete="off"><span class="help err" id="in-4-msg">Passwords need 8 or more characters. Add a few more?</span></div></div>
+          <div><div class="cap">Disabled</div><div class="field"><label for="in-5">Bank account</label><input class="input" id="in-5" type="text" value="Synced from your bank" disabled></div></div>
+          <div><div class="cap">With help</div><div class="field"><label for="in-6">Category name</label><input class="input" id="in-6" type="text" placeholder="Groceries" autocomplete="off" aria-describedby="in-6-msg"><span class="help" id="in-6-msg">Shows on your dashboard and in the quiz.</span></div></div>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Part</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Field</b></td><td>40px tall (44 on phones) · padding 12 · radius 8 (<code>rounded-lg</code>) · 1px linen-300 border · cream fill</td></tr>
+          <tr><td><b>Label</b></td><td>Inter 500 13px in linen-700, 6px above the field</td></tr>
+          <tr><td><b>Text</b></td><td>Inter 400 14 / 20 in linen-700; placeholder linen-400, written as an example ("you@example.com"), never an instruction</td></tr>
+          <tr><td><b>Focus</b></td><td>Border forest-500 plus a 2px forest-500 ring at 25%. No glow, no shift</td></tr>
+          <tr><td><b>Error</b></td><td>Border coral-400; one line of Inter 12 / 16 in coral-700 below, naming the fix</td></tr>
+          <tr><td><b>Disabled</b></td><td>linen-100 fill at 60% opacity; the value stays readable</td></tr>
+          <tr><td><b>Money</b></td><td>Right-aligned, tabular figures, a $ prefix inside the field</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="rules">
+        <li><b>Every field has a visible label.</b> Placeholders vanish while typing. <span class="tag tag--new">New</span> The current sign-in fields use placeholders only; add labels when that screen is next touched.</li>
+        <li><b>Set the type and autocomplete</b> (<code>email</code>, <code>current-password</code>, <code>new-password</code>) and <code>inputmode="decimal"</code> for amounts.</li>
+        <li><b>Never signal an error with rose or by disabling the submit button.</b> Say what is wrong in coral, next to the field.</li>
+      </ul>
+
+      <h3 id="progress"><span class="num">2.3</span>Progress</h3>
+      <p>Progress is honey when it is earned (XP, levels, streak goals) and forest when it is a task (the quiz). Fills grow with the reward overshoot, so gaining XP feels like a small bounce. Press the buttons to earn some.</p>
+      <div class="stage">
+        <div class="cols" style="align-items:start">
+          <div>
+            <div class="stage-label">Level card · live</div>
+            <div class="level" id="level">
+              <div class="level-top"><span class="level-badge" id="lv-badge">3</span><div><div class="level-title" id="lv-title">Faithful With Little</div><div class="level-sub" id="lv-sub">120 / 300 XP to level 4</div></div></div>
+              <div class="bar-wrap" id="lv-barwrap"><div class="xpbar" role="progressbar" aria-label="XP toward the next level" aria-valuemin="0" aria-valuemax="300" aria-valuenow="120" id="lv-bar"><i style="--v:40%"></i></div></div>
+              <div class="level-meta"><span><svg class="flame" id="lv-flame" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg> <b id="lv-streak">5</b>-day streak</span><span>best 12</span></div>
+            </div>
+            <div class="row" style="margin-top:16px;gap:12px"><button class="btn btn--sm" type="button" id="xp-daily">Daily question +15 XP</button><button class="btn btn--sm btn--secondary" type="button" id="xp-reset">Reset</button></div>
+          </div>
+          <div style="display:grid;gap:22px">
+            <div><div class="stage-label">Quiz bar · 12px · forest</div><div class="qbar" role="progressbar" aria-label="Quiz progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="3"><i style="--v:30%"></i></div></div>
+            <div><div class="stage-label">XP bar · 8px · honey</div><div class="xpbar" role="progressbar" aria-label="XP" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><i style="--v:70%"></i></div></div>
+            <div><div class="stage-label">Streak goal · a pip per day</div><div class="pips" role="img" aria-label="3 of 7 days toward a week"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="row" style="gap:20px">
+              <div class="ring" role="img" aria-label="Score 8 of 10"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke-width="10" class="ring-track"/><circle cx="60" cy="60" r="54" fill="none" stroke-width="10" stroke="#2f8749" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="67.86" transform="rotate(-90 60 60)"/></svg><div class="ring-mid"><b>8<small> / 10</small></b><span>80%</span></div></div>
+              <div class="ring" role="img" aria-label="Perfect score"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke-width="10" class="ring-track"/><circle cx="60" cy="60" r="54" fill="none" stroke-width="10" stroke="#e5b13c" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0" transform="rotate(-90 60 60)"/></svg><div class="ring-mid"><b>10<small> / 10</small></b><span>100%</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Part</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Track</b></td><td>linen-200 (linen-700 dark), fully rounded</td></tr>
+          <tr><td><b>XP bar</b></td><td>8px. Fill is a left-to-right gradient honey-400 → honey-500</td></tr>
+          <tr><td><b>Quiz bar</b></td><td>12px. Fill forest-500 with a 3px white highlight at 35%, inset 8px, 3px from the top</td></tr>
+          <tr><td><b>Score ring</b></td><td>144px, 10px stroke. Forest-500; honey-400 on a perfect score. The number counts up as the ring fills (1000ms)</td></tr>
+          <tr><td><b>Streak goal</b></td><td>16px pips, 6px apart, a pip per day up to a week; a bar toward two weeks, a month and beyond after that</td></tr>
+          <tr><td><b>Motion</b></td><td>Width over 700ms with <code>cubic-bezier(0.34, 1.56, 0.64, 1)</code>; "+N XP" floats up 1100ms; the level circle pops on a level-up</td></tr>
+          <tr><td><b>Levels</b></td><td>Level <i>L</i> starts at 50 · <i>L</i> · (<i>L</i> − 1) XP: 0, 100, 300, 600, 1000… Titles run from Steward in Training to Good &amp; Faithful Steward</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="rules">
+        <li><b>Always pair a bar with words:</b> "120 / 300 XP to level 4", "Question 3 of 10".</li>
+        <li><b>No progress bars for budgets.</b> Money uses plain numbers, and coral only when over.</li>
+        <li>Give every bar <code>role="progressbar"</code>, min, max, <code>aria-valuenow</code> and a label.</li>
+      </ul>
+
+      <h3 id="tiles"><span class="num">2.4</span>Answer tiles</h3>
+      <p>One tile per choice, shared by the quiz and the question of the day so both play the same moment. The numbered key matches the 1–4 keyboard shortcuts.</p>
+      <div class="stage">
+        <div class="stage-label">The five states</div>
+        <div class="choices">
+          <button class="tile" type="button" tabindex="-1"><span class="key">1</span><span class="lbl">Groceries · idle</span></button>
+          <button class="tile is-hover" type="button" tabindex="-1"><span class="key">2</span><span class="lbl">Dining out · hover</span></button>
+          <button class="tile is-right" type="button" disabled><span class="key">2</span><span class="lbl">Dining out · right</span><span class="mark"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg></span></button>
+          <button class="tile is-wrong" type="button" disabled><span class="key">4</span><span class="lbl">Subscriptions · not quite</span><span class="mark"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></button>
+          <button class="tile is-faded" type="button" disabled><span class="key">3</span><span class="lbl">Gas &amp; transport · faded</span></button>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Part</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Shell</b></td><td>Radius 16 · 2px border · padding 14 / 16 (compact 10 / 12) · gap 12 · cream face</td></tr>
+          <tr><td><b>Key tag</b></td><td>28 × 28 · radius 8 · 2px border · Nunito 700 12</td></tr>
+          <tr><td><b>Label</b></td><td>Nunito 700 16 (15 compact)</td></tr>
+          <tr><td><b>Edge</b></td><td>0 3px 0: linen-200 idle, forest-500 right, coral-400 not quite. Idle tiles press 2px</td></tr>
+          <tr><td><b>Right</b></td><td>forest-50 face, forest-500 border, forest-800 text, a 28px forest-600 check that springs in</td></tr>
+          <tr><td><b>Not quite</b></td><td>coral-50 face, coral-400 border, coral-800 text, a 28px coral-600 cross; the right answer lights up beside it</td></tr>
+          <tr><td><b>Motion</b></td><td>Right: pop to 104.5% (600ms) + check spring + "+10 XP" floats. Not quite: a gentle 6px shake (420ms). Only on the answer just picked</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="lesson-cards"><span class="num">2.5</span>Lesson cards</h3>
+      <p>Every lesson is a card with the same skeleton: a header row, the prompt, the choices, then feedback, a takeaway and one next step. The question of the day is the streak's daily habit; answer it below.</p>
+      <div class="stage stage--sunk">
+        <div class="cols" style="align-items:start">
+          <div>
+            <div class="stage-label">Question of the day · live · sample data</div>
+            <div class="qotd" id="qotd"></div>
+          </div>
+          <div>
+            <div class="stage-label">Quiz intro</div>
+            <div class="intro-card">
+              <span class="icon-tile"><svg viewBox="0 0 24 24"><use href="#i-quiz"/></svg></span>
+              <h5>Test what you know about your money</h5>
+              <p>Ten quick questions built from your own transactions. Every answer shows the receipts.</p>
+              <div class="note">Your best so far is 7 / 10. Room to grow!</div>
+              <a class="btn btn--lg" href="#quiz" style="text-decoration:none;margin-top:12px">Start the quiz</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Element</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Shell</b></td><td>Radius 16, 1px edge, 20px padding (24 for the quiz card), 12–16px vertical rhythm</td></tr>
+          <tr><td><b>Header</b></td><td>Card title (Nunito 800 17) with an 18px icon; a status chip on the right (streak, count)</td></tr>
+          <tr><td><b>Prompt</b></td><td>Nunito 700 17 on cards; Coach/Question (800 20) in the quiz</td></tr>
+          <tr><td><b>Feedback</b></td><td>Right: forest-50 block. Not quite: coral-50 block (with a 2px border in the quiz). Starts with ✓ / ✕ and a word, then names the category and amount</td></tr>
+          <tr><td><b>Takeaway</b></td><td>Spark icon in honey-500 + Inter 14 linen-600. One idea</td></tr>
+          <tr><td><b>Reward</b></td><td>XP chip + one line of what's next, centered</td></tr>
+          <tr><td><b>Surface</b></td><td>Question of the day: honey-50 → cream wash, honey-200 edge. Quiz intro: card-strength dawn. Others: plain cream</td></tr>
+          <tr><td><b>XP</b></td><td>Question of the day: 10 for answering, +5 if right. Quiz: 10 per right answer, 15 for finishing, 25 for a perfect score</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="quiz"><span class="num">2.6</span>Quiz screen</h3>
+      <p>A quiz screen has three zones: the progress header (count, in-a-row flame, score), the question card, and the verdict that appears after a pick. Try it: pick an answer with a click or the 1–4 keys, then press Enter or Next. The numbers are sample data.</p>
+      <div class="stage" id="quiz-stage"><div class="quiz" id="quiz" tabindex="-1"></div></div>
+
+      <h3 id="signin"><span class="num">2.7</span>Sign-in module</h3>
+      <p>Signing in is optional: signed out, Manna Money works fully on the device. The module stays calm and short, on the standard card. This specimen validates but sends nothing anywhere.</p>
+      <div class="stage stage--sunk">
+        <form class="signin" id="signin" novalidate>
+          <div class="seg" role="group" aria-label="Account mode"><button type="button" data-mode="signin" aria-pressed="true">Sign in</button><button type="button" data-mode="signup" aria-pressed="false">Create account</button></div>
+          <p class="small muted" id="si-intro" style="margin:-4px 0 0">Welcome back. Your data syncs to this device when you sign in.</p>
+          <div class="field"><label for="si-email">Email</label><input class="input" id="si-email" type="email" autocomplete="off" placeholder="you@example.com" aria-describedby="si-email-msg"><span class="help err" id="si-email-msg" hidden></span></div>
+          <div class="field"><label for="si-pass">Password</label><input class="input" id="si-pass" type="password" autocomplete="off" placeholder="Password" aria-describedby="si-pass-msg"><span class="help err" id="si-pass-msg" hidden></span></div>
+          <button class="btn btn--block" type="submit" id="si-submit">Sign in</button>
+          <div class="or">or</div>
+          <button class="btn btn--secondary btn--block" type="button" id="si-google"><svg viewBox="0 0 24 24"><use href="#i-google"/></svg>Continue with Google</button>
+          <div class="signin-note" id="si-note" aria-live="polite"></div>
+          <p class="signin-foot">Signed out, Manna Money still works fully on this device.</p>
+        </form>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Zone</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Container</b></td><td><code>.card</code>, 420px max, 20px padding, 16px between groups</td></tr>
+          <tr><td><b>Mode switch</b></td><td>Segmented control: radius 8, 1px linen-200 border, 2px inset; active segment forest-600 with white Inter 500 14</td></tr>
+          <tr><td><b>Intro line</b></td><td>One sentence in Inter 14 linen-500 saying what an account gets you</td></tr>
+          <tr><td><b>Fields</b></td><td>Labeled email and password, 16px apart. Create account asks for 8+ characters</td></tr>
+          <tr><td><b>Submit</b></td><td>Full-width primary; the label matches the mode; "Working…" while busy</td></tr>
+          <tr><td><b>Divider</b></td><td>Hairlines either side of a 10px uppercase "or"</td></tr>
+          <tr><td><b>Google</b></td><td>Full-width secondary with the Google mark, never recolored</td></tr>
+          <tr><td><b>Errors</b></td><td>Under the field at fault, coral-700, saying what to do next</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="rules">
+        <li><b>Keep the local-first promise visible:</b> signing out never locks anyone out of their data.</li>
+        <li><b>No honey, confetti or Omer here.</b> This is a calm account screen, not a moment.</li>
+      </ul>
+
+      <h3 id="money"><span class="num">2.8</span>Chips &amp; money cards</h3>
+      <p>Small pieces that carry a lot of tone: game chips in Nunito, status chips in Inter, the calm stat card, and the verse of the day.</p>
+      <div class="stage">
+        <div class="stage-label">Chips</div>
+        <div class="row" style="gap:10px">
+          <span class="chip chip--xp">+10 XP</span>
+          <span class="chip chip--streak"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flame"/></svg>5-day streak</span>
+          <span class="chip chip--level">Lv 3</span>
+          <span class="chip chip--info">Synced</span>
+          <span class="chip chip--ok"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>On track</span>
+          <span class="chip chip--over">$40 over</span>
+          <span class="chip chip--neutral">Recurring</span>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-label">Stat cards</div>
+        <div class="cols-3">
+          <div class="stat"><span class="lbl">Spent this month</span><span class="val">$2,481.60</span><span class="sub">$214 less than August</span></div>
+          <div class="stat is-income"><span class="lbl">Income</span><span class="val">+$4,200.00</span><span class="sub">Two paychecks</span></div>
+          <div class="stat is-over"><span class="lbl">Dining · budget $400</span><span class="val">$440.00</span><span class="sub">$40 over. Want to move it from Groceries?</span></div>
+        </div>
+      </div>
+      <div class="stage">
+        <div class="stage-label">Verse of the day</div>
+        <div class="verse"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg><div><q>Honor the LORD with your substance, with the first fruits of all your increase.</q><div class="ref"><b>Proverbs 3:9</b><span>Verse of the day</span></div></div></div>
+      </div>
+      <div class="tbl"><table>
+        <thead><tr><th>Piece</th><th>Spec</th></tr></thead>
+        <tbody>
+          <tr><td><b>Chip</b></td><td>Full pill, padding 4 / 10, 12px type. XP: honey-400 with a 2px honey-600 edge, Nunito 900</td></tr>
+          <tr><td><b>Status chip</b></td><td>50-step wash + 700-step text (sky, forest, coral, linen), Inter 500 12. The label names the state</td></tr>
+          <tr><td><b>Stat card</b></td><td><code>.card</code> with 16 padding: Ledger/Label, then Ledger/Money XL, then one Inter 12 line</td></tr>
+          <tr><td><b>Over budget</b></td><td>Value in coral-700 and a next-step line. No icon alarm, no red</td></tr>
+          <tr><td><b>Verse</b></td><td>Honey-50 wash, honey-200 edge, book icon, Fraunces italic 15 / 24, Inter 600 reference in honey-700. Rotates at local midnight</td></tr>
+        </tbody>
+      </table></div>
+    </section>

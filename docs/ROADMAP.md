@@ -45,6 +45,13 @@ _Started 2026-09-24._
       the count flips up, and a track fills toward a week, then two weeks or
       a month and beyond, with a bigger party on each goal day. Web and
       iPhone.~~ _Built 2026-10-06, waiting on review._
+- [x] ~~**Omer in the app, web and iPhone.** The mascot at the game moments
+      (the quiz, level-ups, badges, streak goal days, the question of the
+      day, the welcome) with his poses and wardrobe from the October design
+      system, plus the drawn streak flame instead of the emoji and visible
+      labels on the sign-in fields.~~ _Built 2026-10-07 on
+      `feature/omer-in-the-app` with construction drawings; the commissioned
+      art replaces them later. Waiting on review._
 
 ## Next
 
@@ -70,6 +77,10 @@ _Started 2026-09-24._
       celebrations are built on both platforms. Still to come: Omer's art,
       streak freezes, daily goals, the debt-paid-off party, more badges._
       _Progress 2026-10-06: the streak moment is built on both platforms._
+      _Progress 2026-10-07: Omer is in the app on both platforms, in
+      construction drawings, with his outfits at the moments. Still to come:
+      Omer's commissioned art, streak freezes, daily goals, the
+      debt-paid-off party, more badges._
 - [ ] **Illustrated people, redrawn.** Bring people back with richer
       drawings and better animation than the first simple-shape cast (taken
       out 2026-10-06; it's kept on the `archive/illustrated-people-v1` branch).

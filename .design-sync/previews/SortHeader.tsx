@@ -47,7 +47,7 @@ export function TableHeader() {
 export function States() {
   return (
     <div className="flex items-center gap-8 rounded-xl border border-linen-200 bg-cream px-6 py-4 text-sm text-linen-500">
-      <SortHeader sortKey="amount" label="Amount ↑ active" current="amount" asc onToggle={() => {}} />
+      <SortHeader sortKey="amount" label="Active" current="amount" asc onToggle={() => {}} />
       <SortHeader sortKey="date" label="Inactive" current="amount" asc={false} onToggle={() => {}} />
       <SortHeader sortKey="id" label="Not sortable" current="amount" asc={false} sortable={false} onToggle={() => {}} />
     </div>

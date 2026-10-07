@@ -9,7 +9,7 @@ import type { CSSProperties } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
 import { ThemeSwitch } from './ThemeSwitch'
-import { MannaBowl } from './MannaBowl'
+import { Omer } from '../Omer'
 import { useReplayInView } from './useReplayInView'
 import { BODY, COLUMN, DISPLAY } from './styles'
 import { CheckIcon, MannaLogo } from '../icons'
@@ -138,14 +138,14 @@ function Clouds({ className }: { className: string }) {
 /**
  * One object on a fixed 480×600 stage, scaled whole on smaller screens so it
  * keeps its shape at every width. The phone is the centre; beside its top,
- * morning clouds (a little sun behind them) let manna fall into the logo's own bowl on the ground by the
- * phone's base (where Omer will later stand, once his art exists).
+ * morning clouds (a little sun behind them) let manna fall into Omer, the
+ * honey-gold bowl standing on the ground by the phone's base.
  */
 function HeroVisual() {
   return (
     <div
       role="img"
-      aria-label="Manna falling from morning clouds into a bowl, beside a phone showing a quiz question, “Which category did you spend the most on in August?”, answered correctly with Dining out for plus 10 XP."
+      aria-label="Manna falling from morning clouds into Omer, a smiling honey-gold bowl, beside a phone showing a quiz question, “Which category did you spend the most on in August?”, answered correctly with Dining out for plus 10 XP."
       className="relative mx-auto h-[288px] w-[230px] sm:h-[390px] sm:w-[312px] xl:h-[648px] xl:w-[518px]"
     >
       <div className="absolute top-0 left-0 h-[600px] w-[480px] origin-top-left scale-[0.48] sm:scale-[0.65] xl:scale-[1.08]">
@@ -176,11 +176,8 @@ function HeroVisual() {
 
         <QuizPhone className="absolute top-0 right-0" />
 
-        {/*
-         * Omer's spot: when his art arrives (a honey-gold manna bowl, see
-         * "Omer, the mascot" in docs/DESIGN.md), he takes the bowl's place.
-         */}
-        <MannaBowl className="absolute bottom-[8px] left-[20px] h-[109px] w-[170px]" />
+        {/* Omer catches the manna: the flakes, drawn before him, slip behind his rim. */}
+        <Omer pose="idle" size={170} className="absolute bottom-0 left-[20px]" />
       </div>
     </div>
   )

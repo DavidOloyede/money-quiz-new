@@ -1,12 +1,14 @@
 /**
  * The milestone moment on the phone, the twin of the web's MilestoneOverlay
- * (docs/DESIGN.md: "the bowl fills and glows; the new title or badge flips
- * in with a shine"):
+ * (docs/DESIGN.md: "Omer jumps and glows; the new title or badge flips in
+ * with a shine"):
  *
- * - LEVEL UP: a slow sunburst turns behind the bowl as it fills with manna
- *   and glows, "LEVEL UP!" lands in a comic burst, the level number flips
- *   from old to new and the new title flips in with a shine.
- * - NEW BADGE: the badge medals spin in instead of the bowl.
+ * - LEVEL UP: a slow sunburst turns behind Omer as he jumps, glowing, with
+ *   manna falling into his rim; "LEVEL UP!" lands in a comic burst, the level
+ *   number flips from old to new and the new title flips in with a shine.
+ *   He's the Builder at Wise Builder and the Hero from the top titles on.
+ * - NEW BADGE: the badge medals spin in, with Omer beside them, proud or in
+ *   the badge's own outfit.
  *
  * A row of sparkles cheers in a wave and confetti falls. It's a full-screen
  * overlay view rather than a native Modal (iOS won't present two modals at
@@ -20,7 +22,6 @@ import Animated, {
   FadeIn,
   FadeInDown,
   Keyframe,
-  useAnimatedProps,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -30,17 +31,17 @@ import Animated, {
   withTiming,
   ZoomIn,
 } from 'react-native-reanimated'
-import Svg, { ClipPath, Defs, Ellipse, G, LinearGradient, Path, Polygon, Rect, Stop } from 'react-native-svg'
+import Svg, { Defs, LinearGradient, Path, Polygon, Rect, Stop } from 'react-native-svg'
 import { levelTitle, xpForLevel } from '@moneyquiz/core/lib/gamification'
 import type { BadgesEarned, LevelUp } from '@moneyquiz/core/lib/milestones'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { coral, cream, forest, honey, linen, sky } from '@moneyquiz/core/theme'
 
+import { Omer } from '@/components/Omer'
 import { Button } from '@/components/ui'
 import { fonts, radii, spacing, useAppTheme } from '@/theme'
 import { Confetti } from './Confetti'
 
-const AnimatedRect = Animated.createAnimatedComponent(Rect)
-const BOWL = 'M3 7c0 26.5 20.5 45 47 45s47-18.5 47-45Z'
 
 /* The comic starburst behind the shout: 16 points around an ellipse. */
 const STAR = Array.from({ length: 32 }, (_, i) => {
@@ -89,14 +90,14 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
   const { theme } = useAppTheme()
   const { width } = useWindowDimensions()
   // Where the stage landed on screen, so the sunburst (drawn in its own layer
-  // behind everything, or iOS can paint it over the title card) centres on the bowl.
+  // behind everything, or iOS can paint it over the title card) centres on Omer.
   const [stageY, setStageY] = useState<number | null>(null)
   const reduce = useReducedMotion()
   const dark = theme === 'dark'
   const level = milestone.kind === 'level'
   const shout = level ? 'LEVEL UP!' : milestone.badges.length > 1 ? 'NEW BADGES!' : 'NEW BADGE!'
 
-  // The slow sunburst and the glow behind the bowl.
+  // The slow sunburst and the glow behind Omer.
   const spin = useSharedValue(0)
   const glow = useSharedValue(0.6)
   const shown = useSharedValue(reduce ? 1 : 0)
@@ -127,7 +128,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
         </Svg>
       </Animated.View>
       {stageY !== null && (
-        <View pointerEvents="none" style={{ position: 'absolute', top: stageY + 128 - 200, left: width / 2 - 200, width: 400, height: 400, alignItems: 'center', justifyContent: 'center' }}>
+        <View pointerEvents="none" style={{ position: 'absolute', top: stageY + 170 - 200, left: width / 2 - 200, width: 400, height: 400, alignItems: 'center', justifyContent: 'center' }}>
           <Animated.View style={[{ position: 'absolute', width: 400, height: 400 }, raysStyle]}>
             <Svg width={400} height={400} viewBox="0 0 400 400">
               {RAYS.map((d, i) => (
@@ -149,7 +150,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
         {/* The stage */}
         <View
           onLayout={(e) => setStageY(e.nativeEvent.layout.y)}
-          style={{ width: 300, height: 220, alignItems: 'center' }}
+          style={{ width: 300, height: 248, alignItems: 'center' }}
         >
           <Animated.View
             entering={ZoomIn.delay(250).springify().damping(10)}
@@ -174,7 +175,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
             </View>
           </Animated.View>
 
-          {level ? <FillingBowl reduce={reduce} /> : <Medals milestone={milestone} />}
+          {level ? <JumpingOmer level={milestone.to} reduce={reduce} /> : <Medals milestone={milestone} />}
         </View>
 
         {level ? <LevelText milestone={milestone} /> : <BadgeText milestone={milestone} />}
@@ -195,38 +196,14 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
   )
 }
 
-/** The bowl fills with manna, a heap lands on the rim, flakes fall in. */
-function FillingBowl({ reduce }: { reduce: boolean }) {
-  const { theme } = useAppTheme()
-  const fill = useSharedValue(reduce ? 14 : 58)
-  useEffect(() => {
-    if (!reduce) fill.value = withDelay(350, withTiming(14, { duration: 1300, easing: Easing.out(Easing.cubic) }))
-  }, [reduce, fill])
-  const rectProps = useAnimatedProps(() => ({ y: fill.value }))
-  const rim = theme === 'dark' ? honey['400'] : honey['500']
+/** Omer jumps where the bowl once stood, manna falling into his rim. */
+function JumpingOmer({ level, reduce }: { level: number; reduce: boolean }) {
   return (
-    <View style={{ position: 'absolute', bottom: 0, width: 200, height: 130, alignItems: 'center' }}>
-      {!reduce && [42, 52, 47, 57].map((x, i) => <FallingFlake key={i} x={x} delay={300 + i * 280} />)}
-      <Svg width={200} height={100} viewBox="0 -6 100 70" style={{ position: 'absolute', bottom: 0 }}>
-        <Defs>
-          <ClipPath id="bowl">
-            <Path d={BOWL} />
-          </ClipPath>
-        </Defs>
-        <Path d={BOWL} fill={theme === 'dark' ? linen['900'] : cream} />
-        <G clipPath="url(#bowl)">
-          <AnimatedRect x={0} width={100} height={50} fill={honey['300']} animatedProps={rectProps} />
-        </G>
-        <Path d={BOWL} fill="none" stroke={rim} strokeWidth={3} strokeLinejoin="round" />
-        <Path d="M28 59h44" stroke={rim} strokeWidth={3} strokeLinecap="round" />
-      </Svg>
-      <Animated.View entering={ZoomIn.delay(1450).springify()} style={{ position: 'absolute', bottom: 86 }}>
-        <Svg width={36} height={18} viewBox="38 -1 24 10">
-          <Ellipse cx={44} cy={5.5} rx={4.2} ry={3.2} fill={honey['300']} stroke={honey['600']} strokeWidth={0.8} />
-          <Ellipse cx={56} cy={5.5} rx={4} ry={3} fill={honey['300']} stroke={honey['600']} strokeWidth={0.8} />
-          <Ellipse cx={50} cy={3.2} rx={4.4} ry={3.3} fill={honey['400']} stroke={honey['600']} strokeWidth={0.8} />
-        </Svg>
-      </Animated.View>
+    <View style={{ position: 'absolute', bottom: 0, width: 150, height: 150 }}>
+      <Omer {...omerFor({ kind: 'level-up', level })} size={150} />
+      <View pointerEvents="none" style={{ position: 'absolute', top: 24, left: 0, right: 0 }}>
+        {!reduce && [42, 52, 47, 57].map((x, i) => <FallingFlake key={i} x={x} delay={300 + i * 280} />)}
+      </View>
     </View>
   )
 }
@@ -260,10 +237,22 @@ function FallingFlake({ x, delay }: { x: number; delay: number }) {
   )
 }
 
+/* Omer and the medals share one row, so both shrink as the medals multiply
+   (the sample data earns three at once) and the row still fits the phone. */
+const OMER_BESIDE: Record<number, number> = { 1: 112, 2: 96, 3: 80 }
+const MEDAL: Record<number, { size: number; emoji: number }> = {
+  1: { size: 96, emoji: 46 },
+  2: { size: 84, emoji: 40 },
+  3: { size: 68, emoji: 32 },
+}
+
 function Medals({ milestone }: { milestone: BadgesEarned }) {
+  const medals = milestone.badges.slice(0, 3)
+  const m = MEDAL[medals.length]
   return (
-    <View style={{ position: 'absolute', bottom: 4, flexDirection: 'row', gap: spacing.sm + 4 }}>
-      {milestone.badges.slice(0, 3).map((b, i) => (
+    <View style={{ position: 'absolute', bottom: 4, flexDirection: 'row', alignItems: 'flex-end', gap: medals.length > 2 ? spacing.sm : spacing.sm + 4 }}>
+      <Omer {...omerFor({ kind: 'badges', ids: milestone.badges.map((b) => b.id) })} size={OMER_BESIDE[medals.length]} />
+      {medals.map((b, i) => (
         <Animated.View
           key={b.id}
           entering={new Keyframe({
@@ -274,9 +263,10 @@ function Medals({ milestone }: { milestone: BadgesEarned }) {
             .delay(300 + i * 180)
             .duration(1100)}
           style={{
-            width: 96,
-            height: 96,
-            borderRadius: 48,
+            marginBottom: 6,
+            width: m.size,
+            height: m.size,
+            borderRadius: m.size / 2,
             borderWidth: 4,
             borderColor: honey['400'],
             borderBottomWidth: 8,
@@ -286,7 +276,7 @@ function Medals({ milestone }: { milestone: BadgesEarned }) {
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 46 }}>{b.emoji}</Text>
+          <Text style={{ fontSize: m.emoji }}>{b.emoji}</Text>
         </Animated.View>
       ))}
     </View>

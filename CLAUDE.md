@@ -62,6 +62,11 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
   (`npm run gen:theme`) — edit theme.ts, never theme.css. Use
   tokens/utilities, not hardcoded hex in components. Dark mode is
   class-based (`.dark` on `<html>`, toggled by the store).
+- Omer, the mascot, is one drawing in core (`packages/core/lib/omer.ts`, a
+  port of `docs/design/mascot/omer.cjs`; a test keeps the two identical, so
+  change both) shown by an `Omer` component on each platform. Which pose
+  and outfit each moment gets lives in core `lib/omerMoments.ts` (mirrored
+  in DESIGN.md's "Omer at the moments"); never put him on a money screen.
 - Buttons and cards use the shared utilities in `src/index.css`
   (`btn-primary`, `btn-secondary`, `btn-reward`, `btn-danger`, `card`), not
   hand-rolled class strings. Game-moment keyframes live in `src/celebrate.css`
@@ -86,12 +91,12 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
 
 ## The design-sync pipeline (read before touching tracked components)
 
-12 components + StoreProvider are mirrored to claude.ai/design. Read
+13 components (Omer among them) + StoreProvider are mirrored to claude.ai/design. Read
 [.design-sync/NOTES.md](.design-sync/NOTES.md) in full before touching any of
 them — the pipeline breaks silently. The contract:
 
 - These four move **together**: `.design-sync/entry.tsx`, `componentSrcMap`
-  in `design-sync.config.json`, root `index.d.ts`, and `dtsPropsFor` (also in
+  in `.design-sync/config.json`, root `index.d.ts`, and `dtsPropsFor` (also in
   the config). Add/rename/remove a tracked component → update all four in the
   same commit.
 - `dtsPropsFor` is hand-maintained. If a tracked component's props change,

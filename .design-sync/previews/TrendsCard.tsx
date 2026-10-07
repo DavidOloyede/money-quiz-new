@@ -1,28 +1,32 @@
 import { TrendsCard } from 'money-quiz'
 
-// TrendsCard compares the most-recent complete month against the average of the
-// three months before it, per category, and surfaces the biggest moves. The
-// data below spans those months so groceries/dining rise and shopping falls.
-// (The "current" month it compares is the month before today.)
+// TrendsCard compares the most-recent complete month (the month before today)
+// against the average of the three months before it, per category, and
+// surfaces the biggest moves; with no moves it renders nothing. The dates are
+// built relative to today's local month so the card keeps rendering as the
+// calendar moves - fixed dates went blank once they aged out of the window.
+// Groceries/dining rise and shopping falls.
+function day(monthsAgo: number, dayOfMonth: number): string {
+  const now = new Date()
+  const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, dayOfMonth)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+
+const baseline = [2, 3, 4].flatMap((m) => [
+  { id: `g${m}`, date: day(m, 8), description: 'Groceries', amount: -400, category: 'groceries' },
+  { id: `d${m}`, date: day(m, 12), description: 'Dining out', amount: -220, category: 'dining' },
+  { id: `s${m}`, date: day(m, 20), description: 'Shopping', amount: -260, category: 'shopping' },
+  { id: `t${m}`, date: day(m, 22), description: 'Gas', amount: -205, category: 'transport' },
+])
+
 const tx = [
   // recent month — elevated groceries & dining, cut-back shopping
-  { id: 'c1', date: '2026-05-08', description: 'Groceries', amount: -520, category: 'groceries' },
-  { id: 'c2', date: '2026-05-12', description: 'Dining out', amount: -360, category: 'dining' },
-  { id: 'c3', date: '2026-05-20', description: 'Shopping', amount: -90, category: 'shopping' },
-  { id: 'c4', date: '2026-05-22', description: 'Gas', amount: -210, category: 'transport' },
-  // baseline months (averaged)
-  { id: 'b1', date: '2026-04-08', description: 'Groceries', amount: -400, category: 'groceries' },
-  { id: 'b2', date: '2026-04-12', description: 'Dining out', amount: -220, category: 'dining' },
-  { id: 'b3', date: '2026-04-20', description: 'Shopping', amount: -260, category: 'shopping' },
-  { id: 'b4', date: '2026-04-22', description: 'Gas', amount: -205, category: 'transport' },
-  { id: 'b5', date: '2026-03-08', description: 'Groceries', amount: -400, category: 'groceries' },
-  { id: 'b6', date: '2026-03-12', description: 'Dining out', amount: -220, category: 'dining' },
-  { id: 'b7', date: '2026-03-20', description: 'Shopping', amount: -260, category: 'shopping' },
-  { id: 'b8', date: '2026-03-22', description: 'Gas', amount: -205, category: 'transport' },
-  { id: 'b9', date: '2026-02-08', description: 'Groceries', amount: -400, category: 'groceries' },
-  { id: 'b10', date: '2026-02-12', description: 'Dining out', amount: -220, category: 'dining' },
-  { id: 'b11', date: '2026-02-20', description: 'Shopping', amount: -260, category: 'shopping' },
-  { id: 'b12', date: '2026-02-22', description: 'Gas', amount: -205, category: 'transport' },
+  { id: 'c1', date: day(1, 8), description: 'Groceries', amount: -520, category: 'groceries' },
+  { id: 'c2', date: day(1, 12), description: 'Dining out', amount: -360, category: 'dining' },
+  { id: 'c3', date: day(1, 20), description: 'Shopping', amount: -90, category: 'shopping' },
+  { id: 'c4', date: day(1, 22), description: 'Gas', amount: -210, category: 'transport' },
+  ...baseline,
 ]
 
 export function Default() {

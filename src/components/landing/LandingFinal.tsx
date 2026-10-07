@@ -11,7 +11,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { LandingActions } from './Landing'
 import { CtaPair } from './CtaPair'
-import { MannaBowl } from './MannaBowl'
+import { Omer } from '../Omer'
 import { useReplayInView } from './useReplayInView'
 import { MannaLogo } from '../icons'
 import { BODY, COLUMN, DISPLAY, HEADING, SECTION } from './styles'
@@ -255,14 +255,14 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
 /**
  * The closing picture, on a fixed 520×520 stage scaled whole on smaller
  * screens (like the hero's) so it keeps its shape at every width: the
- * finished-quiz phone in the middle, rewards bursting around it, and the
- * bowl in front of its foot catching the day's manna.
+ * finished-quiz phone in the middle, rewards bursting around it, and Omer
+ * cheering in front of its foot, catching the day's manna.
  */
 function FinishedStage() {
   return (
     <div
       role="img"
-      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and manna falling into a bowl at its foot."
+      aria-label="A phone showing a finished quiz, 4 of 5 right and plus 50 XP, with confetti and a gold medal around it and Omer, a smiling honey-gold bowl, cheering at its foot as manna falls into him."
       className="relative mt-4 h-[322px] w-[322px] sm:h-[390px] sm:w-[390px] xl:h-[520px] xl:w-[520px]"
     >
       <div className="absolute top-0 left-0 h-[520px] w-[520px] origin-top-left scale-[0.62] sm:scale-75 xl:scale-100">
@@ -292,12 +292,8 @@ function FinishedStage() {
 
         <FinishedPhone />
 
-        {/*
-         * The same bowl as the hero, in front of the phone's foot where the
-         * manna lands. Omer's spot: when his art arrives (a honey-gold manna
-         * bowl, see "Omer, the mascot" in docs/DESIGN.md), he takes its place.
-         */}
-        <MannaBowl className="absolute bottom-[8px] left-[34px] h-[100px] w-[156px] drop-shadow-md" />
+        {/* Omer again, in front of the phone's foot where the manna lands, cheering the finished quiz. */}
+        <Omer pose="cheer" size={156} className="absolute bottom-0 left-[18px]" />
 
         <Rewards depth="front" />
       </div>

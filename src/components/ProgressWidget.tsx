@@ -3,11 +3,12 @@ import { useStore } from '@moneyquiz/core/store'
 import { levelProgress } from '@moneyquiz/core/lib/gamification'
 import { countedToday, liveStreak } from '@moneyquiz/core/lib/streak'
 import { BADGES } from '@moneyquiz/core/lib/badges'
+import { StreakFlame } from './StreakFlame'
 
 /**
  * The level / XP / daily-streak readout. The sidebar shows the full widget;
  * the mobile header gets the compact chip. Answering the question of the day
- * keeps the 🔥 streak alive; the flame stays grey until today's is answered.
+ * keeps the streak alive; its flame stays grey until today's is answered.
  * XP from the streak, quizzes, and imports levels you up.
  *
  * It answers every gain wherever it happened: the bar fills with the reward
@@ -75,13 +76,7 @@ export function ProgressWidget() {
       </div>
       <div className="mt-2 flex items-center justify-between text-[11px] text-linen-500 dark:text-linen-400">
         <span title={lit ? undefined : "Answer today's question to keep your streak going"}>
-          <span
-            key={streakUp.key}
-            aria-hidden
-            className={streakUp.key ? 'flame-grow' : lit ? '' : 'opacity-50 grayscale'}
-          >
-            🔥
-          </span>{' '}
+          <StreakFlame key={streakUp.key} lit={lit} grow={streakUp.key > 0} />{' '}
           <span className="font-semibold text-linen-700 dark:text-linen-200 tabular-nums">
             {streak}
           </span>
@@ -96,7 +91,7 @@ export function ProgressWidget() {
   )
 }
 
-/** Tiny "L3 · 🔥5" badge for the mobile top bar. */
+/** Tiny "Lv 3 · (flame) 5" badge for the mobile top bar. */
 export function ProgressChip() {
   const { game } = useStore()
   const lp = levelProgress(game.xp)
@@ -112,7 +107,7 @@ export function ProgressChip() {
     >
       Lv {lp.level}
       <span className="font-medium text-linen-500 dark:text-linen-400">
-        <span className={countedToday(game) ? '' : 'opacity-50 grayscale'}>🔥</span>
+        <StreakFlame lit={countedToday(game)} />
         {streak}
       </span>
     </span>

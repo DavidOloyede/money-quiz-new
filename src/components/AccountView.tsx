@@ -3,7 +3,7 @@
  * where that provider is turned on for the deployment) when signed out;
  * profile, sync status, and sign-out when signed in.
  */
-import { useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import { useAuth } from '../auth'
 import { googleAuthEnabled } from '../lib/supabase'
 import { useSync } from './SyncGate'
@@ -32,6 +32,9 @@ function GoogleMark({ className }: { className?: string }) {
   )
 }
 
+// Every field has a visible label above it (the design-system guide): a
+// placeholder vanishes while you type, so it can't be the only name.
+const labelCls = 'mb-1.5 block text-[13px] font-medium text-linen-700 dark:text-linen-200'
 const inputCls =
   'w-full rounded-lg border border-linen-300 dark:border-linen-600 bg-cream dark:bg-linen-800 px-3 py-2 text-sm text-linen-700 dark:text-linen-200 focus:border-forest-500 focus:border-forest-500 focus:ring-2 focus:ring-forest-500/25 focus:outline-none'
 
@@ -43,6 +46,7 @@ function SignInCard({ initialMode }: { initialMode: 'signin' | 'signup' }) {
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const id = useId()
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -100,25 +104,42 @@ function SignInCard({ initialMode }: { initialMode: 'signin' | 'signup' }) {
       </p>
 
       <form onSubmit={(e) => void submit(e)} className="mt-4 space-y-3">
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={inputCls}
-        />
-        <input
-          type="password"
-          required
-          minLength={8}
-          autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          placeholder={mode === 'signup' ? 'Password (8+ characters)' : 'Password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputCls}
-        />
+        <div>
+          <label htmlFor={`${id}-email`} className={labelCls}>
+            Email
+          </label>
+          <input
+            id={`${id}-email`}
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+        <div>
+          <label htmlFor={`${id}-password`} className={labelCls}>
+            Password
+          </label>
+          <input
+            id={`${id}-password`}
+            type="password"
+            required
+            minLength={8}
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            aria-describedby={mode === 'signup' ? `${id}-password-help` : undefined}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={inputCls}
+          />
+          {mode === 'signup' && (
+            <p id={`${id}-password-help`} className="mt-1.5 text-xs text-linen-500 dark:text-linen-400">
+              8 or more characters.
+            </p>
+          )}
+        </div>
         {error && <p className="text-sm text-coral-700 dark:text-coral-300">{error}</p>}
         {info && <p className="text-sm text-forest-700 dark:text-forest-300">{info}</p>}
         <button

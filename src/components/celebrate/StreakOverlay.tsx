@@ -11,14 +11,16 @@
  * It never vanishes unannounced. "Keep going", a tap anywhere or Esc closes
  * it; on an ordinary day a bar under the button also drains over ten seconds
  * and the moment closes when it empties. The day a goal is reached (a week,
- * two weeks, a month…) it's a bigger moment, with a shout, a sunburst and
- * confetti, and it simply waits. Reduce motion shows the finished picture
+ * two weeks, a month…) it's a bigger moment, with a shout, a sunburst,
+ * confetti and Omer as the Coach beside the flame, and it simply waits. Reduce motion shows the finished picture
  * and drops the countdown, so it waits too.
  */
 import { useEffect, useId, useRef, type CSSProperties } from 'react'
 import { useStore } from '@moneyquiz/core/store'
 import type { StreakDay } from '@moneyquiz/core/lib/milestones'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
 import { FLAME_PATHS, FLAME_VIEWBOX, streakProgress } from '@moneyquiz/core/lib/streak'
+import { Omer } from '../Omer'
 import { Confetti } from './Confetti'
 import { useRestoreFocus } from './useRestoreFocus'
 
@@ -47,6 +49,8 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
   const grad = useId()
   const p = streakProgress(milestone.to)
   const goalDay = p.reached
+  // Goal days only; an ordinary day stays the quick, flame-only moment.
+  const coach = omerFor({ kind: 'streak', day: milestone.to })
   useRestoreFocus()
 
   useEffect(() => {
@@ -80,7 +84,7 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
       <div className="milestone-backdrop absolute inset-0 bg-linear-to-b from-cream/95 via-honey-100/95 to-coral-100/95 backdrop-blur-sm dark:from-linen-950/95 dark:via-honey-950/90 dark:to-coral-950/95" />
       {goalDay && <Confetti count={44} className="absolute inset-0" delay={500} />}
 
-      <div className="relative flex max-h-full w-full max-w-sm flex-col items-center overflow-y-auto px-4 py-6 text-center">
+      <div className="relative flex max-h-full w-full max-w-sm flex-col items-center overflow-x-hidden overflow-y-auto px-4 py-6 text-center">
         {/* The stage: glow, embers and the flame (plus the shout on a goal day) */}
         <div className={`relative w-64 shrink-0 ${goalDay ? 'h-56' : 'h-40'}`}>
           {goalDay && (
@@ -119,6 +123,7 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
               <path d={FLAME_PATHS.core} className="streak-flicker-3 fill-honey-100" />
             </svg>
           </div>
+          {coach && <Omer {...coach} size={104} className="absolute bottom-0 left-1/2 ml-11" />}
         </div>
 
         {/* The count: yesterday's number flips to today's */}
