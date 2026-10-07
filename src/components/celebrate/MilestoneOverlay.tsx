@@ -1,12 +1,15 @@
 /**
- * The milestone moment (docs/DESIGN.md: "Level up or new badge: the bowl
- * fills and glows; the new title or badge flips in with a shine"), the one
+ * The milestone moment (docs/DESIGN.md: "Level up or new badge: Omer jumps
+ * and glows; the new title or badge flips in with a shine"), the one
  * celebration allowed to be big:
  *
- * - LEVEL UP: a slow sunburst turns behind the bowl as it fills with manna
- *   and glows, "LEVEL UP!" lands in a comic burst, the level number flips
- *   from old to new, and the new title flips in with a shine.
- * - NEW BADGE: the badge medals spin in and shine instead of the bowl.
+ * - LEVEL UP: a slow sunburst turns behind Omer as he jumps, glowing, with
+ *   manna falling into his rim; "LEVEL UP!" lands in a comic burst, the
+ *   level number flips from old to new, and the new title flips in with a
+ *   shine. He's the Builder at Wise Builder and the Hero from the top titles
+ *   on (core lib/omerMoments).
+ * - NEW BADGE: the badge medals spin in and shine, with Omer beside them,
+ *   proud or in the badge's own outfit.
  *
  * Either way a row of sparkles cheers in a wave and confetti falls.
  * Tapping anywhere (or Esc, or the button) closes it, so it never blocks the
@@ -16,10 +19,10 @@
 import { useEffect, useId, useRef, type CSSProperties } from 'react'
 import { levelTitle, xpForLevel } from '@moneyquiz/core/lib/gamification'
 import type { BadgesEarned, LevelUp } from '@moneyquiz/core/lib/milestones'
+import { omerFor } from '@moneyquiz/core/lib/omerMoments'
+import { Omer } from '../Omer'
 import { Confetti } from './Confetti'
 import { useRestoreFocus } from './useRestoreFocus'
-
-const BOWL = 'M3 7c0 26.5 20.5 45 47 45s47-18.5 47-45Z'
 
 /* A comic starburst behind the shout: 16 points around an ellipse. */
 const STAR = Array.from({ length: 32 }, (_, i) => {
@@ -30,7 +33,7 @@ const STAR = Array.from({ length: 32 }, (_, i) => {
   return `${(96 + Math.cos(a) * rx).toFixed(1)},${(44 + Math.sin(a) * ry).toFixed(1)}`
 }).join(' ')
 
-/* Flakes falling into the bowl, each on its own beat. */
+/* Flakes falling into Omer's rim, each on its own beat. */
 const FLAKES = [
   { x: 42, s: 12, d: 300 },
   { x: 52, s: 10, d: 620 },
@@ -48,6 +51,15 @@ const SPARKLES = [
   { size: 26, fill: 'fill-honey-300' },
 ]
 
+/* Omer and the medals share one row, so both shrink as the medals multiply
+   (the sample data earns three at once) and the row still fits a phone. */
+const OMER_BESIDE: Record<number, number> = { 1: 120, 2: 104, 3: 88 }
+const MEDAL_SIZE: Record<number, string> = {
+  1: 'h-24 w-24 text-5xl sm:h-28 sm:w-28',
+  2: 'h-22 w-22 text-4xl',
+  3: 'h-18 w-18 text-3xl',
+}
+
 type BigMilestone = LevelUp | BadgesEarned
 
 export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilestone; onClose: () => void }) {
@@ -64,6 +76,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
   }, [onClose])
 
   const level = milestone.kind === 'level'
+  const medals = level ? [] : milestone.badges.slice(0, 3)
   const shout = level ? 'LEVEL UP!' : milestone.badges.length > 1 ? 'NEW BADGES!' : 'NEW BADGE!'
 
   return (
@@ -79,8 +92,8 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
       <Confetti count={52} className="absolute inset-0" delay={350} />
 
       <div className="relative flex max-h-full w-full max-w-md flex-col items-center overflow-y-auto px-4 py-6 text-center">
-        {/* The stage: sunburst, shout, and the bowl (or the medals). */}
-        <div className="relative h-48 w-72 shrink-0 sm:h-56 sm:w-80">
+        {/* The stage: sunburst, shout, and Omer (beside the medals for a badge). */}
+        <div className="relative h-56 w-72 shrink-0 sm:h-64 sm:w-80">
           <div className="milestone-rays absolute top-[58%] left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full" />
           <div className="absolute top-[58%] left-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-honey-300/50 blur-2xl dark:bg-honey-400/25" />
 
@@ -100,45 +113,25 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
           </div>
 
           {level ? (
-            <div className="absolute bottom-0 left-1/2 h-32 w-48 -translate-x-1/2 sm:h-36 sm:w-56">
+            <div className="absolute bottom-0 left-1/2 h-36 w-36 -translate-x-1/2 sm:h-40 sm:w-40">
               {FLAKES.map((f, i) => (
                 <span
                   key={i}
-                  className="milestone-flake absolute top-0 rounded-full bg-honey-400 ring-2 ring-honey-500/40"
+                  className="milestone-flake absolute top-[16%] z-10 rounded-full bg-honey-400 ring-2 ring-honey-500/40"
                   style={{ left: `${f.x}%`, width: f.s, height: f.s, '--d': `${f.d}ms` } as CSSProperties}
                 />
               ))}
-              <svg viewBox="0 -6 100 70" className="milestone-bowl absolute inset-x-0 bottom-0 h-[78%] w-full overflow-visible" aria-hidden>
-                <defs>
-                  <clipPath id={`${clip}-bowl`}>
-                    <path d={BOWL} />
-                  </clipPath>
-                </defs>
-                <path d={BOWL} className="fill-cream dark:fill-linen-900" />
-                <g clipPath={`url(#${clip}-bowl)`}>
-                  <g className="milestone-fill" style={{ '--fill-from': '44px' } as CSSProperties}>
-                    <rect x="0" y="14" width="100" height="44" className="fill-honey-300" />
-                    <path d="M0 16 Q12.5 10 25 16 T50 16 T75 16 T100 16 V21 H0 Z" className="fill-honey-200" />
-                    {[18, 34, 52, 68, 82].map((x, i) => (
-                      <circle key={x} cx={x} cy={24 + (i % 2) * 7} r="2.4" className="fill-honey-400" />
-                    ))}
-                  </g>
-                </g>
-                <path d={BOWL} fill="none" strokeWidth="3" strokeLinejoin="round" className="stroke-honey-500 dark:stroke-honey-400" />
-                <path d="M28 59h44" strokeWidth="3" strokeLinecap="round" className="stroke-honey-500 dark:stroke-honey-400" />
-                <g className="chip-pop" style={{ animationDelay: '1450ms' }}>
-                  <ellipse cx="44" cy="5.5" rx="4.2" ry="3.2" className="fill-honey-300 stroke-honey-600" strokeWidth="0.8" />
-                  <ellipse cx="56" cy="5.5" rx="4" ry="3" className="fill-honey-300 stroke-honey-600" strokeWidth="0.8" />
-                  <ellipse cx="50" cy="3.2" rx="4.4" ry="3.3" className="fill-honey-400 stroke-honey-600" strokeWidth="0.8" />
-                </g>
-              </svg>
+              <div className="milestone-bowl absolute inset-0">
+                <Omer {...omerFor({ kind: 'level-up', level: milestone.to })} size={160} className="h-full w-full" />
+              </div>
             </div>
           ) : (
-            <div className="absolute inset-x-0 bottom-2 flex justify-center gap-3">
-              {milestone.badges.slice(0, 3).map((b, i) => (
+            <div className={`absolute bottom-2 left-1/2 flex w-max -translate-x-1/2 items-end justify-center ${medals.length > 2 ? 'gap-2' : 'gap-3'}`}>
+              <Omer {...omerFor({ kind: 'badges', ids: milestone.badges.map((b) => b.id) })} size={OMER_BESIDE[medals.length]} />
+              {medals.map((b, i) => (
                 <div
                   key={b.id}
-                  className="milestone-medal relative grid h-24 w-24 place-items-center overflow-hidden rounded-full border-4 border-honey-400 bg-linear-to-b from-honey-100 to-honey-300 text-5xl shadow-[0_5px_0_var(--color-honey-600)] sm:h-28 sm:w-28"
+                  className={`milestone-medal relative mb-2 grid place-items-center overflow-hidden rounded-full border-4 border-honey-400 bg-linear-to-b from-honey-100 to-honey-300 shadow-[0_5px_0_var(--color-honey-600)] ${MEDAL_SIZE[medals.length]}`}
                   style={{ '--d': `${300 + i * 180}ms` } as CSSProperties}
                 >
                   <span aria-hidden>{b.emoji}</span>
