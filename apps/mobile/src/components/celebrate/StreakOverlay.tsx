@@ -141,27 +141,30 @@ export function StreakOverlay({ milestone, onClose }: { milestone: StreakDay; on
         {/* The stage: glow, embers and the flame (plus the shout on a goal day) */}
         <View style={{ width: 260, height: goalDay ? 224 : 160, alignItems: 'center', justifyContent: 'flex-end' }}>
           {goalDay && <Sunburst reduce={reduce} dark={dark} />}
+          {/* The tilt sits inside the entrance, which would otherwise overwrite it. */}
           {goalDay && (
             <Animated.View
               entering={ZoomIn.delay(250).springify().damping(10)}
-              style={{ position: 'absolute', top: 0, zIndex: 2, width: 220, height: 88, transform: [{ rotate: '-6deg' }] }}
+              style={{ position: 'absolute', top: 0, zIndex: 2, width: 220, height: 88 }}
             >
-              <Svg width={220} height={88} viewBox="0 0 220 88" style={StyleSheet.absoluteFill}>
-                <Polygon points={STAR} fill={honey['200']} stroke={linen['900']} strokeWidth={2.5} strokeLinejoin="round" />
-              </Svg>
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text
-                  style={{
-                    fontFamily: fonts.roundedHeavy,
-                    fontSize: p.goal.shout.length > 10 ? 20 : 23,
-                    letterSpacing: 0.3,
-                    color: coral['700'],
-                    textShadowColor: cream,
-                    textShadowRadius: 3,
-                  }}
-                >
-                  {p.goal.shout}
-                </Text>
+              <View style={{ flex: 1, transform: [{ rotate: '-6deg' }] }}>
+                <Svg width={220} height={88} viewBox="0 0 220 88" style={StyleSheet.absoluteFill}>
+                  <Polygon points={STAR} fill={honey['200']} stroke={linen['900']} strokeWidth={2.5} strokeLinejoin="round" />
+                </Svg>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text
+                    style={{
+                      fontFamily: fonts.roundedHeavy,
+                      fontSize: p.goal.shout.length > 10 ? 20 : 23,
+                      letterSpacing: 0.3,
+                      color: coral['700'],
+                      textShadowColor: cream,
+                      textShadowRadius: 3,
+                    }}
+                  >
+                    {p.goal.shout}
+                  </Text>
+                </View>
               </View>
             </Animated.View>
           )}

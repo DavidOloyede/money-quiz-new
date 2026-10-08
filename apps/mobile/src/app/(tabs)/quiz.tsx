@@ -443,21 +443,23 @@ function Results({
             style={{ position: 'absolute', left: 144, bottom: 0 }}
           />
         </View>
+        {/* The tilt sits inside the entrance, which would otherwise overwrite it. */}
         {perfect && (
-          <Animated.View
-            entering={celebrate ? ZoomIn.delay(1100).springify().damping(13) : undefined}
-            style={{
-              transform: [{ rotate: '-3deg' }],
-              borderRadius: radii.md,
-              borderWidth: 2,
-              borderBottomWidth: 4,
-              borderColor: colors.onReward,
-              backgroundColor: colors.reward,
-              paddingHorizontal: spacing.md,
-              paddingVertical: 2,
-            }}
-          >
-            <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 17, color: colors.onReward }}>PERFECT!</Text>
+          <Animated.View entering={celebrate ? ZoomIn.delay(1100).springify().damping(13) : undefined}>
+            <View
+              style={{
+                transform: [{ rotate: '-3deg' }],
+                borderRadius: radii.md,
+                borderWidth: 2,
+                borderBottomWidth: 4,
+                borderColor: colors.onReward,
+                backgroundColor: colors.reward,
+                paddingHorizontal: spacing.md,
+                paddingVertical: 2,
+              }}
+            >
+              <Text style={{ fontFamily: fonts.roundedHeavy, fontSize: 17, color: colors.onReward }}>PERFECT!</Text>
+            </View>
           </Animated.View>
         )}
         <Animated.View
