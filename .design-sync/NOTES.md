@@ -84,13 +84,14 @@ and infra are intentionally excluded.
   a component, so the bundle stays free of CSS imports.
   `DailyQuestionCard` imports `src/lib/sound.ts`; it does nothing at import
   time (no AudioContext until a sound plays), so previews stay inert.
-- **Omer (Oct 2026)** is tracked too. His drawing is a string from core
-  `lib/omer.ts`, shown as an `<img>` with a `data:` URL, so the bundle needs
-  no assets. His motion classes (`omer-breathe`, `omer-hop`, …) live in
-  `celebrate.css` and reach the previews only through the frozen `app.css`.
-  Every motion pops him in from opacity 0, so the previews pass
-  `motion="still"`, which skips the animation and shows him on the first
-  frame.
+- **Omer (Oct 2026)** is tracked too. Still (`motion="still"`), his drawing
+  is a string from core `lib/omer.ts` shown as an `<img>` with a `data:` URL,
+  so the bundle needs no assets. Moving (the default `motion="move"`), he's
+  an inline `<svg>` whose parts are played by script (Web Animations, from
+  core `lib/omerMotion.ts`); only his pop-in (`omer-in`) is a class in
+  `celebrate.css`, reaching the previews through the frozen `app.css`. The
+  pop-in starts at opacity 0, so the previews pass `motion="still"`, which
+  shows the plain `<img>` on the first frame.
 
 ## Re-sync risks (what can silently go stale)
 
