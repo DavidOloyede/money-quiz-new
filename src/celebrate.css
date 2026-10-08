@@ -570,6 +570,80 @@
   animation: omer-hop 750ms ease-in-out 450ms 3;
 }
 
+/* ── PAID OFF! (PaidOffOverlay) ──────────────────────────────────────────── */
+
+/* The world moves past the Hero, right to left: clouds at three speeds, then
+ * quicker wind and tumbling manna. Each starts part-way across (a negative
+ * delay), so the sky is full from the first frame. */
+@keyframes paidoff-drift {
+  from {
+    transform: translateX(105vw);
+  }
+  to {
+    transform: translateX(-35vw);
+  }
+}
+@keyframes paidoff-wind {
+  0% {
+    transform: translateX(110vw);
+    opacity: 0;
+  }
+  15%,
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-30vw);
+    opacity: 0;
+  }
+}
+@keyframes paidoff-flake {
+  0% {
+    transform: translate(110vw, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(50vw, 14px) rotate(160deg);
+  }
+  100% {
+    transform: translate(-10vw, -6px) rotate(340deg);
+  }
+}
+.paidoff-cloud {
+  animation: paidoff-drift var(--dur) linear var(--d) infinite;
+}
+.paidoff-wind {
+  animation: paidoff-wind var(--dur) linear var(--d) infinite;
+}
+.paidoff-flake {
+  animation: paidoff-flake var(--dur) linear var(--d) infinite;
+}
+/* The Hero arrives with a loop-the-loop, then drifts about the sky for a while and holds. */
+@keyframes paidoff-swoop {
+  45% {
+    transform: translate(-6%, -18%) rotate(-200deg);
+  }
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes paidoff-flight {
+  25% {
+    transform: translate(4%, -5%) rotate(-3deg);
+  }
+  50% {
+    transform: translate(0, -1%) rotate(1deg);
+  }
+  75% {
+    transform: translate(-4%, 4%) rotate(2deg);
+  }
+}
+.paidoff-swoop {
+  animation: paidoff-swoop 1.1s cubic-bezier(0.45, 0, 0.3, 1) 150ms both;
+}
+.paidoff-flight {
+  animation: paidoff-flight 4.8s ease-in-out 1.3s 2;
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* DESIGN.md: skip particles and bounces; show the finished state. */
   .flake-burst,
@@ -581,8 +655,14 @@
   .streak-ember,
   .streak-old,
   .streak-countdown-track,
-  .xp-tick {
+  .xp-tick,
+  .paidoff-wind,
+  .paidoff-flake {
     display: none;
+  }
+  .paidoff-cloud {
+    animation: none;
+    transform: translateX(var(--x));
   }
   .answer-pop,
   .answer-shake,
@@ -613,7 +693,9 @@
   .streak-bar-fill,
   .level-pop,
   .omer-in,
-  .omer-hop {
+  .omer-hop,
+  .paidoff-swoop,
+  .paidoff-flight {
     animation: none;
   }
   .milestone-burst {

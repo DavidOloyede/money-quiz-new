@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { GameState } from '../types'
 import { checkIn, DEFAULT_GAME_STATE, levelTitle, streakDayXp, xpForLevel } from './gamification'
-import { milestonesBetween } from './milestones'
+import { BADGES } from './badges'
+import { enqueueMilestones, milestonesBetween, paidOffBetween, type Milestone } from './milestones'
 
 const at = (xp: number, badges: Record<string, string> = {}): GameState => ({
   ...DEFAULT_GAME_STATE,
@@ -74,5 +75,45 @@ describe('milestonesBetween: the streak', () => {
     const before = { ...at(xpForLevel(2) - 1), streak: 6, bestStreak: 6, lastActiveDay: '2026-10-05' }
     const kinds = milestonesBetween(before, checkIn(before, '2026-10-06')).map((m) => m.kind)
     expect(kinds).toEqual(['streak', 'level'])
+  })
+})
+
+describe('paidOffBetween', () => {
+  it('celebrates loans newly confirmed paid off', () => {
+    expect(paidOffBetween({}, { car: 'x' })).toEqual({ kind: 'paid-off', count: 1 })
+    expect(paidOffBetween({ car: 'x' }, { car: 'x', card: 'y', mortgage: 'z' })).toEqual({ kind: 'paid-off', count: 2 })
+  })
+
+  it('never celebrates nothing changing, or an undo', () => {
+    expect(paidOffBetween({ car: 'x' }, { car: 'x' })).toBeNull()
+    expect(paidOffBetween({ car: 'x' }, {})).toBeNull()
+  })
+})
+
+describe('enqueueMilestones', () => {
+  const slayer = BADGES.find((b) => b.id === 'debt-slayer')!
+  const steps = BADGES.find((b) => b.id === 'first-import')!
+  const party: Milestone = { kind: 'paid-off', count: 1 }
+
+  it('folds Debt Slayer into the party for the payoff that earned it', () => {
+    expect(enqueueMilestones([party], [{ kind: 'badges', badges: [slayer] }])).toEqual([{ ...party, badge: slayer }])
+  })
+
+  it('keeps any other badges earned alongside it as their own moment', () => {
+    expect(enqueueMilestones([party], [{ kind: 'badges', badges: [steps, slayer] }])).toEqual([
+      { ...party, badge: slayer },
+      { kind: 'badges', badges: [steps] },
+    ])
+  })
+
+  it('shows Debt Slayer as a badge when no party is waiting for it', () => {
+    const badge: Milestone = { kind: 'badges', badges: [slayer] }
+    expect(enqueueMilestones([], [badge])).toEqual([badge])
+    expect(enqueueMilestones([{ ...party, badge: slayer }], [badge])).toEqual([{ ...party, badge: slayer }, badge])
+  })
+
+  it('queues everything else in order', () => {
+    const level: Milestone = { kind: 'level', from: 1, to: 2, title: 'x' }
+    expect(enqueueMilestones([level], [party])).toEqual([level, party])
   })
 })
