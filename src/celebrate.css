@@ -530,8 +530,8 @@
 
 /* ── Omer ────────────────────────────────────────────────────────────────── */
 
-/* He pops in with the reward overshoot, then settles into the pose's own
- * loop. Everything pivots at his feet, so a breath squashes toward the ground. */
+/* He pops in with the reward overshoot, pivoting at his feet. His moves play
+ * inside the drawing (core lib/omerMotion.ts, started by Omer.tsx). */
 @keyframes omer-pop {
   0% {
     transform: translateY(10%) scale(0.6);
@@ -545,15 +545,14 @@
     transform: scale(1);
   }
 }
-@keyframes omer-breathe {
-  0%,
-  100% {
-    transform: scale(1, 1);
-  }
-  50% {
-    transform: scale(1.015, 0.975);
-  }
+.omer {
+  transform-origin: 50% 95%;
 }
+.omer-in {
+  animation: omer-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+/* The level-up's Builder hops three times on top of his own move (the design
+ * guide's 5.4); the jumping and flying looks bring their own lift. */
 @keyframes omer-hop {
   0%,
   100% {
@@ -566,42 +565,9 @@
     transform: translateY(0) scale(1.04, 0.95);
   }
 }
-@keyframes omer-wobble {
-  0%,
-  100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(-5deg);
-  }
-  55% {
-    transform: rotate(4deg);
-  }
-  80% {
-    transform: rotate(-2deg);
-  }
-}
-.omer {
-  transform-origin: 50% 95%;
-}
-.omer-none {
-  animation: omer-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-.omer-breathe {
-  animation:
-    omer-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    omer-breathe 3.2s ease-in-out 500ms infinite;
-}
-/* Three hops, then he rests: a moment, not a loop to stare at. */
 .omer-hop {
-  animation:
-    omer-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    omer-hop 750ms ease-in-out 450ms 3;
-}
-.omer-wobble {
-  animation:
-    omer-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
-    omer-wobble 700ms ease-in-out 400ms;
+  transform-origin: 50% 95%;
+  animation: omer-hop 750ms ease-in-out 450ms 3;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -646,10 +612,8 @@
   .streak-pip-new,
   .streak-bar-fill,
   .level-pop,
-  .omer-none,
-  .omer-breathe,
-  .omer-hop,
-  .omer-wobble {
+  .omer-in,
+  .omer-hop {
     animation: none;
   }
   .milestone-burst {

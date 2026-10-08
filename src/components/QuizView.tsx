@@ -445,7 +445,7 @@ function Results({
           <Omer
             {...omerFor({ kind: 'quiz-finished' })}
             size={88}
-            motion={party ? 'hop' : 'breathe'}
+            motion={party ? 'move' : 'none'}
             className="absolute bottom-0 left-full ml-1"
           />
         </div>

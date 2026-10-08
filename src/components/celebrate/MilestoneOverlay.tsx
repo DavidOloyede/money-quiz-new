@@ -122,7 +122,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
                 />
               ))}
               <div className="milestone-bowl absolute inset-0">
-                <Omer {...omerFor({ kind: 'level-up', level: milestone.to })} size={160} className="h-full w-full" />
+                <LevelOmer level={milestone.to} />
               </div>
             </div>
           ) : (
@@ -181,6 +181,20 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
           Tap anywhere to continue
         </p>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Omer at the level-up: he jumps, or flies as the Hero. The Builder's own move
+ * is his mallet, so he also hops three times to make it a jump (the design
+ * guide's 5.4).
+ */
+function LevelOmer({ level }: { level: number }) {
+  const look = omerFor({ kind: 'level-up', level })
+  return (
+    <div className={`h-full w-full ${look?.outfit === 'builder' ? 'omer-hop' : ''}`}>
+      <Omer {...look} size={160} className="h-full w-full" />
     </div>
   )
 }

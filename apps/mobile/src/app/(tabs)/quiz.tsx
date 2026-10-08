@@ -439,7 +439,7 @@ function Results({
           <Omer
             {...omerFor({ kind: 'quiz-finished' })}
             size={84}
-            motion={celebrate && pct >= 50 ? 'hop' : 'breathe'}
+            motion={celebrate && pct >= 50 ? 'move' : 'none'}
             style={{ position: 'absolute', left: 144, bottom: 0 }}
           />
         </View>

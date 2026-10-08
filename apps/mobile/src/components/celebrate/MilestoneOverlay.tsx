@@ -196,11 +196,33 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
   )
 }
 
-/** Omer jumps where the bowl once stood, manna falling into his rim. */
+/**
+ * Omer jumps where the bowl once stood, manna falling into his rim, or flies
+ * as the Hero. The Builder's own move is his mallet, so he also hops three
+ * times to make it a jump (the design guide's 5.4).
+ */
 function JumpingOmer({ level, reduce }: { level: number; reduce: boolean }) {
+  const look = omerFor({ kind: 'level-up', level })
+  const hop = useSharedValue(0)
+  useEffect(() => {
+    if (reduce || look?.outfit !== 'builder') return
+    hop.value = withDelay(
+      450,
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) }),
+          withTiming(0, { duration: 450, easing: Easing.in(Easing.quad) }),
+        ),
+        3,
+      ),
+    )
+  }, [reduce, look?.outfit, hop])
+  const hopStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -hop.value * 150 * 0.09 }] }))
   return (
     <View style={{ position: 'absolute', bottom: 0, width: 150, height: 150 }}>
-      <Omer {...omerFor({ kind: 'level-up', level })} size={150} />
+      <Animated.View style={hopStyle}>
+        <Omer {...look} size={150} />
+      </Animated.View>
       <View pointerEvents="none" style={{ position: 'absolute', top: 24, left: 0, right: 0 }}>
         {!reduce && [42, 52, 47, 57].map((x, i) => <FallingFlake key={i} x={x} delay={300 + i * 280} />)}
       </View>
