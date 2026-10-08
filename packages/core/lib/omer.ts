@@ -438,8 +438,19 @@ export function showsOutfit(outfit: OmerOutfit | undefined, size = 200): outfit 
 }
 
 /** Omer as a standalone SVG document. With an outfit, the outfit's own pose wins (above 64px). */
-export function omerSvg({ pose = 'idle', outfit, view = 'front', size = 200 }: OmerOptions = {}): string {
-  const o = showsOutfit(outfit, size) ? OUTFITS[outfit] : POSES[pose]
+export function omerSvg(opts: OmerOptions = {}): string {
+  return drawOmer(opts)
+}
+
+/** The layers the motion rig (lib/omerMotion.ts) can swap for wrapped copies of themselves. */
+export type OmerLayers = Partial<Pick<Look, 'back' | 'onBody' | 'hat' | 'props' | 'extra'>>
+
+/**
+ * omerSvg with some of the look's layers replaced. The motion rig passes the
+ * same markup wrapped in its moves, so the drawing itself never changes.
+ */
+export function drawOmer({ pose = 'idle', outfit, view = 'front', size = 200 }: OmerOptions = {}, layers: OmerLayers = {}): string {
+  const o: Look = { ...(showsOutfit(outfit, size) ? OUTFITS[outfit] : POSES[pose]), ...layers }
   const arms = ARMS[o.arms || 'idle']
   const legs = LEGS[o.legs || 'stand']
   const front = arms.front || []
@@ -466,3 +477,9 @@ export function omerSvg({ pose = 'idle', outfit, view = 'front', size = 200 }: O
   s += '</g>' + (o.extra || '')
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 200 200" fill="none">${s}</svg>`
 }
+
+/**
+ * The drawing's parts, for the motion rig only: it finds an arm or a prop in
+ * the finished markup by drawing it again with these, then wraps that copy.
+ */
+export const OMER_PARTS = { ARMS, LEGS, OUTFITS, POSES, INK, star4, limb, cuff, eyes } as const
