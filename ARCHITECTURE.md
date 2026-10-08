@@ -258,11 +258,11 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   parts stacked top to bottom: the opening ("Enough for today. A plan for
   tomorrow." beside a phone showing a right quiz answer), **how it works**,
   **why "Manna"** (the story behind the name, plus room to give and keeping
-  your data safe), and a short list of questions and answers ending in a
-  closing celebration. "How it works" starts with three small picture tiles:
+  your data safe), then a closing celebration, and last a short list of
+  questions and answers. "How it works" starts with three small picture tiles:
   connect your bank, see your categories, and plan your whole year on the
   Year Sheet. Each tile plays a tiny animation when you point at it (on a
-  phone, when you tap it or scroll it to the middle): the bank links, a
+  phone, when you tap it or scroll it into view): the bank links, a
   category opens to show its purchases, and the Year Sheet's numbers ripple
   in from the top-right corner before the "Net" row glows. Below the tiles
   come three rows. First the question of the day (with the streak it

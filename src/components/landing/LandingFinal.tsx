@@ -1,12 +1,11 @@
 /**
- * The bottom of the signed-out landing page: five short answers for the
- * cautious first-timer, then the finale on its own dawn band. The finale is
- * one centred column sized to fit a 900px screen: the promise restated, the
- * same CTA pair as the hero, and right under it the payoff, a phone showing
- * the quiz finished with confetti bursting around it and manna falling into
- * the bowl at its foot. The FAQ
- * comes first so the CTAs close the page, as they open it
- * (docs/design/landing/bar.md #5).
+ * The bottom of the signed-out landing page: the finale on its own dawn
+ * band, then five short answers for the cautious first-timer, then the
+ * footer. The finale is one centred column sized to fit a 900px screen: the
+ * promise restated, the same CTA pair as the hero, and right under it the
+ * payoff, a phone showing the quiz finished with confetti bursting around it
+ * and manna falling into the bowl at its foot. The questions come last (David's
+ * call, October 2026), so the page ends on reassurance just below the CTAs.
  */
 import type { CSSProperties, ReactNode } from 'react'
 import type { LandingActions } from './Landing'
@@ -19,7 +18,7 @@ import './final.css'
 
 /*
  * The FAQ heading keeps HEADING's size but drops a weight and a shade, so it
- * clearly ranks below the closing DISPLAY headline instead of competing.
+ * clearly ranks below the finale's DISPLAY headline instead of competing.
  */
 const QUIET_HEADING = HEADING.replace('font-extrabold', 'font-bold').replace(
   'text-linen-900 dark:text-linen-50',
@@ -84,7 +83,34 @@ export function LandingFinal(actions: LandingActions) {
   const [ref, phase] = useReplayInView<HTMLDivElement>()
   return (
     <section id="landing-final">
-      <div className={`${SECTION} pb-20 lg:pb-20`}>
+      {/*
+       * The finale's own full-bleed band: it opens on the page colour (no
+       * seam), turns to dawn within its top padding so it reads as a new
+       * scene, and settles back to the page colour within its bottom padding
+       * so the questions below sit on the page again. Dark mode is the same
+       * story before sunrise: night blue warming toward the bottom.
+       */}
+      <div
+        data-motion={phase}
+        className="final-scene relative isolate overflow-hidden bg-[linear-gradient(to_bottom,var(--color-linen-50),var(--color-honey-100)_5rem,var(--color-sky-100)_68%,var(--color-sky-200)_calc(100%_-_5rem),var(--color-linen-50))] dark:bg-[linear-gradient(to_bottom,var(--color-linen-950),var(--color-sky-950)_5rem,var(--color-sky-900)_72%,var(--color-honey-950)_calc(100%_-_5rem),var(--color-linen-950))]"
+      >
+        <div className="flex flex-col items-center px-4 pt-20 pb-20 text-center sm:px-6">
+          <h2 className={`${DISPLAY} max-w-[21ch] text-forest-700 dark:text-forest-300`}>
+            Enough for today, and a plan for what’s next.
+          </h2>
+          <CtaPair {...actions} className="mt-8 items-center" />
+          <button type="button" onClick={onImport} className={`${QUIET_LINK} mt-1.5 text-base`}>
+            Or import your own CSV
+          </button>
+          {/* Watch the phone itself: the band is taller than a screen, so its
+              celebration should fire when the phone, not the headline, is in view. */}
+          <div ref={ref}>
+            <FinishedStage />
+          </div>
+        </div>
+      </div>
+
+      <div className={`${SECTION} pt-8 pb-20 lg:pt-8 lg:pb-20`}>
         <div className={COLUMN}>
           <div className="mx-auto max-w-[800px]">
             <h2 className={`${QUIET_HEADING} text-center`}>Before you try it</h2>
@@ -102,47 +128,21 @@ export function LandingFinal(actions: LandingActions) {
         </div>
       </div>
 
-      {/*
-       * The finale's own full-bleed band: it opens on the page colour (no
-       * seam) and turns to dawn within its top padding, so it reads as a
-       * new scene. Dark mode is the same story before sunrise: night blue
-       * warming toward the bottom.
-       */}
-      <div
-        data-motion={phase}
-        className="final-scene relative isolate overflow-hidden bg-[linear-gradient(to_bottom,var(--color-linen-50),var(--color-honey-100)_5rem,var(--color-sky-100)_68%,var(--color-sky-200))] dark:bg-[linear-gradient(to_bottom,var(--color-linen-950),var(--color-sky-950)_5rem,var(--color-sky-900)_72%,var(--color-honey-950))]"
-      >
-        <div className="flex flex-col items-center px-4 pt-20 text-center sm:px-6">
-          <h2 className={`${DISPLAY} max-w-[21ch] text-forest-700 dark:text-forest-300`}>
-            Enough for today, and a plan for what’s next.
-          </h2>
-          <CtaPair {...actions} className="mt-8 items-center" />
-          <button type="button" onClick={onImport} className={`${QUIET_LINK} mt-1.5 text-base`}>
-            Or import your own CSV
-          </button>
-          {/* Watch the phone itself: the band is taller than a screen, so its
-              celebration should fire when the phone, not the headline, is centred. */}
-          <div ref={ref}>
-            <FinishedStage />
-          </div>
+      <footer className="px-4 pb-4 sm:px-6">
+        <div
+          className={`${COLUMN} flex items-center justify-between gap-4 border-t border-linen-200 pt-2 text-sm dark:border-linen-800`}
+        >
+          <span className="flex items-center gap-2 font-rounded font-extrabold text-linen-900 dark:text-linen-100">
+            <MannaLogo className="h-6 w-6" />
+            Manna Money
+          </span>
+          {onSignIn && (
+            <button type="button" onClick={onSignIn} className={`${QUIET_LINK} -mr-2 text-sm`}>
+              Sign in
+            </button>
+          )}
         </div>
-
-        <footer className="px-4 pb-4 sm:px-6">
-          <div
-            className={`${COLUMN} flex items-center justify-between gap-4 border-t border-sky-300/60 pt-2 text-sm dark:border-sky-800`}
-          >
-            <span className="flex items-center gap-2 font-rounded font-extrabold text-linen-900 dark:text-linen-100">
-              <MannaLogo className="h-6 w-6" />
-              Manna Money
-            </span>
-            {onSignIn && (
-              <button type="button" onClick={onSignIn} className={`${QUIET_LINK} -mr-2 text-sm`}>
-                Sign in
-              </button>
-            )}
-          </div>
-        </footer>
-      </div>
+      </footer>
     </section>
   )
 }

@@ -34,7 +34,8 @@ its colors, art, lowercase styling or copy.
    (same label, same size) appears on the first screen and on the last
    screen, and nowhere in between. Middle sections carry at most a text link.
    The last screen restates the promise in a big headline directly above that
-   button.
+   button. (October 2026: by David's choice the short FAQ now follows that
+   closing screen, so the page ends on the questions; keep it there.)
 
 6. **The hero says one thing.** Above the fold: one headline, one button
    stack, one hero visual, and the logo. No nav links and no feature list. At
