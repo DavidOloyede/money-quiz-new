@@ -198,7 +198,7 @@ function QuizPhone({ className }: { className: string }) {
     >
       <div className="relative flex h-full flex-col overflow-hidden rounded-[38px] bg-cream dark:bg-linen-900">
         <div className="flex h-11 shrink-0 items-center px-7 pt-1 text-[13px] font-semibold text-linen-900 tabular-nums dark:text-linen-100">
-          9:41
+          3:16
           <span className="absolute top-2.5 left-1/2 h-[26px] w-[86px] -translate-x-1/2 rounded-full bg-linen-900 dark:bg-linen-950" />
         </div>
 
