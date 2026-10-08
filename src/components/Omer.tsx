@@ -4,12 +4,12 @@
  *
  * He pops in, then plays his pose's or outfit's own move from the design
  * guide (core lib/omerMotion.ts): the wave rocks from the shoulder, the Coach
- * does reps, the Hero's cape ripples. A move plays for a few seconds and he
- * settles on his pose; only breathing and blinking keep going. While he moves
- * he's an inline <svg> whose parts are played with the Web Animations API
- * from the same keyframes the phone uses (the cape's outline is SMIL, begun
- * once he has popped in). Still (`motion="still"`, or reduce motion) he's an
- * <img> of the drawing, the element the commissioned art will replace.
+ * does reps, the Hero's cape ripples. His move loops for as long as he's on
+ * screen. While he moves he's an inline <svg> whose parts are played with the
+ * Web Animations API from the same keyframes the phone uses (the cape's
+ * outline is SMIL, begun once he has popped in). Still (`motion="still"`, or
+ * reduce motion) he's an <img> of the drawing, the element the commissioned
+ * art will replace.
  *
  * In dark mode a faint cream rim keeps his ink outline from vanishing into a
  * dark card. Decorative unless given a `label`. The still drawing is a data:

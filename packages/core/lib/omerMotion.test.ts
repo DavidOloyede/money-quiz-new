@@ -8,7 +8,6 @@ import {
   fullFrame,
   isGroup,
   isPart,
-  MOVE_RUN_MS,
   moveRuns,
   OMER_MOVES,
   omerKeyframes,
@@ -114,10 +113,11 @@ describe('OMER_MOVES', () => {
       expect(first.at, move).toBe(0)
       expect(last.at, move).toBe(1)
       if (spec.extra) {
-        // Unseen at both ends (the orbit's own groups sit inside the knot, which is).
+        // Unseen where it starts, and where each loop joins up (the orbit's own
+        // groups sit inside the knot, which fades in once and stays).
         if (!move.startsWith('orbit')) {
           expect(fullFrame(first).opacity, move).toBe(0)
-          expect(fullFrame(last).opacity, move).toBe(0)
+          if (!spec.once) expect(fullFrame(last).opacity, move).toBe(0)
         }
         continue
       }
@@ -135,20 +135,10 @@ describe('OMER_MOVES', () => {
     }
   })
 
-  it('plays a moment for about five seconds, keeps breathing and blinking going, and never loops faster than the guide', () => {
-    expect(moveRuns('breathe')).toBe(Infinity)
-    expect(moveRuns('blink')).toBe(Infinity)
-    expect(moveRuns('sprout-grow')).toBe(1)
-    expect(moveRuns('hop')).toBe(3)
-    for (const move of MOVES) {
-      const runs = moveRuns(move)
-      if (Number.isFinite(runs) && !OMER_MOVES[move].once) {
-        expect(runs * OMER_MOVES[move].ms, move).toBeGreaterThan(MOVE_RUN_MS * 0.6)
-        expect(runs * OMER_MOVES[move].ms, move).toBeLessThan(MOVE_RUN_MS * 1.4)
-      }
-    }
-    // The knot fades in and out once over the lasso's whole run.
-    expect(OMER_MOVES.knot.ms).toBe(moveRuns('orbit-x') * OMER_MOVES['orbit-x'].ms)
+  it('loops every move for as long as he is on screen, except the entrances', () => {
+    const once = MOVES.filter((m) => moveRuns(m) === 1)
+    expect(once.sort()).toEqual(['knot', 'sprout-grow'])
+    for (const move of MOVES.filter((m) => !once.includes(m))) expect(moveRuns(move), move).toBe(Infinity)
   })
 })
 
@@ -170,6 +160,7 @@ describe('rigMarkup', () => {
     const svg = rigMarkup(omerRig({ outfit: 'hero' }))
     expect(svg).toContain('data-mv="fly" data-d="0" style="transform-box:view-box;transform-origin:100px 120px"')
     expect(svg.match(/<animate attributeName="d" begin="indefinite"/g)).toHaveLength(2)
+    expect(svg).toContain('repeatCount="indefinite"')
     expect(svg).not.toMatch(/undefined|NaN/)
   })
 })

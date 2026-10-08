@@ -187,7 +187,7 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
 
 /**
  * Omer at the level-up: he jumps, or flies as the Hero. The Builder's own move
- * is his mallet, so he also hops three times to make it a jump (the design
+ * is his mallet, so he also keeps hopping to make it a jump (the design
  * guide's 5.4).
  */
 function LevelOmer({ level }: { level: number }) {

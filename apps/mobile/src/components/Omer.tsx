@@ -7,13 +7,12 @@
  *
  * He pops in, then plays his pose's or outfit's own move from the design
  * guide (core lib/omerMotion.ts, the same keyframes the web plays): the wave
- * rocks from the shoulder, the Coach does reps, the Hero's cape ripples. A
- * move plays for a few seconds and he settles; only breathing and blinking
- * keep going. SvgXml can't animate inside a drawing, so a moving Omer is
- * core's rig stacked in layers: still markup in SvgXml layers, each moving
- * part an Animated.View turning about its pivot, and the cape's outline
- * tweened as an animated path. Reduce motion (or `motion="still"`) shows the
- * one still drawing.
+ * rocks from the shoulder, the Coach does reps, the Hero's cape ripples. His
+ * move loops for as long as he's on screen. SvgXml can't animate inside a
+ * drawing, so a moving Omer is core's rig stacked in layers: still markup in
+ * SvgXml layers, each moving part an Animated.View turning about its pivot,
+ * and the cape's outline tweened as an animated path. Reduce motion (or
+ * `motion="still"`) shows the one still drawing.
  *
  * In dark mode a faint cream rim (an iOS layer shadow, which follows the
  * drawing's own edge) keeps his ink outline from vanishing into a dark card.
@@ -29,6 +28,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
+  withSequence,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -159,28 +159,33 @@ const StillLayer = memo(function StillLayer({ markup, unit }: { markup: string; 
   return <SvgXml xml={xml} width={CANVAS * unit} height={CANVAS * unit} style={StyleSheet.absoluteFill} />
 })
 
-/** Milliseconds into a move: after his entrance and the part's own delay, for its runs (or forever). */
+/** Milliseconds into a move: after his entrance and the part's own delay, looping (or once, for an entrance). */
 function useMoveClock(move: OmerMove, delay: number): SharedValue<number> {
   const { ms } = OMER_MOVES[move]
   const runs = moveRuns(move)
   const clock = useSharedValue(0)
   useEffect(() => {
+    // A negative begin starts part-way through a cycle, like the web's negative
+    // delay, so staggered parts (the sparkles, the Z's) stay out of step.
     const begin = OMER_ENTRANCE_MS + delay * 1000
+    const linear = { easing: Easing.linear }
     if (!Number.isFinite(runs)) {
-      clock.value = withDelay(Math.max(0, begin), withRepeat(withTiming(ms, { duration: ms, easing: Easing.linear }), -1, false))
+      const skip = Math.max(0, -begin) % ms
+      const lap = withSequence(withTiming(0, { duration: 0 }), withTiming(ms, { duration: ms, ...linear }))
+      clock.value = skip
+      clock.value = withDelay(Math.max(0, begin), withSequence(withTiming(ms, { duration: ms - skip, ...linear }), withRepeat(lap, -1, false)))
     } else {
-      // A negative begin starts part-way through, like the web's negative delay.
       const total = runs * ms
       const skip = Math.min(total, Math.max(0, -begin))
       clock.value = skip
-      clock.value = withDelay(Math.max(0, begin), withTiming(total, { duration: total - skip, easing: Easing.linear }))
+      clock.value = withDelay(Math.max(0, begin), withTiming(total, { duration: total - skip, ...linear }))
     }
     return () => cancelAnimation(clock)
   }, [clock, ms, runs, delay])
   return clock
 }
 
-/** How far through its cycle a move is, 0 to 1; held at 1 (the pose) once its runs are done. */
+/** How far through its cycle a move is, 0 to 1; held at 1 once an entrance has played. */
 function cycleAt(clock: number, ms: number, runs: number): number {
   'worklet'
   if (runs !== Infinity && clock >= runs * ms) return 1

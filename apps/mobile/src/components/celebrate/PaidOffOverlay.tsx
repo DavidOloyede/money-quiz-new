@@ -171,14 +171,14 @@ export function PaidOffOverlay({ milestone, onClose }: { milestone: PaidOff; onC
   )
 }
 
-/** The Hero arrives with a loop-the-loop, then drifts about the sky for a while and holds. */
+/** The Hero arrives with a loop-the-loop, then keeps drifting about the sky. */
 function FlyingHero({ reduce }: { reduce: boolean }) {
   const swoop = useSharedValue(reduce ? 1 : 0)
   const drift = useSharedValue(0)
   useEffect(() => {
     if (reduce) return
     swoop.value = withDelay(150, withTiming(1, { duration: 1100, easing: Easing.bezier(0.45, 0, 0.3, 1) }))
-    drift.value = withDelay(1300, withRepeat(withTiming(1, { duration: 4800, easing: Easing.linear }), 2, false))
+    drift.value = withDelay(1300, withRepeat(withTiming(1, { duration: 4800, easing: Easing.linear }), -1, false))
   }, [reduce, swoop, drift])
   const style = useAnimatedStyle(() => {
     // The swoop: up and over (-200° by 45%), round to a full turn.

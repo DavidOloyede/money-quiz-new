@@ -7,17 +7,17 @@
  * Plain data and strings, so the website and the phone play the same moves:
  * - OMER_MOVES: each move's keyframes, pivot and timing on Omer's 200-unit
  *   grid. Every cycle starts and ends on the drawn pose (or unseen, for bits
- *   drawn only while he moves: a glint, a spark, the lasso's knot), so a move
- *   can stop after any cycle and he rests exactly as drawn.
+ *   drawn only while he moves: a glint, a spark), so every loop joins up
+ *   seamlessly and reduce motion's still drawing is the same pose.
  * - omerRig(): the drawing as a tree, the moving parts wrapped in their move.
  *   The web shows it as an inline SVG played with the Web Animations API; the
  *   phone stacks it in layers played by Reanimated.
  *
  * A port of the guide's builder (docs/design/system-guide/motion.cjs): the
  * same parts, pivots and timings, with each back-and-forth re-phased to begin
- * on the pose. In the app a moment plays its move for about five seconds and
- * settles; only breathing and blinking keep going (DESIGN.md: "a moment, not
- * a screensaver").
+ * on the pose. Every move loops for as long as he's on screen (David's call,
+ * October 2026); only entrances play once (the sprout growing out of its pot,
+ * the lasso's knot fading in).
  */
 import { honey, linen } from '../theme'
 import { drawOmer, OMER_PARTS, showsOutfit, type OmerLayers, type OmerOptions, type OmerOutfit, type OmerPose } from './omer'
@@ -66,9 +66,7 @@ export interface MoveSpec {
   /** The pivot on Omer's 200-unit grid. Parts that spin on their own centre (a sparkle) get theirs from the rig. */
   origin?: readonly [number, number]
   frames: readonly MoveFrame[]
-  /** Keeps going for as long as he's on screen (breathing, blinking); everything else settles. */
-  ambient?: boolean
-  /** Plays once (the sprout growing out of its pot). */
+  /** An entrance that plays once and holds its last frame (the sprout growing out of its pot); everything else loops. */
   once?: boolean
   /** Drawn only while he moves (a glint, a spark): unseen at both ends of a cycle, and left out of the still drawing. */
   extra?: boolean
@@ -76,8 +74,6 @@ export interface MoveSpec {
   morph?: boolean
 }
 
-/** About how long a moment's moves play before he settles on his pose. */
-export const MOVE_RUN_MS = 5000
 /** He pops in first (DESIGN.md's reward overshoot); his moves start after it. */
 export const OMER_ENTRANCE_MS = 500
 
@@ -93,8 +89,8 @@ const ORBIT_MS = 800
 
 const MOVES = {
   // ── Poses
-  breathe: { ms: 3200, ease: EASE.inOut, origin: [100, 186], ambient: true, frames: [{ at: 0 }, { at: 0.5, sx: 1.02, sy: 0.97 }, { at: 1 }] },
-  blink: { ms: 4200, ease: EASE.linear, origin: [100, 112], ambient: true, frames: [{ at: 0 }, { at: 0.93 }, { at: 0.96, sy: 0.1 }, { at: 1 }] },
+  breathe: { ms: 3200, ease: EASE.inOut, origin: [100, 186], frames: [{ at: 0 }, { at: 0.5, sx: 1.02, sy: 0.97 }, { at: 1 }] },
+  blink: { ms: 4200, ease: EASE.linear, origin: [100, 112], frames: [{ at: 0 }, { at: 0.93 }, { at: 0.96, sy: 0.1 }, { at: 1 }] },
   sway: { ms: 1800, ease: EASE.inOut, origin: [100, 186], frames: [{ at: 0 }, { at: 0.25, rotate: -1.5 }, { at: 0.75, rotate: 1.5 }, { at: 1 }] },
   'wave-arm': { ms: 900, ease: EASE.inOut, origin: [174, 100], frames: swing(-16, 10) },
   marks: { ms: 900, ease: EASE.inOut, frames: [{ at: 0 }, { at: 0.5, opacity: 0.15 }, { at: 1 }] },
@@ -243,14 +239,8 @@ const MOVES = {
   },
   // The knot runs round the loop (an ellipse: a cosine across, a sine up and
   // down), which is what makes a flat ellipse read as a spinning lasso. It
-  // fades in and out once over the lasso's whole run.
-  knot: {
-    ms: ORBIT_MS * Math.max(1, Math.round(MOVE_RUN_MS / ORBIT_MS)),
-    ease: EASE.linear,
-    once: true,
-    extra: true,
-    frames: [{ at: 0, opacity: 0 }, { at: 0.05 }, { at: 0.95 }, { at: 1, opacity: 0 }],
-  },
+  // fades in once as he starts swinging and stays.
+  knot: { ms: 300, ease: EASE.linear, once: true, extra: true, frames: [{ at: 0, opacity: 0 }, { at: 1 }] },
   'orbit-x': { ms: ORBIT_MS, ease: EASE.sineInOut, extra: true, frames: [{ at: 0, x: -30 }, { at: 0.5, x: 30 }, { at: 1, x: -30 }] },
   'orbit-y': {
     ms: ORBIT_MS,
@@ -328,8 +318,8 @@ const MOVES = {
     frames: [{ at: 0 }, { at: 0.5 }, { at: 0.54, sx: 1.04, sy: 0.95 }, { at: 0.58, y: -8 }, { at: 0.62 }, { at: 0.84 }, { at: 0.87, sx: 1.02, sy: 0.98 }, { at: 1 }],
   },
   diploma: { ms: 2000, ease: EASE.inOut, origin: [184, 66], frames: swing(-6, 8) },
-  sleep: { ms: 4400, ease: EASE.inOut, origin: [100, 186], ambient: true, frames: [{ at: 0 }, { at: 0.5, sx: 1.03, sy: 0.96 }, { at: 1 }] },
-  nightcap: { ms: 4400, ease: EASE.inOut, origin: [100, 70], ambient: true, frames: [{ at: 0 }, { at: 0.5, rotate: 3 }, { at: 1 }] },
+  sleep: { ms: 4400, ease: EASE.inOut, origin: [100, 186], frames: [{ at: 0 }, { at: 0.5, sx: 1.03, sy: 0.96 }, { at: 1 }] },
+  nightcap: { ms: 4400, ease: EASE.inOut, origin: [100, 70], frames: [{ at: 0 }, { at: 0.5, rotate: 3 }, { at: 1 }] },
   // A Z drifts up and fades, then rises again from below its spot.
   z: {
     ms: 3200,
@@ -347,12 +337,9 @@ const MOVES = {
 export type OmerMove = keyof typeof MOVES
 export const OMER_MOVES: Readonly<Record<OmerMove, MoveSpec>> = MOVES
 
-/** How many cycles a move plays before he settles; Infinity for breathing and blinking. */
+/** How many cycles a move plays: once for an entrance, forever for everything else. */
 export function moveRuns(move: OmerMove): number {
-  const m: MoveSpec = OMER_MOVES[move]
-  if (m.ambient) return Infinity
-  if (m.once) return 1
-  return Math.max(1, Math.round(MOVE_RUN_MS / m.ms))
+  return OMER_MOVES[move].once ? 1 : Infinity
 }
 
 /**
@@ -680,7 +667,7 @@ function withCapeRipple(markup: string): string {
     const el = out.match(new RegExp(`<path d="${frames[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*/>`))?.[0]
     if (!el) throw new Error('omerMotion: the cape changed; update CAPE_SHAPES')
     const m = OMER_MOVES.cape
-    const animate = `<animate attributeName="d" begin="indefinite" dur="${m.ms}ms" repeatCount="${moveRuns('cape')}" calcMode="spline" keyTimes="${CAPE_TIMES.join(';')}" keySplines="${Array(CAPE_ORDER.length - 1).fill(m.ease.join(' ')).join(';')}" values="${CAPE_ORDER.map((i) => frames[i]).join(';')}"/>`
+    const animate = `<animate attributeName="d" begin="indefinite" dur="${m.ms}ms" repeatCount="${Number.isFinite(moveRuns('cape')) ? moveRuns('cape') : 'indefinite'}" calcMode="spline" keyTimes="${CAPE_TIMES.join(';')}" keySplines="${Array(CAPE_ORDER.length - 1).fill(m.ease.join(' ')).join(';')}" values="${CAPE_ORDER.map((i) => frames[i]).join(';')}"/>`
     out = out.replace(el, el.slice(0, -2) + '>' + animate + '</path>')
   }
   return out

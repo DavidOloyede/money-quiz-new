@@ -201,8 +201,8 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
 
 /**
  * Omer jumps where the bowl once stood, manna falling into his rim, or flies
- * as the Hero. The Builder's own move is his mallet, so he also hops three
- * times to make it a jump (the design guide's 5.4).
+ * as the Hero. The Builder's own move is his mallet, so he also keeps
+ * hopping to make it a jump (the design guide's 5.4).
  */
 function JumpingOmer({ level, reduce }: { level: number; reduce: boolean }) {
   const look = omerFor({ kind: 'level-up', level })
@@ -216,7 +216,7 @@ function JumpingOmer({ level, reduce }: { level: number; reduce: boolean }) {
           withTiming(1, { duration: 300, easing: Easing.out(Easing.quad) }),
           withTiming(0, { duration: 450, easing: Easing.in(Easing.quad) }),
         ),
-        3,
+        -1,
       ),
     )
   }, [reduce, look?.outfit, hop])
@@ -236,7 +236,7 @@ function JumpingOmer({ level, reduce }: { level: number; reduce: boolean }) {
 function FallingFlake({ x, delay }: { x: number; delay: number }) {
   const t = useSharedValue(0)
   useEffect(() => {
-    t.value = withDelay(delay, withRepeat(withTiming(1, { duration: 1100, easing: Easing.in(Easing.quad) }), 2, false))
+    t.value = withDelay(delay, withRepeat(withTiming(1, { duration: 1100, easing: Easing.in(Easing.quad) }), -1, false))
   }, [t, delay])
   const style = useAnimatedStyle(() => ({
     opacity: t.value === 0 ? 0 : t.value < 0.2 ? t.value / 0.2 : t.value > 0.85 ? (1 - t.value) / 0.15 : 1,
