@@ -53,6 +53,19 @@ describe('omerSvg', () => {
     expect(omerSvg({ outfit: 'detective', pose: 'wave' })).toBe(omerSvg({ outfit: 'detective' }))
   })
 
+  it('dresses the Coach and the Wrangler in the app green, and stands the Detective up straight', () => {
+    for (const outfit of ['coach', 'wrangler'] as const) {
+      const svg = omerSvg({ outfit })
+      expect(svg).toContain(themeTokens.forest['500'])
+      expect(svg).not.toContain(themeTokens.coral['500'])
+    }
+    // The standing legs, not the crossed ones the thinking pose keeps.
+    const detective = omerSvg({ outfit: 'detective' })
+    expect(detective).toContain('M88 150Q87 168 85 183')
+    expect(detective).not.toContain('M88 150Q92 168 106 183')
+    expect(omerSvg({ pose: 'thinking' })).toContain('M88 150Q92 168 106 183')
+  })
+
   it('takes every color from the palette (no stray hex)', () => {
     const { cream, linen, forest, honey, sky, coral } = themeTokens
     const palette = new Set([cream, '#fff', ...[linen, forest, honey, sky, coral].flatMap((ramp) => Object.values(ramp))])

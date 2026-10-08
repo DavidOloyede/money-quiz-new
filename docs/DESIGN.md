@@ -238,6 +238,15 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   for a finished quiz, the Dreamer (nightcap) for "come back tomorrow". One
   outfit at a time, never covering the eyes or smile, palette colors only,
   base Omer below 64px, and no religious costumes or symbols.
+- **Outfit colors** (decided October 8, 2026): where a costume's color is
+  free, it wears the app's forest green: the Coach's sweatband and
+  wristbands and the Wrangler's bandana are forest-500 (red is what people
+  expect, green keeps him on theme). A costume keeps another color only when
+  that color is what makes it recognizable: the Chef's white toque, the
+  Dreamer's blue nightcap, the Detective's tan deerstalker, and the
+  Builder's coral hard hat (a yellow one would vanish into his honey body,
+  a green one reads as an army helmet). The Detective stands up straight;
+  only the thinking pose crosses its legs.
 - **Stay original.** When generating art, describe traits; never prompt "in
   the style of" a studio, show or hero.
 - **Files:** in the app (since October 7, 2026) Omer is drawn by

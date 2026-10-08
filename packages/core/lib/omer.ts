@@ -223,7 +223,7 @@ const OUTFITS: Record<OmerOutfit, Look> = {
   },
   detective: {
     arms: 'magnify',
-    legs: 'cross',
+    legs: 'stand',
     eyes: 'magnified',
     mouth: 'smirk',
     heap: false,
@@ -244,17 +244,17 @@ const OUTFITS: Record<OmerOutfit, Look> = {
     legs: 'wide',
     eyes: 'happy',
     mouth: 'grin',
-    wrist: coral['500'],
+    wrist: forest['500'],
     back: ln('M22 48H178', INK, 8) + ln('M22 48H178', linen['500'], 3.5),
     props: [18, 182]
       .map((x) => `<circle cx="${x}" cy="48" r="15" fill="${INK}"/><circle cx="${x - 5}" cy="42" r="3.5" fill="${WHITE}" fill-opacity="0.35"/>`)
       .join(''),
     onBody:
       ln('M22 86A78 15 0 0 0 178 86', INK, 16) +
-      ln('M22 86A78 15 0 0 0 178 86', coral['500'], 10) +
+      ln('M22 86A78 15 0 0 0 178 86', forest['500'], 10) +
       ln('M22 86A78 15 0 0 0 178 86', cream, 2.5) +
       ln('M176 90Q188 92 194 104M176 90Q190 88 198 96', INK, 8) +
-      ln('M176 90Q188 92 194 104M176 90Q190 88 198 96', coral['500'], 4),
+      ln('M176 90Q188 92 194 104M176 90Q190 88 198 96', forest['500'], 4),
   },
   chef: {
     arms: 'raise',
@@ -279,7 +279,7 @@ const OUTFITS: Record<OmerOutfit, Look> = {
     mouth: 'grin',
     heap: false,
     onBody:
-      shape('M66 140C88 150 112 150 134 140L100 164Z', coral['500'], 3) +
+      shape('M66 140C88 150 112 150 134 140L100 164Z', forest['500'], 3) +
       [
         [88, 147],
         [100, 151],
