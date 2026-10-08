@@ -117,16 +117,16 @@
 
   /* The account's guard, running only while the picture is in view. */
   .why-glow {
-    animation: why-breathe 2.4s ease-in-out infinite alternate;
+    animation: why-breathe 2s ease-in-out infinite alternate;
   }
   .why-halo {
-    animation: why-halo 2.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    animation: why-halo 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
   }
   .why-probe {
-    animation: why-probe 5.6s ease-in infinite;
+    animation: why-probe 4.4s ease-in infinite;
   }
   .why-flash {
-    animation: why-flash 5.6s ease-out infinite;
+    animation: why-flash 4.4s ease-out infinite;
   }
   :is(.why-glow, .why-halo, .why-probe, .why-flash) {
     animation-play-state: paused;
@@ -139,7 +139,7 @@
   }
   .why-scene[data-motion='play'] .why-heap {
     transform: scale(0.8);
-    animation: why-home 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s forwards;
+    animation: why-home 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards;
   }
 
   /*
@@ -152,7 +152,7 @@
   }
   .why-scene[data-motion='play'] .why-slice {
     transform: translate(var(--why-dx), var(--why-dy));
-    animation: why-home 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: calc(0.2s + var(--why-delay, 0s));
+    animation: why-home 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(0.05s + var(--why-delay, 0s));
   }
 }

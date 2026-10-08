@@ -83,15 +83,15 @@ const FRAME = 'why-scene aspect-[440/420] w-full max-w-[440px]'
 // and deeper gold as they near the bowl. Each keeps falling on its own slow
 // clock, and (y) is where it sits when the picture is still.
 const FALLING: [number, number, number, string, number][] = [
-  [152, 86, 9, 'fill-honey-200', 5.2],
-  [196, 118, 9, 'fill-honey-200', 6.1],
-  [262, 156, 7, 'fill-honey-200', 4.6],
-  [318, 176, 8, 'fill-honey-200', 5.7],
-  [214, 212, 9, 'fill-honey-300', 4.9],
-  [270, 222, 11, 'fill-honey-400', 5.5],
-  [176, 40, 7, 'fill-honey-200', 5.8],
-  [240, 70, 8, 'fill-honey-300', 5],
-  [292, 104, 6, 'fill-honey-200', 6.4],
+  [152, 86, 9, 'fill-honey-200', 4.2],
+  [196, 118, 9, 'fill-honey-200', 4.9],
+  [262, 156, 7, 'fill-honey-200', 3.7],
+  [318, 176, 8, 'fill-honey-200', 4.6],
+  [214, 212, 9, 'fill-honey-300', 3.9],
+  [270, 222, 11, 'fill-honey-400', 4.4],
+  [176, 40, 7, 'fill-honey-200', 4.6],
+  [240, 70, 8, 'fill-honey-300', 4],
+  [292, 104, 6, 'fill-honey-200', 5.1],
 ]
 /** The stream's ends: just above the disc, and just inside the bowl (hidden by it). */
 const FALL_FROM = -12
@@ -260,11 +260,13 @@ const SHIELD = { x: 220, y: 93, r: 84 }
 /**
  * Knocks from outside: each comes in toward the shield at an angle, meets
  * the barrier there, and is pushed back out. `from` is where it starts,
- * relative to that point on the barrier.
+ * relative to that point on the barrier. The delays are negative so the
+ * loop starts mid-approach: the first knock lands about half a second after
+ * the picture starts playing, then they take turns every 2.2s.
  */
 const PROBES: { angle: number; from: [number, number]; delay: string }[] = [
-  { angle: 190, from: [-112, -10], delay: '0s' },
-  { angle: 345, from: [110, -16], delay: '2.8s' },
+  { angle: 190, from: [-112, -10], delay: '-1.2s' },
+  { angle: 345, from: [110, -16], delay: '-3.4s' },
 ]
 
 function onBarrier(deg: number) {
@@ -310,8 +312,8 @@ function AccountScene() {
               <circle key={`${i}${j}`} r="7" className="fill-sky-600 dark:fill-sky-400">
                 <animateMotion
                   path={d}
-                  dur="3s"
-                  begin={`${-(i * 0.7 + j * 1.5)}s`}
+                  dur="2.4s"
+                  begin={`${-(i * 0.55 + j * 1.2)}s`}
                   repeatCount="indefinite"
                   keyPoints={points}
                   keyTimes="0;1"

@@ -243,7 +243,7 @@ function Rewards({ depth }: { depth: 'back' | 'front' }) {
           top,
           '--fx': `${Math.round((PHONE_CENTER.x - left - size / 2) * 0.7)}px`,
           '--fy': `${Math.round((PHONE_CENTER.y - top - size / 2) * 0.7)}px`,
-          '--d': `${900 + i * 50}ms`,
+          '--d': `${500 + i * 40}ms`,
         } as CSSProperties
       }
     >
@@ -352,7 +352,7 @@ function FinishedPhone() {
 
         <div
           className="final-pop mt-5 font-rounded text-[24px] font-black text-linen-900 dark:text-linen-100"
-          style={{ '--d': '950ms' } as CSSProperties}
+          style={{ '--d': '520ms' } as CSSProperties}
         >
           Nice work!
         </div>
@@ -360,13 +360,13 @@ function FinishedPhone() {
         <div className="mt-3 flex items-center gap-2">
           <span
             className="final-pop rounded-full bg-honey-400 px-2.5 py-1 font-rounded text-[13px] font-black text-linen-900"
-            style={{ '--d': '1100ms' } as CSSProperties}
+            style={{ '--d': '620ms' } as CSSProperties}
           >
             +50 XP
           </span>
           <span
             className="final-pop rounded-full bg-honey-50 px-2.5 py-1 font-rounded text-[12px] font-bold text-honey-700 dark:bg-honey-500/15 dark:text-honey-300"
-            style={{ '--d': '1200ms' } as CSSProperties}
+            style={{ '--d': '700ms' } as CSSProperties}
           >
             3-day streak
           </span>

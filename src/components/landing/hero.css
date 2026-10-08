@@ -62,13 +62,13 @@
 }
 
 [data-motion='play'] .hero-pop {
-  animation: hero-pop 700ms cubic-bezier(0.34, 1.56, 0.64, 1) 500ms both;
+  animation: hero-pop 600ms cubic-bezier(0.34, 1.56, 0.64, 1) 250ms both;
 }
 [data-motion='play'] .hero-xp {
-  animation: hero-xp-rise 900ms cubic-bezier(0.34, 1.56, 0.64, 1) 800ms both;
+  animation: hero-xp-rise 650ms cubic-bezier(0.34, 1.56, 0.64, 1) 420ms both;
 }
 [data-motion='play'] .hero-panel {
-  animation: hero-panel-up 450ms cubic-bezier(0.22, 1, 0.36, 1) 350ms both;
+  animation: hero-panel-up 400ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
 }
 
 /* The hook already stays at `rest` under reduced motion; this is belt and braces. */

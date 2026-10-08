@@ -37,12 +37,12 @@
   transform: rotate(var(--a)) translateX(calc(var(--r) * 1.22)) rotate(calc(-1 * var(--a))) scale(0.55);
 }
 [data-motion='play'] .subs-spot {
-  animation: subs-gather 800ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--d) both;
+  animation: subs-gather 550ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--d) both;
 }
 
 [data-motion='armed'] .subs-row { transform: translateX(-8px); }
 [data-motion='play'] .subs-row {
-  animation: subs-row 450ms cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
+  animation: subs-row 350ms cubic-bezier(0.22, 1, 0.36, 1) var(--d) both;
 }
 
 @keyframes subs-turn {

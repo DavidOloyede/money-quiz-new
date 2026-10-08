@@ -1,6 +1,6 @@
 /**
- * Scroll-driven entrance motion that waits until an element is centred on
- * the screen, and replays on every pass, not just the first. Put the
+ * Scroll-driven entrance motion that waits until an element is well on
+ * screen, and replays on every pass, not just the first. Put the
  * returned ref on the element to watch and `data-motion={phase}` on whatever
  * the CSS keys off (usually the same element):
  *
@@ -10,14 +10,16 @@
  *             pose so the next entrance can play. The start pose must still
  *             show every piece of content (no opacity-0 on anything meant to
  *             be read) because a full-page capture can see it.
- * - `play`  — the element's middle has reached the middle of the screen
- *             (within `reach` of the viewport's height); run the entrance,
- *             ending exactly on the `rest` state.
+ * - `play`  — the element's middle has come within `reach` of the middle of
+ *             the screen (a quarter of its height by default: about when a
+ *             picture is first wholly in view); run the entrance, ending
+ *             exactly on the `rest` state.
  *
- * Waiting for the middle, rather than the first edge to peek in, means the
- * moment plays where the visitor is looking, with the whole thing in view.
- * An element taller than the screen can never be centred, so it plays once
- * it covers the middle of the screen. A fast fling can jump straight past the
+ * Waiting for that, rather than the first edge to peek in, means the moment
+ * plays where the visitor is looking, with the whole thing in view, without
+ * making them scroll it all the way to the middle first. An element taller
+ * than the screen can never be centred, so it plays once it reaches that
+ * same band around the middle. A fast fling can jump straight past the
  * middle between frames, so crossing it counts too. And at the very top or
  * bottom of the page, where something may never reach the middle, being
  * fully on screen is enough. Arming only once the
@@ -27,7 +29,7 @@ import { useEffect, useRef, useState } from 'react'
 
 export type MotionPhase = 'rest' | 'armed' | 'play'
 
-export function useReplayInView<T extends Element>(reach = 0.12) {
+export function useReplayInView<T extends Element>(reach = 0.25) {
   const ref = useRef<T>(null)
   const [phase, setPhase] = useState<MotionPhase>('rest')
 
@@ -52,7 +54,7 @@ export function useReplayInView<T extends Element>(reach = 0.12) {
       const pageEnd = window.scrollY <= 0 || window.scrollY + vh >= document.documentElement.scrollHeight - 2
       const whole = r.top >= 0 && r.bottom <= vh
       const centred = tall
-        ? r.top < vh / 2 && r.bottom > vh / 2
+        ? r.top < vh * (0.5 + reach) && r.bottom > vh * (0.5 - reach)
         : visible && (Math.abs(offset) <= vh * reach || crossed || (pageEnd && whole))
       lastSide = side
       if (centred) setPhase('play')

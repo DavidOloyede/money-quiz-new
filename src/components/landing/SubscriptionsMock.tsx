@@ -71,7 +71,7 @@ export function SubscriptionsMock() {
                 // Alternate two radii so the ring reads as scattered, not drawn with a compass.
                 '--r': i % 2 ? '45cqw' : '41.5cqw',
                 '--s': `${item.size}cqw`,
-                '--d': `${i * 55}ms`,
+                '--d': `${i * 30}ms`,
               } as CSSProperties
             }
           >
@@ -172,7 +172,7 @@ function SubscriptionsCard() {
             <li
               key={u.name}
               className="subs-row flex items-center gap-[1.8cqw] text-[2.8cqw]"
-              style={{ '--d': `${750 + i * 90}ms` } as CSSProperties}
+              style={{ '--d': `${380 + i * 70}ms` } as CSSProperties}
             >
               <span className="flex h-[5cqw] w-[5cqw] shrink-0 items-center justify-center rounded-[1.2cqw] bg-white ring-1 ring-linen-200 dark:ring-0">
                 {icon ? (

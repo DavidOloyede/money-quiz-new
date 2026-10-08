@@ -282,8 +282,8 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   to the Dashboard. There's also a small "import your own CSV" link, a Sign
   in link, and a little sun-and-moon switch at the top for light or dark
   mode (the same setting the app uses). The other animations (the quiz
-  answer popping green, the confetti) wait until they're in the middle of
-  your screen, play again every time you scroll back to them, and stay still
+  answer popping green, the confetti) wait until they're fully on your
+  screen, play quickly (most finish in about a second), play again every time you scroll back to them, and stay still
   if your device asks for less motion. The closing phone starts at zero (0
   out of 5, nothing around it) and builds up to the finished celebration, so
   you never catch it half done. In "why Manna", the manna keeps falling into

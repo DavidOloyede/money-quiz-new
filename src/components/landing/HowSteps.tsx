@@ -202,7 +202,7 @@ function CategoriesTile() {
               <li
                 key={who + when}
                 className={`step-txn ${ROW}`}
-                style={{ '--d': `${900 + i * 70}ms` } as CSSProperties}
+                style={{ '--d': `${620 + i * 60}ms` } as CSSProperties}
               >
                 <span className="leading-tight">
                   <span className="block font-semibold text-linen-800 dark:text-linen-100">{who}</span>
@@ -257,7 +257,7 @@ const LAST_COL = MONTHS.length - 1
  * from the top-right number, so each ring of neighbours lands together.
  */
 function ring(row: number, col: number) {
-  return { '--d': `${Math.max(row, LAST_COL - col) * 110}ms` } as CSSProperties
+  return { '--d': `${Math.max(row, LAST_COL - col) * 80}ms` } as CSSProperties
 }
 
 const GRID = 'grid grid-cols-[58px_repeat(5,minmax(0,1fr))] items-center'

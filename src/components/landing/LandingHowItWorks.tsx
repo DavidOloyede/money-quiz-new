@@ -64,14 +64,18 @@ export function LandingHowItWorks() {
 }
 
 function Step(props: { title: string; body: string; label: string; visual: ReactNode; flip?: boolean }) {
-  const [ref, phase] = useReplayInView<HTMLLIElement>()
+  // Watch the picture, not the row: stacked on a phone, the row's middle is
+  // still above the picture, which would start it before it's on screen.
+  const [ref, phase] = useReplayInView<HTMLDivElement>()
   return (
-    <li ref={ref} data-motion={phase} className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
+    <li className="grid items-center gap-10 md:grid-cols-2 md:gap-12">
       <div className="text-center md:text-left">
         <h3 className={HEADING}>{props.title}</h3>
         <p className={`${BODY} mx-auto mt-4 max-w-[470px] text-pretty md:mx-0`}>{props.body}</p>
       </div>
       <div
+        ref={ref}
+        data-motion={phase}
         role="img"
         aria-label={props.label}
         className={`flex justify-center ${props.flip ? 'md:order-first md:justify-start' : 'md:justify-end'}`}

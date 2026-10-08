@@ -8,13 +8,13 @@
 
 /* 1. The chosen bank presses in, its check pops and "Linked" rises into place. */
 [data-motion='play'] .step-bank {
-  animation: step-press 380ms cubic-bezier(0.22, 1, 0.36, 1) 150ms both;
+  animation: step-press 320ms cubic-bezier(0.22, 1, 0.36, 1) 50ms both;
 }
 [data-motion='play'] .step-check {
-  animation: step-pop 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 450ms both;
+  animation: step-pop 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 250ms both;
 }
 [data-motion='play'] .step-linked {
-  animation: step-rise 400ms cubic-bezier(0.22, 1, 0.36, 1) 650ms both;
+  animation: step-rise 350ms cubic-bezier(0.22, 1, 0.36, 1) 400ms both;
 }
 
 @keyframes step-press {
@@ -41,13 +41,13 @@
 }
 [data-motion='play'] .step-strip {
   transform: translateX(-50%);
-  animation: step-slide 480ms cubic-bezier(0.22, 1, 0.36, 1) 480ms both;
+  animation: step-slide 420ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
 }
 [data-motion='play'] .step-open {
-  animation: step-tap 460ms ease-out both;
+  animation: step-tap 380ms ease-out both;
 }
 [data-motion='play'] .step-txn {
-  animation: step-rise 360ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+  animation: step-rise 320ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
 }
 
 @keyframes step-slide {
@@ -66,10 +66,10 @@
  * until the sheet is full. Then the net row swells and brightens, and settles.
  */
 [data-motion='play'] .step-num {
-  animation: step-appear 340ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+  animation: step-appear 300ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
 }
 [data-motion='play'] .step-net {
-  animation: step-glow 700ms ease-in-out 900ms both;
+  animation: step-glow 600ms ease-in-out 650ms both;
 }
 
 @keyframes step-appear {

@@ -1,6 +1,6 @@
 /*
  * Motion for the landing page's "How it works" rows, keyed off each row's
- * data-motion phase from useReplayInView: `rest` is the finished look,
+ * picture's data-motion phase from useReplayInView: `rest` is the finished look,
  * `armed` snaps to a start pose that still shows everything, and `play` runs
  * back to rest. So the motion replays on every pass and always ends on the
  * same finished picture. (The three step tiles above have their own hover
@@ -15,25 +15,25 @@
 [data-motion='armed'] .how-flame { transform: scale(0.8); }
 
 [data-motion='play'] .how-answer {
-  animation: how-grow 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 50ms both;
+  animation: how-grow 400ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
   --how-from: 0.96;
 }
 [data-motion='play'] .how-xp {
-  animation: how-xp 550ms cubic-bezier(0.34, 1.56, 0.64, 1) 200ms both;
+  animation: how-xp 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 100ms both;
 }
 [data-motion='play'] .how-today {
-  animation: how-grow 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 450ms both;
+  animation: how-grow 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 250ms both;
   --how-from: 0.6;
 }
 [data-motion='play'] .how-flame {
-  animation: how-grow 550ms cubic-bezier(0.34, 1.56, 0.64, 1) 550ms both;
+  animation: how-grow 450ms cubic-bezier(0.34, 1.56, 0.64, 1) 320ms both;
   --how-from: 0.8;
 }
 
 /* The budgets: each green bar eases out to where the month stands. */
 [data-motion='armed'] .how-fill { transform: scaleX(0.2); }
 [data-motion='play'] .how-fill {
-  animation: how-fill 900ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+  animation: how-fill 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .how-flame { transform-origin: 50% 90%; }
