@@ -152,26 +152,29 @@ export function MilestoneOverlay({ milestone, onClose }: { milestone: BigMilesto
           onLayout={(e) => setStageY(e.nativeEvent.layout.y)}
           style={{ width: 300, height: 248, alignItems: 'center' }}
         >
+          {/* The tilt sits inside the entrance, which would otherwise overwrite it. */}
           <Animated.View
             entering={ZoomIn.delay(250).springify().damping(10)}
-            style={{ position: 'absolute', top: 0, zIndex: 2, width: 192, height: 88, transform: [{ rotate: '-6deg' }] }}
+            style={{ position: 'absolute', top: 0, zIndex: 2, width: 192, height: 88 }}
           >
-            <Svg width={192} height={88} viewBox="0 0 192 88" style={StyleSheet.absoluteFill}>
-              <Polygon points={STAR} fill={honey['200']} stroke={linen['900']} strokeWidth={2.5} strokeLinejoin="round" />
-            </Svg>
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-              <Text
-                style={{
-                  fontFamily: fonts.roundedHeavy,
-                  fontSize: shout.length > 9 ? 20 : 23,
-                  letterSpacing: 0.3,
-                  color: forest['700'],
-                  textShadowColor: cream,
-                  textShadowRadius: 3,
-                }}
-              >
-                {shout}
-              </Text>
+            <View style={{ flex: 1, transform: [{ rotate: '-6deg' }] }}>
+              <Svg width={192} height={88} viewBox="0 0 192 88" style={StyleSheet.absoluteFill}>
+                <Polygon points={STAR} fill={honey['200']} stroke={linen['900']} strokeWidth={2.5} strokeLinejoin="round" />
+              </Svg>
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Text
+                  style={{
+                    fontFamily: fonts.roundedHeavy,
+                    fontSize: shout.length > 9 ? 20 : 23,
+                    letterSpacing: 0.3,
+                    color: forest['700'],
+                    textShadowColor: cream,
+                    textShadowRadius: 3,
+                  }}
+                >
+                  {shout}
+                </Text>
+              </View>
             </View>
           </Animated.View>
 
