@@ -147,4 +147,4 @@ function omer(opts) {
   const size = o.size || 200;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 200 200" fill="none">${s}</svg>`;
 }
-if (typeof module !== 'undefined') module.exports = { omer, OUTFITS, POSES };
+if (typeof module !== 'undefined') module.exports = { omer, OUTFITS, POSES, ARMS, LEGS, PAL, limb, cuff, eyes }; // the parts let the design-system guide animate single limbs and props

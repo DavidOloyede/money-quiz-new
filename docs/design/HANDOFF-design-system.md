@@ -12,12 +12,23 @@ the moments". `omer.cjs` stays the design docs' copy of the drawing code, and
 a test in `packages/core/lib/omer.test.ts` keeps it identical to the app's
 `packages/core/lib/omer.ts`.
 
+**Update, October 8:** the Detective stands up straight, and the Coach's
+sweatband and wristbands and the Wrangler's bandana are forest-500 instead of
+coral (DESIGN.md's "Outfit colors"). The design-system guide gained Section 5,
+"Moments in motion": every pose and outfit animated, the Hero flying through
+a sky (with a sketch of the "PAID OFF!" party), live copies of the streak
+moment (day 7 is the one-week goal) and the level-up, the full level ladder
+and the badges with their outfits. The part-by-part moves there (an arm, a
+prop, the cape) are a spec; the app still moves Omer as one piece. Section 5
+is built by `system-guide/motion.cjs` from `src/p7-motion.html` and
+`src/p8-motion-script.html`.
+
 ## Where everything is
 
 | What | Where | Notes |
 | --- | --- | --- |
 | **Figma file** "Manna Money — Design System" | https://www.figma.com/design/78Sw1rki7AaxCVHPPgdvX6 | Open with the Figma connector. Three pages (the Starter plan's limit): Cover + §1 Visual Language · §2 Component Library (guide on the left, editable main components on the right) · §3 Graphics System + §4 Style Guide. **Out of date on Omer**: §3.3 still shows the old pedestal foot and there is no wardrobe section yet (see "Figma follow-ups"). |
-| **Design-system guide** (single page) | https://claude.ai/artifact/UvFPZk3juASfd6vQ3jtG5c | Private Claude artifact. Same content as Figma plus live specimens (quiz, question of the day, sign-in, XP card). Source: `system-guide/`. |
+| **Design-system guide** (single page) | https://claude.ai/artifact/UvFPZk3juASfd6vQ3jtG5c | Private Claude artifact. Same content as Figma plus live specimens (quiz, question of the day, sign-in, XP card) and Section 5's animations, with an Animate / Still switch. Source: `system-guide/`. |
 | **Omer model sheet v2** (review page) | https://claude.ai/artifact/7HNTp338LsrM33NLmUT12i | Private Claude artifact: before/after legs, turnaround, eight poses, wardrobe and rules. Source: `mascot/`. |
 | **Omer drawing source** | `docs/design/mascot/omer.cjs` | The design docs' copy of Omer's drawing code: a small function that returns SVG markup for any view, pose or outfit. Everything else in this folder is generated from it. The app's copy is `packages/core/lib/omer.ts`; a test keeps the two identical, so change both. |
 | **Omer SVGs** | `docs/design/mascot/svg/` (21 files) | Editable vectors: 4 views, 8 poses, 9 outfits. Drag into Figma, or use as references. An older copy is in `~/Downloads/omer-model-sheet-v2/`; this folder is the source of truth. |

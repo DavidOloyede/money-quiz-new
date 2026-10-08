@@ -1,0 +1,207 @@
+<script>
+/* §5 Moments in motion: the Animate / Still preview, replay on tap, and the streak and level-up specimens
+   (ports of src/components/celebrate/StreakOverlay.tsx and MilestoneOverlay.tsx, numbers from core lib/streak.ts and lib/gamification.ts) */
+(function(){
+  var root = document.documentElement;
+  var reduce = false;
+  try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e) {}
+  function moving(){ return root.classList.contains('motion-on') || (!reduce && !root.classList.contains('still')); }
+
+  /* ---- Animate / Still. SMIL (the cape, the lasso knot) can't be stopped by CSS, so it is paused on its first frame. ---- */
+  function syncSmil(scope){
+    (scope || document).querySelectorAll('svg.mo-smil').forEach(function(s){
+      try { if(moving()){ s.unpauseAnimations(); } else { s.pauseAnimations(); s.setCurrentTime(0); } } catch(e) {}
+    });
+  }
+  function applyMotion(m){
+    root.classList.toggle('still', m === 'still');
+    root.classList.toggle('motion-on', m === 'play');
+    document.querySelectorAll('[data-motion-set]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.motionSet === m)); });
+    syncSmil();
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('mm-ds-motion'); } catch(e) {}
+  applyMotion(saved === 'play' || saved === 'still' ? saved : (reduce ? 'still' : 'play'));
+  document.querySelectorAll('[data-motion-set]').forEach(function(b){
+    b.addEventListener('click', function(){
+      applyMotion(b.dataset.motionSet);
+      try { localStorage.setItem('mm-ds-motion', b.dataset.motionSet); } catch(e) {}
+    });
+  });
+
+  /* ---- Replay: restart every animation inside an element ---- */
+  function replay(el){
+    el.classList.add('mo-reset'); void el.offsetWidth; el.classList.remove('mo-reset');
+    el.querySelectorAll('svg.mo-smil').forEach(function(s){ try { s.setCurrentTime(0); } catch(e) {} });
+  }
+  document.addEventListener('click', function(e){ var b = e.target.closest('[data-mo-replay]'); if(b) replay(b); });
+
+  /* ---- The Hero's party (proposed) ---- */
+  var sky = document.getElementById('mo-sky'), partyTimer = 0;
+  document.getElementById('mo-party').addEventListener('click', function(){
+    clearTimeout(partyTimer);
+    sky.classList.remove('mo-party'); void sky.offsetWidth; sky.classList.add('mo-party');
+    partyTimer = setTimeout(function(){ sky.classList.remove('mo-party'); }, 3200);
+  });
+
+  /* ---- Shared pieces of the two moments ---- */
+  var seed = 3;
+  function rnd(){ seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+  var CC = ['#e5b13c', '#2f8749', '#fffcf5', '#eecb6b', '#8fc49d', '#9ad0ec', '#dd806c'];
+  function confetti(n, delay){
+    var h = '<div class="mo-confetti mo-particle" aria-hidden="true">';
+    for(var i = 0; i < n; i++){
+      var c = CC[i % CC.length], round = i % 3 === 0, w = round ? 8 : (i % 2 ? 6 : 11), ht = round ? 8 : (i % 2 ? 12 : 6);
+      h += '<i style="left:' + (rnd() * 100).toFixed(1) + '%;width:' + w + 'px;height:' + ht + 'px;border-radius:' + (round ? '50%' : '2px') + ';background:' + c + (c === '#fffcf5' ? ';box-shadow:inset 0 0 0 1.5px #e5b13c' : '') +
+        ';--drift:' + Math.round(rnd() * 120 - 60) + 'px;--spin:' + Math.round(rnd() * 900 - 450) + 'deg;--dur:' + (2.2 + rnd() * 1.4).toFixed(2) + 's;--d:' + Math.round(delay + rnd() * 900) + 'ms"></i>';
+    }
+    return h + '</div>';
+  }
+  function star(n, cx, cy, ro, ri, ry, ryi){
+    var pts = [];
+    for(var i = 0; i < n * 2; i++){ var a = i / (n * 2) * Math.PI * 2, out = i % 2 === 0; pts.push((cx + Math.cos(a) * (out ? ro : ri)).toFixed(1) + ',' + (cy + Math.sin(a) * (out ? ry : ryi)).toFixed(1)); }
+    return pts.join(' ');
+  }
+  function tpl(k){ return document.getElementById('mo-tpl-' + k).innerHTML; }
+  function esc(s){ return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function rise(d){ return ' mo-rise" style="--d:' + d + 'ms'; }
+  var KEEP = function(d){ return '<button class="btn btn--reward mo-keep' + rise(d) + '" type="button">Keep going</button>'; };
+  var HINT = function(d){ return '<p class="mo-tap-hint' + rise(d) + '">Tap anywhere to continue</p>'; };
+
+  /* ---- The streak moment ---- */
+  var GOALS = [
+    { days: 7, name: '1 week', prose: 'a full week', shout: 'ONE WEEK!' },
+    { days: 14, name: '2 weeks', prose: 'two weeks', shout: 'TWO WEEKS!' },
+    { days: 30, name: '1 month', prose: 'a full month', shout: 'ONE MONTH!' },
+    { days: 60, name: '2 months', prose: 'two months', shout: 'TWO MONTHS!' },
+    { days: 100, name: '100 days', prose: '100 days', shout: '100 DAYS!' },
+    { days: 180, name: '6 months', prose: 'six months', shout: 'SIX MONTHS!' },
+    { days: 365, name: '1 year', prose: 'a full year', shout: 'ONE YEAR!' }];
+  function progress(streak){
+    var days = Math.max(0, Math.floor(streak)), want = Math.max(1, days), goal = null;
+    for(var i = 0; i < GOALS.length; i++) if(GOALS[i].days >= want){ goal = GOALS[i]; break; }
+    var passed = goal ? (GOALS.indexOf(goal) > 0 ? GOALS[GOALS.indexOf(goal) - 1] : null) : GOALS[GOALS.length - 1];
+    if(!goal){ var y = Math.max(2, Math.ceil(days / 365)); goal = { days: 365 * y, name: y + ' years', prose: y + ' years', shout: y + ' YEARS!' }; }
+    var from = passed ? passed.days : 0;
+    return { passed: passed, from: from, goal: goal, reached: days === goal.days, toGo: goal.days - days, fraction: Math.min(1, Math.max(0, (days - from) / (goal.days - from))) };
+  }
+  var FLAME = {
+    outer: 'M32 2C40 16 56 26 56 48C56 66 45 78 32 78C19 78 8 66 8 50C8 40 13 32 19 26C19 34 22 39 27 41C24 28 26 14 32 2Z',
+    middle: 'M32 24C37 33 46 40 46 53C46 65 40 72 32 72C24 72 18 65 18 55C18 48 22 43 26 40C26 46 28 49 31 50C29 41 29 32 32 24Z',
+    core: 'M32 44C35 50 40 54 40 61C40 67 36 71 32 71C28 71 24 67 24 62C24 56 29 52 32 44Z' };
+  var EMBERS = [[38, -18, 500, 7], [58, 14, 750, 5], [47, -6, 1000, 6], [64, 20, 1300, 4], [33, -12, 1550, 5], [52, 8, 1800, 6]];
+  var STREAK_STAR = star(16, 110, 44, 106, 86, 42, 30);
+  function goalTrack(day){
+    var p = progress(day), span = p.goal.days - p.from;
+    var ends = '<div class="mo-track-ends"><span>' + (p.passed ? p.passed.name + ' ✓' : 'Day 1') + '</span><span' + (p.reached ? ' class="mo-reached"' : '') + '>' + p.goal.name + '</span></div>';
+    if(span <= 7){
+      var pips = '';
+      for(var i = 0; i < span; i++){
+        var d = p.from + i + 1, done = d <= day, goal = d === p.goal.days;
+        pips += '<span class="mo-pip' + (done ? ' mo-pip--done' : goal ? ' mo-pip--goal' : '') + (d === day ? ' mo-pip--today' : '') + '">' +
+          (done ? '<svg viewBox="0 0 64 80"><path d="' + FLAME.outer + '" fill="#fffcf5"/></svg>' : goal ? '★' : d) + '</span>';
+      }
+      return '<div class="mo-track' + rise(700) + '" aria-hidden="true"><div class="mo-pips">' + pips + '</div>' + ends + '</div>';
+    }
+    var before = progress(day - 1), fromPct = before.goal.days === p.goal.days ? before.fraction * 100 : 0;
+    return '<div class="mo-track' + rise(700) + '" aria-hidden="true"><div class="mo-bar-track"><div class="mo-bar-fill" style="width:' + (p.fraction * 100) + '%;--from:' + fromPct + '%"></div></div>' + ends + '</div>';
+  }
+  function streakHtml(day){
+    var p = progress(day), goalDay = p.reached, xp = 10 + Math.min(day * 2, 30);
+    var caption = goalDay ? day + ' days of showing up. Next stop: ' + progress(day + 1).goal.name + '.'
+      : day === 1 ? 'Day one. Come back tomorrow for day two.'
+      : p.toGo + ' more ' + (p.toGo === 1 ? 'day' : 'days') + ' to ' + p.goal.prose + '.';
+    var h = '<div class="mo-backdrop"></div>' + (goalDay ? confetti(44, 500) : '') + '<div class="mo-inner">';
+    h += '<div class="mo-sk-stage" style="height:' + (goalDay ? '14rem' : '10rem') + '">';
+    if(goalDay) h += '<div class="mo-rays" style="bottom:calc(-10% - 6.5rem)"></div><div class="mo-shout" style="width:220px"><svg viewBox="0 0 220 88" aria-hidden="true"><polygon points="' + STREAK_STAR + '" fill="#f5dfa3" stroke="#201a13" stroke-width="2.5" stroke-linejoin="round"/></svg><span style="color:var(--mo-shout-streak)">' + p.goal.shout + '</span></div>';
+    h += '<div class="mo-flamebox"><div class="mo-sk-glow"></div>';
+    EMBERS.forEach(function(e, i){ h += '<span class="mo-ember mo-particle" aria-hidden="true" style="left:' + e[0] + '%;width:' + e[3] + 'px;height:' + e[3] + 'px;background:' + (i % 2 ? '#dd806c' : '#e5b13c') + ';--dx:' + e[1] + 'px;--d:' + e[2] + 'ms"></span>'; });
+    h += '<svg class="mo-flame" viewBox="0 0 64 80" aria-hidden="true"><defs><linearGradient id="mo-flame-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ce9118"/><stop offset=".55" stop-color="#d56048"/><stop offset="1" stop-color="#c75039"/></linearGradient></defs>' +
+      '<path class="mo-flick-1" d="' + FLAME.outer + '" fill="url(#mo-flame-grad)" stroke="#8a3727" stroke-opacity=".6" stroke-width="1.5" stroke-linejoin="round"/><path class="mo-flick-2" d="' + FLAME.middle + '" fill="#e5b13c"/><path class="mo-flick-3" d="' + FLAME.core + '" fill="#faefd1"/></svg></div>';
+    if(goalDay) h += '<div class="mo-sk-omer mo-omer-pop">' + tpl('coach') + '</div>';
+    h += '</div><div class="mo-count">' + (day > 1 ? '<span class="mo-old">' + (day - 1) + '</span>' : '') + '<span class="mo-new">' + day + '</span></div>';
+    h += '<h5 class="mo-label">Day streak</h5><span class="mo-xp">+' + xp + ' XP</span>' + goalTrack(day);
+    h += '<p class="mo-caption' + rise(1500) + '">' + caption + '</p>' + KEEP(1900);
+    if(!goalDay) h += '<div class="mo-countdown-track' + rise(1900) + '" aria-hidden="true"><div class="mo-countdown"></div></div>';
+    return h + HINT(1800) + '</div>';
+  }
+
+  /* ---- The level-up ---- */
+  var TITLES = ['Steward in Training', 'Coin Counter', 'Faithful With Little', 'Diligent Planner', 'Wise Builder', 'Generous Manager', 'Faithful With Much', 'Trusted Steward', 'Good & Faithful Steward'];
+  function title(L){ return TITLES[Math.min(L, TITLES.length) - 1]; }
+  var LEVEL_STAR = star(16, 96, 44, 92, 74, 42, 30);
+  var SPARKLE = 'M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z';
+  var SPARKLES = [[26, '#68b9e2'], [34, '#57a56e'], [46, '#e5b13c'], [34, '#dd806c'], [26, '#eecb6b']];
+  var FLAKES = [[42, 12, 300], [52, 10, 620], [47, 13, 900], [57, 9, 1150]];
+  function levelHtml(L){
+    var look = L >= 8 ? 'hero' : L === 5 ? 'builder' : 'jump', next = L + 1;
+    var h = '<div class="mo-backdrop"></div>' + confetti(52, 350) + '<div class="mo-inner"><div class="mo-lv-stage"><div class="mo-rays"></div><div class="mo-lv-halo"></div>';
+    h += '<div class="mo-shout"><svg viewBox="0 0 192 88" aria-hidden="true"><defs><pattern id="mo-lv-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.3" fill="#e5b13c"/></pattern></defs><polygon points="' + LEVEL_STAR + '" fill="#f5dfa3" stroke="#201a13" stroke-width="2.5" stroke-linejoin="round"/><polygon points="' + LEVEL_STAR + '" fill="url(#mo-lv-dots)" opacity=".55"/></svg><span style="color:var(--mo-shout-level)">LEVEL UP!</span></div>';
+    h += '<div class="mo-lv-omer">';
+    FLAKES.forEach(function(f){ h += '<span class="mo-lv-flake mo-particle" aria-hidden="true" style="left:' + f[0] + '%;width:' + f[1] + 'px;height:' + f[1] + 'px;--d:' + f[2] + 'ms"></span>'; });
+    // The app pops him in and hops him three times; the jump and the Hero bring their own motion, so they only pop.
+    h += '<div class="mo-lv-glow"><div class="mo-omer-pop' + (look === 'builder' ? ' mo-omer-hop' : '') + '">' + tpl(look) + '</div></div></div></div>';
+    h += '<div class="mo-lv-row">Level <span class="mo-lv-num">' + '<span class="mo-old">' + (L - 1) + '</span><span class="mo-new">' + L + '</span></span></div>';
+    h += '<div class="mo-lv-card"><span class="mo-shine"></span><h5>' + esc(title(L)) + '</h5></div>';
+    h += '<p class="mo-caption' + rise(1700) + '">You reached level ' + L + '. Next up: <b>' + esc(title(next)) + '</b> at ' + (50 * next * (next - 1)).toLocaleString('en-US') + ' XP.</p>';
+    h += '<div class="mo-sparkles" aria-hidden="true">';
+    SPARKLES.forEach(function(s, i){ var d = 950 + i * 110; h += '<span style="--d:' + d + 'ms"><span style="--d:' + d + 'ms"><svg viewBox="-2 -2 28 28" width="' + s[0] + '" height="' + s[0] + '" style="--d:' + d + 'ms"><path d="' + SPARKLE + '" fill="' + s[1] + '" stroke="#201a13" stroke-width="1.6" stroke-linejoin="round"/></svg></span></span>'; });
+    return h + '</div>' + KEEP(1900) + HINT(2100) + '</div>';
+  }
+
+  /* ---- Wiring: pickers, replay, "Keep going" or a tap closes the moment like the app ---- */
+  var streakEl = document.getElementById('mo-streak'), levelEl = document.getElementById('mo-level');
+  var day = 7, level = 5;
+  function show(el, html){ el.innerHTML = html; syncSmil(el); }
+  function renderStreak(){ show(streakEl, streakHtml(day)); }
+  function renderLevel(){ show(levelEl, levelHtml(level)); }
+  function close(el){ show(el, '<div class="mo-closed"><p>The moment closed. In the app you’d be back where you were.</p><button class="btn btn--sm btn--secondary" type="button" data-mo-reopen>Replay the moment</button></div>'); }
+  [[streakEl, renderStreak], [levelEl, renderLevel]].forEach(function(pair){
+    var el = pair[0], render = pair[1];
+    el.addEventListener('click', function(e){
+      if(e.target.closest('[data-mo-reopen]')){ render(); return; }
+      if(!el.querySelector('.mo-closed')) close(el);
+    });
+    el.addEventListener('animationend', function(e){ if(e.animationName === 'mo-countdown') close(el); });
+  });
+  document.querySelectorAll('[data-mo-day]').forEach(function(b){
+    b.addEventListener('click', function(){
+      day = +b.dataset.moDay;
+      document.querySelectorAll('[data-mo-day]').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+      renderStreak();
+    });
+  });
+  document.getElementById('mo-streak-replay').addEventListener('click', renderStreak);
+  var pick = document.getElementById('mo-level-pick');
+  for(var L = 2; L <= 9; L++){
+    pick.insertAdjacentHTML('beforeend', '<button type="button" data-mo-pick="' + L + '" aria-pressed="' + (L === level) + '" title="' + esc(title(L)) + '">' + L + (L === 5 ? ' · Builder' : L === 8 ? ' · Hero' : '') + '</button>');
+  }
+  function setLevel(L){
+    level = L;
+    pick.querySelectorAll('[data-mo-pick]').forEach(function(x){ x.setAttribute('aria-pressed', String(+x.dataset.moPick === L)); });
+    renderLevel();
+  }
+  pick.addEventListener('click', function(e){ var b = e.target.closest('[data-mo-pick]'); if(b) setLevel(+b.dataset.moPick); });
+  document.getElementById('mo-level-replay').addEventListener('click', renderLevel);
+  document.querySelectorAll('[data-mo-level]').forEach(function(b){
+    b.addEventListener('click', function(){
+      setLevel(+b.dataset.moLevel);
+      levelEl.scrollIntoView({ behavior: moving() ? 'smooth' : 'auto', block: 'center' });
+    });
+  });
+  renderStreak();
+  renderLevel();
+
+  /* Play the moments (and the Gardener's sprout) again the first time they scroll into view, so they're seen from the start. */
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(!en.isIntersecting) return;
+        io.unobserve(en.target);
+        if(en.target === streakEl) renderStreak(); else if(en.target === levelEl) renderLevel(); else replay(en.target);
+      });
+    }, { threshold: 0.35 });
+    [streakEl, levelEl].concat([].slice.call(document.querySelectorAll('[data-mo-onview]'))).forEach(function(el){ io.observe(el); });
+  }
+})();
+</script>

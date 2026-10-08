@@ -81,6 +81,9 @@ _Started 2026-09-24._
       construction drawings, with his outfits at the moments. Still to come:
       Omer's commissioned art, streak freezes, daily goals, the
       debt-paid-off party, more badges._
+      _Progress 2026-10-08: the design-system guide animates every pose and
+      outfit, the flying Hero, the streak and level-up moments and the level
+      ladder (Section 5), as the spec for Omer's next round of motion._
 - [ ] **Illustrated people, redrawn.** Bring people back with richer
       drawings and better animation than the first simple-shape cast (taken
       out 2026-10-06; it's kept on the `archive/illustrated-people-v1` branch).

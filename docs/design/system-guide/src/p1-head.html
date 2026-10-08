@@ -75,7 +75,7 @@ code,.mono{font-family:var(--font-mono);font-size:.86em}
 p code,li code,td code{background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:0 5px;overflow-wrap:anywhere}
 td code{white-space:nowrap}
 :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}html:not(.motion-on) *,html:not(.motion-on) *::before,html:not(.motion-on) *::after{animation:none!important;transition:none!important}}
 
 /* ---------- shell ---------- */
 .shell{display:grid;grid-template-columns:240px minmax(0,1fr);gap:56px;max-width:1260px;margin:0 auto;padding-inline:32px}
