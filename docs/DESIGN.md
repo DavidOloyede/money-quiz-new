@@ -261,13 +261,16 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   construction drawings of every view, pose and outfit.
 - **In dark mode** he gets a faint cream rim, so his ink outline doesn't
   vanish into a dark card. Under "reduce motion" he stands still.
-- **Motion:** in the app he pops in, then breathes, hops or wobbles as one
-  piece. The next step, one signature move per pose and outfit (the wave
-  rocks from the shoulder, the Coach does reps, the Wrangler's lasso spins,
-  the Hero's cape ripples), is specced and playable in the design-system
-  guide's Section 5. Every move pivots at a joint, stays small (limbs turn
-  6–16°) and starts and ends on the drawn pose, so reduce motion shows that
-  pose.
+- **Motion** (built October 7, 2026, from the design-system guide's
+  Section 5): he pops in, then plays one signature move for his pose or
+  outfit (the wave rocks from the shoulder, the Coach does reps, the
+  Wrangler's lasso spins, the Builder taps his mallet, the Graduate tosses
+  his cap, the Hero's cape ripples). Every move pivots at a joint, stays
+  small (limbs turn 6–16°) and starts and ends on the drawn pose. A moment
+  plays its move for about five seconds and he settles; only breathing and
+  blinking keep going. Reduce motion shows the still pose. The moves are
+  data in core `lib/omerMotion.ts`, so the website and the phone play the
+  very same keyframes.
 - **References:** the Figma file, the single-page design-system guide and the
   plan for building Omer into the app are all listed in
   `docs/design/HANDOFF-design-system.md`.
@@ -294,9 +297,13 @@ Which Omer appears where, decided October 7, 2026. Both apps read it from
   the Hero with Debt Slayer and level 8.
 - **Never on the money screens**, even when they're empty: the dashboard,
   transactions, budgets, Year Sheet and imports keep their quiet icons.
+- **The Hero's "PAID OFF!" party** plays when a loan is confirmed paid off:
+  he swoops in with a loop-the-loop and flies through a dawn sky while
+  clouds, wind and manna stream past, "PAID OFF!" lands in a comic burst and
+  confetti pops out of it. The first payoff brings the Debt Slayer badge
+  inside the party instead of in a second moment after it.
 - **Not yet placed:** the Chef (his moments, food questions and the Dining
-  budget, would sit next to amounts or give a quiz answer away), and the
-  Hero's own "PAID OFF!" party.
+  budget, would sit next to amounts or give a quiz answer away).
 
 ## Illustrated people
 
@@ -345,9 +352,13 @@ white-rimmed eyes that read on every skin tone, rosy cheeks and a big smile.
   platforms, at the moments in "Omer at the moments", with his poses and
   wardrobe; the drawn streak flame instead of the emoji; visible labels on
   the sign-in fields.
+- **Done (October 7, `claude/youthful-lamport-qv4guf`):** the design guide's
+  Section 5 in the app on both platforms: every pose's and outfit's own
+  move, the Builder's extra hop at level 5, the Coach's reps on streak goal
+  days, and the debt-paid-off party with the flying Hero.
 - **Still to come:** Omer's commissioned artwork (construction drawings
-  stand in for it), the debt-paid-off party, and the rest of the
-  celebration list.
+  stand in for it), drawn badge medals (emoji stand in for them), and the
+  rest of the celebration list.
 - **Designed October 6–7:** the full design system in Figma and as a
   single-page guide (`docs/design/HANDOFF-design-system.md` lists where
   everything is). Omer's legs and wardrobe, the drawn flame and the sign-in

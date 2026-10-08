@@ -84,6 +84,12 @@ _Started 2026-09-24._
       _Progress 2026-10-08: the design-system guide animates every pose and
       outfit, the flying Hero, the streak and level-up moments and the level
       ladder (Section 5), as the spec for Omer's next round of motion._
+      _Progress, later the same day: Section 5 is built into both apps:
+      every pose's and outfit's own move, the Coach's reps on streak goal
+      days, the Builder's hop at level 5, and the debt-paid-off party (the
+      Hero flying through a dawn sky, "PAID OFF!" and the fanfare). Still to
+      come: Omer's commissioned art, drawn badge medals, streak freezes,
+      daily goals, more badges._
 - [ ] **Illustrated people, redrawn.** Bring people back with richer
       drawings and better animation than the first simple-shape cast (taken
       out 2026-10-06; it's kept on the `archive/illustrated-people-v1` branch).

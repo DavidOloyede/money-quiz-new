@@ -146,13 +146,14 @@ const move = k => { const s = MOVE[k](); return s.startsWith('<svg aria-hidden')
 // ── §5.1 cards: [move, name, what moves, timing, status]
 const POSE_CARDS = [
   ['idle', 'Idle', 'Breathes, squashing toward the ground, and blinks every few seconds.', '3.2s breath · 4.2s blink', 'app'],
-  ['wave', 'Wave hello', 'The raised arm rocks from the shoulder and one foot taps.', '0.9s wave · 0.9s tap', 'spec'],
+  ['wave', 'Wave hello', 'The raised arm rocks from the shoulder and one foot taps.', '0.9s wave · 0.9s tap', 'app'],
   ['cheer', 'Cheer', 'Two quick hops with his arms pumping; the sparkles twinkle.', '1.8s · two hops, then a rest', 'app'],
   ['jump', 'Jump', 'Lands, squashes, springs up; the shadow grows and shrinks under him.', '1.4s · overshoot on take-off', 'app'],
-  ['thinking', 'Thinking', 'Thought bubbles pop up one by one while he taps his chin.', '3.2s · bubbles 0.25s apart', 'spec'],
+  ['thinking', 'Thinking', 'Thought bubbles pop up one by one while he taps his chin.', '3.2s · bubbles 0.25s apart', 'app'],
   ['oops', 'Oops', 'A gentle wobble and a scratch of the head; the drop slides away.', '2.4s · wobble in the first 0.8s', 'app'],
-  ['proud', 'Proud', 'Puffs up and the badge swings on its ribbon, with a glint.', '2.4s puff · 1.2s swing', 'spec'],
-  ['giving', 'Giving', 'Leans in as the flake he holds out glows.', '2.6s', 'spec'] ];
+  ['proud', 'Proud', 'Puffs up and the badge swings on its ribbon, with a glint.', '2.4s puff · 1.2s swing', 'app'],
+  ['giving', 'Giving', 'Leans in as the flake he holds out glows.', '2.6s', 'app'] ];
+// Every move plays in both apps (core lib/omerMotion.ts ports this file; change both).
 const OUTFIT_CARDS = [
   ['hero', 'The Hero', 'Flies: the cape ripples, speed lines stream past, the shadow breathes with his height.', '0.9s cape · 2.4s bob'],
   ['detective', 'The Detective', 'Peers through the lens as it drifts over his eye; the glass catches the light.', '2.6s · stands up straight'],
@@ -163,8 +164,8 @@ const OUTFIT_CARDS = [
   ['gardener', 'The Gardener', 'The sprout grows out of the pot, then its leaves sway.', '1.3s grow · 2.4s sway'],
   ['graduate', 'The Graduate', 'Tosses the cap, which spins and lands back on the rim.', '3.2s · one toss'],
   ['dreamer', 'The Dreamer', 'Sleepy breathing, a nodding nightcap, Z’s drifting up.', '4.4s breath · 3.2s per Z'] ];
-const STATUS = { app: '<span class="tag tag--code">In the app</span>', spec: '<span class="tag tag--spec">Spec</span>' };
-const card = ([k, name, what, timing, status]) => `<figure class="mo-card"><button class="mo-stage" type="button" data-mo-replay${k === 'gardener' ? ' data-mo-onview' : ''} aria-label="Replay ${name}">${move(k)}<span class="mo-replay" aria-hidden="true">Replay</span></button><figcaption><span class="mo-top"><b>${name}</b>${STATUS[status || 'spec']}</span><span>${what}</span><span class="mo-time">${timing}</span></figcaption></figure>`;
+const STATUS = { app: '<span class="tag tag--code">In the app</span>' };
+const card = ([k, name, what, timing, status]) => `<figure class="mo-card"><button class="mo-stage" type="button" data-mo-replay${k === 'gardener' ? ' data-mo-onview' : ''} aria-label="Replay ${name}">${move(k)}<span class="mo-replay" aria-hidden="true">Replay</span></button><figcaption><span class="mo-top"><b>${name}</b>${STATUS[status || 'app']}</span><span>${what}</span><span class="mo-time">${timing}</span></figcaption></figure>`;
 
 // ── §5.2 the sky the Hero flies through: drifting clouds, wind streaks and flakes, all right to left.
 let seed = 11; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
@@ -219,6 +220,6 @@ const templates = ['coach', 'jump', 'builder'].map(k => `<template id="mo-tpl-${
 
 const PARTS = {
   poses: `<div class="mo-grid">${POSE_CARDS.map(card).join('')}</div>`,
-  outfits: `<div class="mo-grid mo-grid--3">${OUTFIT_CARDS.map(c => card([...c, 'spec'])).join('')}</div>`,
+  outfits: `<div class="mo-grid mo-grid--3">${OUTFIT_CARDS.map(c => card([...c, 'app'])).join('')}</div>`,
   sky, ladder, badges, templates };
 module.exports = html => html.replace(/<!--mo:([a-z]+)-->/g, (m, k) => { if (!(k in PARTS)) throw new Error('motion.cjs: unknown ' + m); return PARTS[k]; });

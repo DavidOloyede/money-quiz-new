@@ -23,6 +23,17 @@ prop, the cape) are a spec; the app still moves Omer as one piece. Section 5
 is built by `system-guide/motion.cjs` from `src/p7-motion.html` and
 `src/p8-motion-script.html`.
 
+**Built, later on October 8:** Section 5 is in both apps. Core
+`packages/core/lib/omerMotion.ts` ports `motion.cjs`: the same parts, pivots
+and timings, with each back-and-forth re-phased to start and end on the drawn
+pose so a move can stop after any cycle. The web plays it on an inline SVG
+with the Web Animations API (the cape is SMIL); the phone stacks it in
+react-native-svg layers played by Reanimated. A moment plays about five
+seconds and settles (breathing and blinking keep going). The "PAID OFF!"
+party is built too (`PaidOffOverlay` on both platforms), so the guide's tags
+now read "In the app". If a move changes, change `motion.cjs` and
+`omerMotion.ts` together.
+
 ## Where everything is
 
 | What | Where | Notes |

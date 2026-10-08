@@ -1,6 +1,6 @@
 # How Manna Money Works — Explained Simply
 
-*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24; web addresses, celebrations, sound and the illustrated people added 2026-10-03; the streak moment added and the illustrated people taken out (to be redrawn) 2026-10-06; Omer the mascot, the drawn streak flame and the names above the sign-in boxes added 2026-10-07.*
+*Last verified against the working tree: 2026-09-22 (commit `f945b3b`); Import column-matching screen updated 2026-09-24; web addresses, celebrations, sound and the illustrated people added 2026-10-03; the streak moment added and the illustrated people taken out (to be redrawn) 2026-10-06; Omer the mascot, the drawn streak flame and the names above the sign-in boxes added 2026-10-07; Omer's own moves and the paid-off party added later that day.*
 
 This guide explains how the whole app is built, as if you were in sixth grade.
 No computer-science degree needed. 🙂
@@ -134,9 +134,11 @@ car so a second car can use the same engine**:
   around a ring with confetti, going up a level (or earning a badge) fills
   the screen with the same sunburst, jumping Omer, flipping title and row of
   cheering sparkles, and answering the question of the day lights the same
-  streak flame as the website (see `StreakOverlay` below). Omer, the mascot,
-  turns up at exactly the same moments, in the same outfits, as on the
-  website (see `Omer.tsx` below). The sounds are the very same
+  streak flame as the website (see `StreakOverlay` below), and confirming a
+  loan paid off throws the same flying-hero "PAID OFF!" party, with a heavy
+  buzz. Omer, the mascot, turns up at exactly the same moments, in the same
+  outfits and with the same moves, as on the website (see `Omer.tsx`
+  below). The sounds are the very same
   files as the website's. They stay quiet when the phone's silent switch is
   on, they play *alongside* your music instead of stopping it, and Settings
   has a **Sounds** switch.
@@ -509,7 +511,8 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
 - **`celebrate/`** — The pieces that make the moments: `Confetti.tsx`
   (confetti in the app's five colors), `RewardBurst.tsx` (the manna flakes
   and floating "+XP"), the **streak moment** (`StreakOverlay.tsx`), and the
-  **big one**, `MilestoneOverlay.tsx`, all shown by `CelebrationHost.tsx`.
+  **big one**, `MilestoneOverlay.tsx`, and the **paid-off party**
+  (`PaidOffOverlay.tsx`), all shown by `CelebrationHost.tsx`.
   - **The streak moment** plays when you answer the question of the day,
     right or wrong. (Quiz questions don't count toward the streak; the
     question of the day is the one daily habit.) A flame lights up and flickers while little
@@ -536,6 +539,13 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
     beside it, dressed for that badge (a coach for the streak badges, a
     gardener for the giving ones, a hero in a cape for Debt Slayer…) or
     standing proud with a ribbon when several badges arrive at once.
+  - **Confirming a loan is paid off** throws the biggest party of all, the
+    one time a money moment celebrates (because you confirmed it yourself):
+    Omer as the hero swoops in with a loop-the-loop and flies through a
+    dawn sky while clouds, wind and bits of manna stream past, "PAID OFF!"
+    lands in a comic starburst, confetti bursts out of it and a fanfare
+    plays. The first time also earns the Debt Slayer badge, which shows up
+    inside this party rather than as a second one straight after.
 
   Each one shows up wherever you earned it (the quiz, the question of the
   day, or an import), waits a moment so the thing that earned it finishes
@@ -600,8 +610,11 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   picks what he's doing (waving, cheering, jumping, "oops", standing
   proud…) and sometimes an outfit (a detective, a coach, a builder, a
   graduate, a nightcap for napping…). He pops in with a little bounce and
-  then breathes, hops or wobbles to suit the moment; if your device asks
-  for less motion, he just stands still. Below a certain size an outfit
+  then does his own little move for a few seconds: he waves from the
+  shoulder, does reps with his barbell as the coach, swings his lasso,
+  taps his mallet, tosses his graduation cap, flies with his cape rippling
+  as the hero. Then he settles and only keeps breathing and blinking. If
+  your device asks for less motion, he just stands still. Below a certain size an outfit
   would be too small to make out, so he appears without it. In dark mode
   he gets a faint light edge so his dark outline doesn't disappear into a
   dark card. He only ever appears at the fun moments, never on your money
@@ -773,6 +786,16 @@ the exceptions — they need a real browser.
   earned, comes as the coach on streak goal days, and naps once today's
   question is done. A test keeps it honest (for example, that every badge
   has an outfit).
+- **`omerMotion.ts`** — **How Omer moves.** For each pose and outfit it
+  says which part of the drawing moves and how: the waving arm turns at the
+  shoulder, the coach's barbell comes down to his rim and back up, the
+  lasso swings and a knot runs round its loop, the hero's cape ripples. It
+  hands over Omer's picture with those parts marked, plus the timing of
+  every move, written as plain numbers so the website and the phone play
+  exactly the same moves. Every move starts and ends on the still drawing,
+  so he always comes to rest looking exactly as drawn. Tests check that the
+  marked-up picture is still the same drawing and that every move begins
+  and ends at rest.
 - **`dailyQuestion.ts`** — The **question-of-the-day maker**: builds one
   question per day (personalized from your data via the quiz maker, or a
   general literacy question from `data/generalQuestions.ts` when there's no
@@ -793,7 +816,9 @@ the exceptions — they need a real browser.
   badges earned at once (loading the sample year can earn three) become one
   celebration, not a pile of them. Both apps use it to decide when to throw
   the level-up party. It measures from whatever you had when the app opened,
-  so loading your account never throws a party for old progress.
+  so loading your account never throws a party for old progress. It also
+  notices a loan you've just confirmed paid off (undoing one never counts),
+  and tucks the Debt Slayer badge into that party when the payoff earns it.
 - **`sounds.ts`** — The **five sounds**, written as tiny music recipes
   rather than downloaded files: a bright two-note chime (right answer), a
   soft low tone (not quite), a round drop, a quick upward sparkle (level up

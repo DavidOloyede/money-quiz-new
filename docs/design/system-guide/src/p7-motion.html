@@ -352,7 +352,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
       </div>
 
       <h3 id="omer-moves"><span class="num">5.1</span>Omer’s moves</h3>
-      <p>One move per pose and per outfit. <span class="tag tag--code">In the app</span> marks the moves the app already plays (Omer pops in, then breathes, hops or wobbles as one piece, from <code>src/celebrate.css</code>). <span class="tag tag--spec">Spec</span> marks the part-by-part moves proposed here: an arm, a prop or the cape moves while the rest of him stays put.</p>
+      <p>One move per pose and per outfit: an arm, a prop or the cape moves while the rest of him stays put. All of them play in both apps (core <code>lib/omerMotion.ts</code>, the same keyframes on the web and the phone). In the app a moment plays its move for about five seconds and settles on the pose; only breathing and blinking keep going.</p>
       <h4>The eight poses</h4>
       <!--mo:poses-->
       <h4>The wardrobe</h4>
@@ -370,8 +370,8 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
       <div class="stage stage--sky"><!--mo:sky--></div>
       <div class="mo-actions">
         <button class="btn btn--sm btn--reward" type="button" id="mo-party">Play “PAID OFF!”</button>
-        <span class="tag tag--spec">Proposed</span>
-        <p>The debt-paid-off party isn’t built yet. This is a sketch: the Hero loops, a comic burst lands and confetti pops.</p>
+        <span class="tag tag--code">In the app</span>
+        <p>The debt-paid-off party plays when a loan is confirmed paid off (<code>PaidOffOverlay</code> on both apps): the Hero loops in, a comic burst lands and confetti pops, with the fanfare. The first payoff brings the Debt Slayer badge inside it.</p>
       </div>
 
       <h3 id="streak-moment"><span class="num">5.3</span>The streak moment</h3>
@@ -386,7 +386,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
         <button class="btn btn--sm btn--secondary" type="button" id="mo-streak-replay">Replay</button>
       </div>
       <div class="mo-moment mo-moment--streak" id="mo-streak" role="group" aria-label="Streak moment specimen"></div>
-      <p class="small muted">The Coach’s barbell reps are the proposed move from 5.1; the app hops him today. Goal days: 7, 14, 30, 60, 100 and 180 days, then one year and every year after.</p>
+      <p class="small muted">The Coach does his barbell reps from 5.1 here, in the app too. Goal days: 7, 14, 30, 60, 100 and 180 days, then one year and every year after.</p>
 
       <h3 id="level-up"><span class="num">5.4</span>Level up</h3>
       <p>A port of <code>MilestoneOverlay.tsx</code>. The sunburst turns, Omer jumps and glows while manna falls into his rim, “LEVEL UP!” lands, the level number flips and the new title flips in with a shine. Pick a level to see who shows up.</p>
@@ -410,9 +410,10 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
         <thead><tr><th>Moment</th><th>Plays</th><th>Easing</th><th>Reduce motion</th></tr></thead>
         <tbody>
           <tr><td><b>Omer pops in</b> <span class="tag tag--code">In the app</span></td><td class="num-col">500ms, once</td><td><code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td><td>Appears in place</td></tr>
-          <tr><td><b>Breathe, hop, wobble</b> <span class="tag tag--code">In the app</span></td><td class="num-col">3.2s loop · 3 × 750ms · 700ms</td><td>ease-in-out</td><td>Still pose</td></tr>
-          <tr><td><b>Part moves</b> (5.1) <span class="tag tag--spec">Spec</span></td><td class="num-col">0.45–4.4s loops</td><td>ease-in-out; strikes ease in</td><td>Still pose, no sparks or Z’s</td></tr>
-          <tr><td><b>The cape</b> <span class="tag tag--spec">Spec</span></td><td class="num-col">0.9s ripple</td><td>spline 0.45 0 0.55 1</td><td>Cape at rest</td></tr>
+          <tr><td><b>Part moves</b> (5.1) <span class="tag tag--code">In the app</span></td><td class="num-col">0.6–6.4s cycles, about 5s in all</td><td>ease-in-out; strikes ease in</td><td>Still pose, no sparks or Z’s</td></tr>
+          <tr><td><b>Breathing, blinking</b> <span class="tag tag--code">In the app</span></td><td class="num-col">3.2s · 4.2s, while on screen</td><td>ease-in-out · linear</td><td>Still pose</td></tr>
+          <tr><td><b>The cape</b> <span class="tag tag--code">In the app</span></td><td class="num-col">0.9s ripple</td><td>spline 0.45 0 0.55 1</td><td>Cape at rest</td></tr>
+          <tr><td><b>"PAID OFF!" party</b> <span class="tag tag--code">In the app</span></td><td class="num-col">swoop 150ms · burst 350ms · title 1250ms · button 1900ms</td><td>overshoot, then settle</td><td>Still sky, no particles</td></tr>
           <tr><td><b>Streak moment</b> <span class="tag tag--code">In the app</span></td><td class="num-col">flame 150ms · count 850ms · pips 1150ms · button 1900ms</td><td>overshoot, then settle</td><td>Finished picture, no countdown</td></tr>
           <tr><td><b>Level up / badge</b> <span class="tag tag--code">In the app</span></td><td class="num-col">burst 250ms · number 1150ms · title 1250ms · shine 1900ms</td><td>overshoot, then settle</td><td>Finished picture, no confetti</td></tr>
         </tbody>

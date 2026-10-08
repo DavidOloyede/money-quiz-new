@@ -72,6 +72,13 @@ Repo-wide rules live in the root CLAUDE.md; these are the mobile-specific ones:
   (`components/Omer.tsx`) renders core's `lib/omer.ts` markup through
   `SvgXml`, behind the same props as the web's; which pose and outfit a
   moment gets comes from core `lib/omerMoments.ts`, never chosen per screen.
+  While he moves, `SvgXml` can't animate inside a drawing, so Omer stacks
+  core's motion rig (`lib/omerMotion.ts`) in layers: still markup in
+  `SvgXml` layers on one padded canvas, each moving part an `Animated.View`
+  turning about its pivot, the Hero's cape an animated `Path`. A moving part
+  must never sit inside a group the drawing transforms (core's test enforces
+  it). Put a tilt or rotation on an inner view, never on a view with an
+  `entering` animation: the entrance overwrites the transform.
   `Empty` takes `art` (Omer) in place of its emoji. To scroll a screen for a
   sim screenshot, a temporary `contentOffset` on `Screen`'s ScrollView works.
 - **Celebrations (Oct 2026):** motion is Reanimated 4 (already in the dev

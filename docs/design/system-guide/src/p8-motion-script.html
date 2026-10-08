@@ -36,7 +36,7 @@
   }
   document.addEventListener('click', function(e){ var b = e.target.closest('[data-mo-replay]'); if(b) replay(b); });
 
-  /* ---- The Hero's party (proposed) ---- */
+  /* ---- The Hero's party (PaidOffOverlay in the app) ---- */
   var sky = document.getElementById('mo-sky'), partyTimer = 0;
   document.getElementById('mo-party').addEventListener('click', function(){
     clearTimeout(partyTimer);

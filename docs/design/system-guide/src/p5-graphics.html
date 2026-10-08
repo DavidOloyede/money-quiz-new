@@ -212,11 +212,11 @@
           <tr><td><b>UI icons</b></td><td>Check, cross, spark, quiz, speaker, star, search, user and more.</td><td>SVG 24, 1.8 stroke</td><td><code>src/components/icons.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
           <tr><td><b>Manna burst, confetti</b></td><td>Flakes from a right answer; milestone confetti in five brand colors.</td><td>CSS particles</td><td><code>celebrate/RewardBurst.tsx</code>, <code>Confetti.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
           <tr><td><b>Company logos</b></td><td>Merchant marks beside transactions. Never hotlinked.</td><td>Bundled SVG or Plaid logo_url</td><td><code>core data/brandIcons.ts</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
-          <tr><td><b>Streak flame</b></td><td>Today the flame emoji; a drawn flame is ready (3.5).</td><td>SVG 24, filled</td><td><code>ProgressWidget</code>, <code>StreakOverlay</code></td><td><span class="tag tag--spec">Partial</span></td></tr>
+          <tr><td><b>Streak flame</b></td><td>The drawn flame (3.5), in place of the emoji.</td><td>SVG 24, filled</td><td><code>StreakFlame</code>, <code>StreakOverlay</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
           <tr><td><b>Badges</b></td><td>Seven badges: First Steps, Week of Diligence, Month of Faithfulness, Know Your Flock, Cheerful Giver, First Fruits, Debt Slayer.</td><td>Emoji + name today</td><td><code>core lib/badges.ts</code></td><td><span class="tag tag--spec">Partial</span></td></tr>
           <tr><td><b>Omer master + turnaround</b></td><td>The definitive drawing every pose is traced from. 3.3 is its brief.</td><td>Layered master + PNG</td><td><code>docs/design/mascot/</code></td><td><span class="tag tag--new">In progress</span></td></tr>
           <tr><td><b>Omer poses × 8, outfits × 9</b></td><td>The poses in 3.3 and the wardrobe in 3.4.</td><td>Transparent WebP, &lt; 150 KB, 2× display size</td><td><code>public/mascot/</code>, <code>apps/mobile/assets</code></td><td><span class="tag tag--new">To draw</span></td></tr>
-          <tr><td><b>Cape + "PAID OFF!" burst</b></td><td>The debt-paid-off party: the Hero and a comic burst.</td><td>SVG + WebP</td><td><code>celebrate/</code> (to add)</td><td><span class="tag tag--new">To draw</span></td></tr>
+          <tr><td><b>Cape + "PAID OFF!" burst</b></td><td>The debt-paid-off party: the flying Hero, a dawn sky and a comic burst. Construction drawings today, like the rest of Omer.</td><td>SVG</td><td><code>celebrate/PaidOffOverlay.tsx</code></td><td><span class="tag tag--code">Shipped</span></td></tr>
           <tr><td><b>Illustrated people</b></td><td>A diverse cast for the landing, level-up crowd and welcome; leans toward the deepest skin tones.</td><td>SVG, skin and hair as tokens</td><td>v1 on <code>archive/illustrated-people-v1</code></td><td><span class="tag tag--spec">Removed for redraw</span></td></tr>
         </tbody>
       </table></div>
@@ -333,7 +333,7 @@
           <tr><td><b>Quiz finished</b></td><td>Confetti in honey, forest and cream; the score counts up</td><td>Short fanfare</td><td>Success</td></tr>
           <tr><td><b>Streak</b></td><td>The flame lights and flickers, the day flips up, the goal fills; "Keep going" with a 10s countdown. On goal days, a shout, confetti and the Coach (<a href="#streak-moment">5.3</a>)</td><td>Soft drop</td><td>Light tap</td></tr>
           <tr><td><b>Level up / badge</b></td><td>Omer jumps and glows as manna falls into his rim; the title or badge flips in with a shine (<a href="#level-up">5.4</a>)</td><td>Sparkle chord</td><td>Success</td></tr>
-          <tr><td><b>Debt paid off</b> <span class="tag tag--spec">Spec</span></td><td>The biggest party: the Hero in his cape and a "PAID OFF!" burst (sketched in <a href="#hero-flight">5.2</a>)</td><td>Fanfare</td><td>Heavy</td></tr>
+          <tr><td><b>Debt paid off</b></td><td>The biggest party: the Hero flying in his cape and a "PAID OFF!" burst (<a href="#hero-flight">5.2</a>)</td><td>Fanfare</td><td>Heavy</td></tr>
         </tbody>
       </table></div>
       <ul class="rules">
