@@ -69,8 +69,9 @@ rules live in [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md).
   in DESIGN.md's "Omer at the moments"); never put him on a money screen.
   His moves are data in core `lib/omerMotion.ts` (a port of the guide's
   `docs/design/system-guide/motion.cjs`; change both), played by each
-  platform's `Omer`. Every move must start and end on the drawn pose (a test
-  enforces it), so a move can stop after any cycle.
+  platform's `Omer`. Moves loop for as long as he's on screen (only
+  entrances play once), and every move must start and end on the drawn pose
+  (a test enforces it) so each loop joins up seamlessly.
 - Buttons and cards use the shared utilities in `src/index.css`
   (`btn-primary`, `btn-secondary`, `btn-reward`, `btn-danger`, `card`), not
   hand-rolled class strings. Game-moment keyframes live in `src/celebrate.css`

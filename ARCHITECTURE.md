@@ -610,10 +610,10 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   picks what he's doing (waving, cheering, jumping, "oops", standing
   proud…) and sometimes an outfit (a detective, a coach, a builder, a
   graduate, a nightcap for napping…). He pops in with a little bounce and
-  then does his own little move for a few seconds: he waves from the
-  shoulder, does reps with his barbell as the coach, swings his lasso,
-  taps his mallet, tosses his graduation cap, flies with his cape rippling
-  as the hero. Then he settles and only keeps breathing and blinking. If
+  then does his own little move, over and over for as long as he's on
+  screen: he waves from the shoulder, does reps with his barbell as the
+  coach, swings his lasso, taps his mallet, tosses his graduation cap,
+  flies with his cape rippling as the hero. If
   your device asks for less motion, he just stands still. Below a certain size an outfit
   would be too small to make out, so he appears without it. In dark mode
   he gets a faint light edge so his dark outline doesn't disappear into a

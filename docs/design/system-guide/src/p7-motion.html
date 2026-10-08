@@ -247,7 +247,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
 .mo-sk-omer{position:absolute;bottom:0;left:50%;margin-left:2.75rem;width:104px}
 .mo-sk-omer svg,.mo-lv-omer svg{width:100%;height:auto;display:block;overflow:visible;filter:var(--mo-omer-rim)}
 .mo-omer-pop{animation:mo-omer-pop 500ms cubic-bezier(.34,1.56,.64,1) both;transform-origin:50% 95%}
-.mo-omer-pop.mo-omer-hop{animation:mo-omer-pop 500ms cubic-bezier(.34,1.56,.64,1) both,mo-omer-hop 750ms ease-in-out 450ms 3}
+.mo-omer-pop.mo-omer-hop{animation:mo-omer-pop 500ms cubic-bezier(.34,1.56,.64,1) both,mo-omer-hop 750ms ease-in-out 450ms infinite}
 @keyframes mo-omer-pop{0%{transform:translateY(10%) scale(.6);opacity:0}60%{transform:scale(1.06);opacity:1}100%{transform:scale(1)}}
 @keyframes mo-omer-hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-9%)}75%{transform:translateY(0) scale(1.04,.95)}}
 .mo-count{display:inline-grid;place-items:center;height:4.5rem;margin-top:12px;perspective:400px}
@@ -352,7 +352,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
       </div>
 
       <h3 id="omer-moves"><span class="num">5.1</span>Omer’s moves</h3>
-      <p>One move per pose and per outfit: an arm, a prop or the cape moves while the rest of him stays put. All of them play in both apps (core <code>lib/omerMotion.ts</code>, the same keyframes on the web and the phone). In the app a moment plays its move for about five seconds and settles on the pose; only breathing and blinking keep going.</p>
+      <p>One move per pose and per outfit: an arm, a prop or the cape moves while the rest of him stays put. All of them play in both apps (core <code>lib/omerMotion.ts</code>, the same keyframes on the web and the phone). In the app every move loops for as long as Omer is on screen; only entrances play once.</p>
       <h4>The eight poses</h4>
       <!--mo:poses-->
       <h4>The wardrobe</h4>
@@ -362,7 +362,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
         <li><b>Pivots are joints.</b> Arms swing from the shoulder, props from the hand, hats from the rim, so nothing detaches at any frame.</li>
         <li><b>Small amplitudes.</b> Limbs turn 6–16°, the body squashes 3–6%. Bigger reads as frantic at 56px.</li>
         <li><b>Rest on the pose.</b> Every loop passes through the drawing in 3.3; reduce motion shows exactly that frame, with no particles.</li>
-        <li><b>A moment, not a screensaver.</b> In the app, celebration loops run a few times and settle; only idle breathing keeps going.</li>
+        <li><b>Loops keep going.</b> Every move loops for as long as he's on screen; only entrances (the pop-in, the Hero's loop-the-loop, the sprout growing) play once.</li>
       </ul>
 
       <h3 id="hero-flight"><span class="num">5.2</span>The Hero in flight</h3>
@@ -410,7 +410,7 @@ svg .mo-twinkle,svg .mo-bubble,svg .mo-z,svg .mo-glint,svg .mo-spark{transform-b
         <thead><tr><th>Moment</th><th>Plays</th><th>Easing</th><th>Reduce motion</th></tr></thead>
         <tbody>
           <tr><td><b>Omer pops in</b> <span class="tag tag--code">In the app</span></td><td class="num-col">500ms, once</td><td><code>cubic-bezier(0.34, 1.56, 0.64, 1)</code></td><td>Appears in place</td></tr>
-          <tr><td><b>Part moves</b> (5.1) <span class="tag tag--code">In the app</span></td><td class="num-col">0.6–6.4s cycles, about 5s in all</td><td>ease-in-out; strikes ease in</td><td>Still pose, no sparks or Z’s</td></tr>
+          <tr><td><b>Part moves</b> (5.1) <span class="tag tag--code">In the app</span></td><td class="num-col">0.6–6.4s cycles, looping</td><td>ease-in-out; strikes ease in</td><td>Still pose, no sparks or Z’s</td></tr>
           <tr><td><b>Breathing, blinking</b> <span class="tag tag--code">In the app</span></td><td class="num-col">3.2s · 4.2s, while on screen</td><td>ease-in-out · linear</td><td>Still pose</td></tr>
           <tr><td><b>The cape</b> <span class="tag tag--code">In the app</span></td><td class="num-col">0.9s ripple</td><td>spline 0.45 0 0.55 1</td><td>Cape at rest</td></tr>
           <tr><td><b>"PAID OFF!" party</b> <span class="tag tag--code">In the app</span></td><td class="num-col">swoop 150ms · burst 350ms · title 1250ms · button 1900ms</td><td>overshoot, then settle</td><td>Still sky, no particles</td></tr>

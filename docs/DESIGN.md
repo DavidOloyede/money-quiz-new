@@ -266,9 +266,12 @@ bowl can show progress by filling as you earn XP and glowing at level-up.
   outfit (the wave rocks from the shoulder, the Coach does reps, the
   Wrangler's lasso spins, the Builder taps his mallet, the Graduate tosses
   his cap, the Hero's cape ripples). Every move pivots at a joint, stays
-  small (limbs turn 6–16°) and starts and ends on the drawn pose. A moment
-  plays its move for about five seconds and he settles; only breathing and
-  blinking keep going. Reduce motion shows the still pose. The moves are
+  small (limbs turn 6–16°) and starts and ends on the drawn pose, so each
+  loop joins up seamlessly. His move loops for as long as he's on screen
+  (David, October 7: loops, not a few seconds and then idle); only entrances
+  play once (his pop-in, the Hero's loop-the-loop at the party, the
+  Gardener's sprout growing out of its pot). Reduce motion shows the still
+  pose. The moves are
   data in core `lib/omerMotion.ts`, so the website and the phone play the
   very same keyframes.
 - **References:** the Figma file, the single-page design-system guide and the

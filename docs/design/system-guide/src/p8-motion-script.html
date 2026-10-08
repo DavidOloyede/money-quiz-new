@@ -139,7 +139,7 @@
     h += '<div class="mo-shout"><svg viewBox="0 0 192 88" aria-hidden="true"><defs><pattern id="mo-lv-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.3" fill="#e5b13c"/></pattern></defs><polygon points="' + LEVEL_STAR + '" fill="#f5dfa3" stroke="#201a13" stroke-width="2.5" stroke-linejoin="round"/><polygon points="' + LEVEL_STAR + '" fill="url(#mo-lv-dots)" opacity=".55"/></svg><span style="color:var(--mo-shout-level)">LEVEL UP!</span></div>';
     h += '<div class="mo-lv-omer">';
     FLAKES.forEach(function(f){ h += '<span class="mo-lv-flake mo-particle" aria-hidden="true" style="left:' + f[0] + '%;width:' + f[1] + 'px;height:' + f[1] + 'px;--d:' + f[2] + 'ms"></span>'; });
-    // The app pops him in and hops him three times; the jump and the Hero bring their own motion, so they only pop.
+    // The Builder pops in and keeps hopping on top of his mallet; the jump and the Hero bring their own motion, so they only pop.
     h += '<div class="mo-lv-glow"><div class="mo-omer-pop' + (look === 'builder' ? ' mo-omer-hop' : '') + '">' + tpl(look) + '</div></div></div></div>';
     h += '<div class="mo-lv-row">Level <span class="mo-lv-num">' + '<span class="mo-old">' + (L - 1) + '</span><span class="mo-new">' + L + '</span></span></div>';
     h += '<div class="mo-lv-card"><span class="mo-shine"></span><h5>' + esc(title(L)) + '</h5></div>';
