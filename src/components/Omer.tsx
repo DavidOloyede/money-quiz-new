@@ -56,6 +56,9 @@ export function Omer({ pose = 'idle', outfit, size = 120, motion = 'move', label
   const moving = motion === 'move' && !reduce
   const ref = useRef<SVGSVGElement>(null)
   const markup = useMemo(() => (moving ? rigMarkup(omerRig({ pose, outfit, size })) : ''), [moving, pose, outfit, size])
+  // React rewrites innerHTML whenever this object is a new one, even with the
+  // same markup, which would swap in fresh parts with no moves on them.
+  const html = useMemo(() => ({ __html: markup }), [markup])
   const src = useMemo(
     () => (moving ? '' : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(omerSvg({ pose, outfit, size }))}`),
     [moving, pose, outfit, size],
@@ -105,7 +108,7 @@ export function Omer({ pose = 'idle', outfit, size = 120, motion = 'move', label
       aria-hidden={label ? undefined : true}
       focusable="false"
       className={`${LOOK} omer-in ${className}`}
-      dangerouslySetInnerHTML={{ __html: markup }}
+      dangerouslySetInnerHTML={html}
     />
   )
 }
