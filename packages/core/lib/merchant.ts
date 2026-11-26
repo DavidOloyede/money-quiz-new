@@ -139,3 +139,81 @@ export function categoryCandidates(
     sameMerchant: others.filter((x) => merchantKey(x.description) === key),
   }
 }
+
+/**
+ * One offer in an apply-to-similar prompt: the rows it covers, and whether it
+ * is the whole-merchant tier. Only a whole-merchant category offer may become
+ * a remembered merchant rule (see merchantSweep); a same-amount offer is
+ * always a one-off edit on exactly its rows, because "the 3 $342.50 charges"
+ * is all the user agreed to, and one descriptor often covers two bills.
+ */
+export interface SimilarOffer {
+  rows: Transaction[]
+  wholeMerchant: boolean
+}
+
+/**
+ * Turn the two candidate tiers into the offers to show, most specific first.
+ * The wider tier is offered only when it reaches a row the same-amount one
+ * doesn't, compared by row rather than by count: the two lists match on
+ * different rules (a shared word vs. the exact merchant), so two lists of the
+ * same length can still hold different charges.
+ */
+function similarOffers(sameAmount: Transaction[], whole: Transaction[]): SimilarOffer[] {
+  const offers: SimilarOffer[] = []
+  if (sameAmount.length > 0) offers.push({ rows: sameAmount, wholeMerchant: false })
+  const inAmount = new Set(sameAmount.map((t) => t.id))
+  if (whole.some((t) => !inAmount.has(t.id))) offers.push({ rows: whole, wholeMerchant: true })
+  return offers
+}
+
+/** The offers after a single category change (see categoryCandidates). */
+export function categoryOffers(
+  target: Transaction,
+  transactions: Transaction[],
+  category: string,
+): SimilarOffer[] {
+  const { sameAmount, sameMerchant } = categoryCandidates(target, transactions, category)
+  return similarOffers(sameAmount, sameMerchant)
+}
+
+/** The offers after a single-row rename (see renameCandidates). */
+export function renameOffers(
+  target: Transaction,
+  transactions: Transaction[],
+  name: string,
+  aliases: Record<string, string> = {},
+): SimilarOffer[] {
+  const { sameAmount, all } = renameCandidates(target, transactions, name, aliases)
+  return similarOffers(sameAmount, all)
+}
+
+/**
+ * What a whole-merchant category sweep does to the rows as the user sees them
+ * (renames applied). Rows showing the bank's own text get the merchant rule:
+ * their stored category changes, any per-row pin is cleared so it can't
+ * outrank the sweep, and the rule is remembered for future imports. A renamed
+ * row is matched on the name the user gave it, which the bank's text and
+ * future imports never carry, so a merchant rule can't reach it: it is pinned
+ * per row instead. Matching renamed rows by their bank text instead would
+ * sweep up charges the user split off on purpose (the $342.50 insurance
+ * renamed away from the HOA dues on the same descriptor), and clearing their
+ * pins would undo edits the sweep was meant to extend.
+ */
+export function merchantSweep(
+  rows: Transaction[],
+  key: string,
+): { refile: string[]; unpin: string[]; pin: string[]; remember: boolean } {
+  const matched = rows.filter((t) => merchantKey(t.description) === key)
+  const plain = matched.filter((t) => !t.renamed)
+  const renamed = matched.filter((t) => t.renamed)
+  const keys = (list: Transaction[]) => list.flatMap((t) => (t.key ? [t.key] : []))
+  return {
+    refile: plain.map((t) => t.id),
+    unpin: keys(plain),
+    pin: keys(renamed),
+    // A key nothing matches (yet) still came from bank text, so remember it;
+    // one that only renamed rows match came from a user's label.
+    remember: plain.length > 0 || renamed.length === 0,
+  }
+}

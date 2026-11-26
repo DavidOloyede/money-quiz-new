@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
-import { displayDescription, groupLabel, renameCandidates } from '@moneyquiz/core/lib/merchant'
+import { displayDescription, groupLabel, renameOffers } from '@moneyquiz/core/lib/merchant'
 import { formatAbs } from '@moneyquiz/core/lib/format'
 import { SimilarRowsList } from './ApplyToSimilar'
 import { CheckIcon, PencilIcon, XIcon } from './icons'
@@ -47,32 +47,18 @@ export function useRenameSimilar() {
     setDescriptionBulk([id], clean)
     const t = transactions.find((x) => x.id === id)
     if (!t) return
-    const { sameAmount, all } = renameCandidates(t, transactions, clean, aliases)
     const label = groupLabel(t.description, aliases)
-    const merchantOption: Option = {
-      label: `all ${all.length} ${label} charge${all.length === 1 ? '' : 's'}`,
-      rows: all,
-    }
-
+    const [primary, secondary] = renameOffers(t, transactions, clean, aliases).map(
+      ({ rows, wholeMerchant }): Option => ({
+        label: wholeMerchant
+          ? `all ${rows.length} ${label} charge${rows.length === 1 ? '' : 's'}`
+          : `the ${rows.length} ${formatAbs(t.amount)} charge${rows.length === 1 ? '' : 's'}`,
+        rows,
+      }),
+    )
     setExpanded(null)
     setExcluded(new Set())
-    if (sameAmount.length > 0) {
-      setPending({
-        name: clean,
-        primary: {
-          label: `the ${sameAmount.length} ${formatAbs(t.amount)} charge${
-            sameAmount.length === 1 ? '' : 's'
-          }`,
-          rows: sameAmount,
-        },
-        // Offer the broader merchant sweep only if it covers more than the amount match.
-        secondary: all.length > sameAmount.length ? merchantOption : undefined,
-      })
-    } else if (all.length > 0) {
-      setPending({ name: clean, primary: merchantOption })
-    } else {
-      setPending(null)
-    }
+    setPending(primary ? { name: clean, primary, secondary } : null)
   }
 
   const apply = (option: Option) => {

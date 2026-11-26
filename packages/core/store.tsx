@@ -25,7 +25,7 @@ import type {
 import { checkIn, DEFAULT_GAME_STATE, quizXp, XP } from './lib/gamification'
 import { awardBadges } from './lib/badges'
 import { overrideKey } from './lib/categorize'
-import { groupKey, merchantKey, txSignature } from './lib/merchant'
+import { groupKey, merchantKey, merchantSweep, txSignature } from './lib/merchant'
 import { assignTxKeys } from './lib/txKey'
 import { autoDetectLinks, resolveLinks, type TxLinks } from './lib/links'
 import {
@@ -712,20 +712,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
    * Apply a category to every charge from this merchant and remember it for
    * future imports. This is the deliberate "all of them" sweep, so it also
    * clears any per-row pins on that merchant — otherwise rows the user had
-   * filed individually would ignore the sweep they just asked for.
+   * filed individually would ignore the sweep they just asked for. The key is
+   * matched against the rows as shown, renames included; renamed rows are
+   * pinned one by one instead (lib/merchant merchantSweep says why).
    */
   const setCategoryForMerchant = useCallback((key: string, category: Category) => {
-    const pinned = transactionsRef.current
-      .filter((t) => t.key && merchantKey(t.description) === key)
-      .map((t) => t.key as string)
-    setRawTransactions((prev) =>
-      prev.map((t) => (merchantKey(t.description) === key ? { ...t, category, overridden: true } : t)),
-    )
-    setMerchantOverrides((o) => ({ ...o, [key]: category }))
-    if (pinned.length > 0) {
+    const { refile, unpin, pin, remember } = merchantSweep(transactionsRef.current, key)
+    if (refile.length > 0) {
+      const ids = new Set(refile)
+      setRawTransactions((prev) =>
+        prev.map((t) => (ids.has(t.id) ? { ...t, category, overridden: true } : t)),
+      )
+    }
+    if (remember) setMerchantOverrides((o) => ({ ...o, [key]: category }))
+    if (unpin.length > 0 || pin.length > 0) {
       setTxOverrides((o) => {
         const next = { ...o }
-        for (const k of pinned) delete next[k]
+        for (const k of unpin) delete next[k]
+        for (const k of pin) next[k] = category
         return next
       })
     }

@@ -23,11 +23,12 @@ import { useStore, type Category, type Transaction } from '@moneyquiz/core'
 import { allCategories, categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatAbs, formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import {
-  categoryCandidates,
+  categoryOffers,
   displayDescription,
   groupLabel,
   merchantKey,
-  renameCandidates,
+  renameOffers,
+  type SimilarOffer,
 } from '@moneyquiz/core/lib/merchant'
 
 import { MerchantLogo, brandForRow } from '@/components/MerchantLogo'
@@ -87,36 +88,26 @@ function TransactionSheet({ id, onClose }: { id: string; onClose: () => void }) 
     setExcluded(new Set())
   }
 
+  const labelOffer = ({ rows, wholeMerchant }: SimilarOffer): Option => ({
+    label: wholeMerchant
+      ? `all ${plural(rows.length, `${groupLabel(t.description, aliases)} charge`)}`
+      : `the ${plural(rows.length, `${formatAbs(t.amount)} charge`)}`,
+    rows,
+    wholeMerchant,
+  })
+
   const rename = () => {
     const clean = name.trim()
     if (!clean || clean === shownName) return
     setDescriptionBulk([t.id], clean)
-    const { sameAmount, all } = renameCandidates(t, transactions, clean, aliases)
-    const label = groupLabel(t.description, aliases)
-    const whole: Option = { label: `all ${plural(all.length, `${label} charge`)}`, rows: all, wholeMerchant: true }
-    const options: Option[] = []
-    if (sameAmount.length > 0) {
-      options.push({ label: `the ${plural(sameAmount.length, `${formatAbs(t.amount)} charge`)}`, rows: sameAmount, wholeMerchant: false })
-      if (all.length > sameAmount.length) options.push(whole)
-    } else if (all.length > 0) options.push(whole)
+    const options = renameOffers(t, transactions, clean, aliases).map(labelOffer)
     startOffer({ kind: 'rename', name: clean, options })
   }
 
   const recategorize = (category: Category) => {
     if (category === t.category) return
     setCategory(t.id, category)
-    const { sameAmount, sameMerchant } = categoryCandidates(t, transactions, category)
-    const label = groupLabel(t.description, aliases)
-    const whole: Option = {
-      label: `all ${plural(sameMerchant.length, `${label} charge`)}`,
-      rows: sameMerchant,
-      wholeMerchant: true,
-    }
-    const options: Option[] = []
-    if (sameAmount.length > 0) {
-      options.push({ label: `the ${plural(sameAmount.length, `${formatAbs(t.amount)} charge`)}`, rows: sameAmount, wholeMerchant: false })
-      if (sameMerchant.length > sameAmount.length) options.push(whole)
-    } else if (sameMerchant.length > 0) options.push(whole)
+    const options = categoryOffers(t, transactions, category).map(labelOffer)
     startOffer({ kind: 'category', category, options })
   }
 

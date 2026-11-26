@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Category, Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
-import { categoryCandidates, merchantKey, groupLabel, displayDescription } from '@moneyquiz/core/lib/merchant'
+import { categoryOffers, merchantKey, groupLabel, displayDescription } from '@moneyquiz/core/lib/merchant'
 import { categoryLabel, categoryMeta } from '@moneyquiz/core/lib/categories'
 import { formatAbs, formatCurrency, formatDate } from '@moneyquiz/core/lib/format'
 import { CheckIcon, XIcon } from './icons'
@@ -10,6 +10,8 @@ interface Option {
   /** The sentence fragment that completes "Also set Dining on …?" */
   label: string
   rows: Transaction[]
+  /** The whole-merchant tier, the only one that may become a merchant rule. */
+  wholeMerchant: boolean
 }
 
 interface Pending {
@@ -47,49 +49,36 @@ export function useApplyToSimilar() {
     setCategory(id, category)
     const t = transactions.find((x) => x.id === id)
     if (!t) return
-    const { sameAmount, sameMerchant } = categoryCandidates(t, transactions, category)
     const label = groupLabel(t.description, aliases)
-
-    const merchantOption: Option = {
-      label: `all ${sameMerchant.length} ${label} charge${sameMerchant.length === 1 ? '' : 's'}`,
-      rows: sameMerchant,
-    }
-
+    const [primary, secondary] = categoryOffers(t, transactions, category).map(
+      ({ rows, wholeMerchant }): Option => ({
+        label: wholeMerchant
+          ? `all ${rows.length} ${label} charge${rows.length === 1 ? '' : 's'}`
+          : `the ${rows.length} ${formatAbs(t.amount)} charge${rows.length === 1 ? '' : 's'}`,
+        rows,
+        wholeMerchant,
+      }),
+    )
     setExpanded(null)
     setExcluded(new Set())
-    if (sameAmount.length > 0) {
-      setPending({
-        category,
-        primary: {
-          label: `the ${sameAmount.length} ${formatAbs(t.amount)} charge${
-            sameAmount.length === 1 ? '' : 's'
-          }`,
-          rows: sameAmount,
-        },
-        // Offer the broader merchant sweep only if it covers more than the amount match.
-        secondary: sameMerchant.length > sameAmount.length ? merchantOption : undefined,
-      })
-    } else if (sameMerchant.length > 0) {
-      setPending({ category, primary: merchantOption })
-    }
+    setPending(primary ? { category, primary, secondary } : null)
   }
 
   /**
    * Apply an option to the rows still ticked. A whole-merchant sweep with
    * nothing unticked is remembered per merchant, so future imports follow it;
    * once rows are unticked it's a one-off edit on exactly those, since the
-   * user just said the merchant rule isn't what they meant.
+   * user just said the merchant rule isn't what they meant. A same-amount
+   * offer is always a one-off edit, even when it's the only offer.
    */
   const apply = (option: Option) => {
+    if (!pending) return
     const rows = option.rows.filter((r) => !excluded.has(r.id))
     if (rows.length === 0) return dismiss()
-    const isWholeMerchant =
-      option === pending?.secondary || (option === pending?.primary && !pending.secondary)
-    const wholeMerchantIntact = isWholeMerchant && rows.length === option.rows.length
-    if (wholeMerchantIntact) {
+    if (option.wholeMerchant && rows.length === option.rows.length) {
       setCategoryForMerchant(merchantKey(rows[0].description), pending.category)
     } else {
-      setCategoryBulk(rows.map((r) => r.id), pending!.category)
+      setCategoryBulk(rows.map((r) => r.id), pending.category)
     }
     dismiss()
   }

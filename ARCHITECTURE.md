@@ -359,7 +359,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   offers to update the charges that share the **same amount and a similar name**
   (e.g. the $100 "Holiday Pines" dues, not the $45 ones), with a secondary
   option to update **all** charges from that merchant (handy for a power bill
-  that varies every month).
+  that varies every month). The same-amount offer only ever changes the
+  charges it lists, even when it's the only button showing; only the "all"
+  option is remembered for the whole merchant.
 - **`RenameDescription.tsx`** — Inline rename for a transaction (a pencil next to
   the name in the modals). Renaming works like a category change: only the charge
   you edited changes at first. Then a popup offers the **other charges at the
@@ -985,7 +987,13 @@ which lives with the other shapes in `types.ts`.)
     every other row with the same text, and whichever you edited last won.) Say
     "apply to all charges from this store" and it's remembered by **merchant**
     instead, which also clears the individual pins on that store — you asked
-    for all of them. Older per-description edits are still honored.
+    for all of them. Charges you've **renamed** are the exception: the new
+    name is yours, not the bank's, so future imports will never carry it and
+    a merchant rule can't reach them. Those charges get your answer pinned one
+    by one instead, and a sweep of the bank's name leaves alone any charge you
+    renamed away from it (say, the $342.50 insurance you split off from the
+    HOA dues on the same descriptor). Older per-description edits are still
+    honored.
   - **renames (aliases)** — per merchant, survive re-imports.
   - **description overrides** — the bulk-rename counterpart to per-row category
     edits, same idea: pinned to that **exact row**, so the $9.99 Apple charges
