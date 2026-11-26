@@ -361,7 +361,9 @@ Each "screen" or button on the page is a **component** — a reusable Lego brick
   option to update **all** charges from that merchant (handy for a power bill
   that varies every month). The same-amount offer only ever changes the
   charges it lists, even when it's the only button showing; only the "all"
-  option is remembered for the whole merchant.
+  option is remembered for the whole merchant. When the question and a long
+  "all …" button don't fit side by side, the buttons drop onto their own line
+  instead of squeezing the question.
 - **`RenameDescription.tsx`** — Inline rename for a transaction (a pencil next to
   the name in the modals). Renaming works like a category change: only the charge
   you edited changes at first. Then a popup offers the **other charges at the

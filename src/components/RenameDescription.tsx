@@ -3,8 +3,8 @@ import type { Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
 import { displayDescription, groupLabel, renameOffers } from '@moneyquiz/core/lib/merchant'
 import { formatAbs } from '@moneyquiz/core/lib/format'
-import { SimilarRowsList } from './ApplyToSimilar'
-import { CheckIcon, PencilIcon, XIcon } from './icons'
+import { OfferBar, SimilarRowsList } from './ApplyToSimilar'
+import { PencilIcon } from './icons'
 
 interface Option {
   /** The fragment that completes "Also rename … to “iCloud”?" */
@@ -80,48 +80,38 @@ export function useRenameSimilar() {
           />
         )}
 
-        <div className="flex items-center gap-2 p-3">
-          <div className="min-w-0 flex-1 text-sm text-linen-600 dark:text-linen-300">
-            Also rename{' '}
-            <button
-              onClick={() => {
-                setExpanded(expanded ? null : pending.primary)
-                setExcluded(new Set())
-              }}
-              className="underline decoration-dotted underline-offset-2 hover:text-linen-800 dark:hover:text-linen-100"
-            >
-              {pending.primary.label}
-            </button>{' '}
-            to <span className="font-semibold">“{pending.name}”</span>?
-          </div>
-          {pending.secondary && (
-            <button
-              onClick={() => {
+        <OfferBar
+          question={
+            <>
+              Also rename{' '}
+              <button
+                onClick={() => {
+                  setExpanded(expanded ? null : pending.primary)
+                  setExcluded(new Set())
+                }}
+                className="underline decoration-dotted underline-offset-2 hover:text-linen-800 dark:hover:text-linen-100"
+              >
+                {pending.primary.label}
+              </button>{' '}
+              to <span className="font-semibold">“{pending.name}”</span>?
+            </>
+          }
+          secondary={
+            pending.secondary && {
+              label: expanded === pending.secondary ? 'Rename these' : pending.secondary.label,
+              onClick: () => {
                 if (expanded === pending.secondary) apply(pending.secondary)
                 else {
                   setExpanded(pending.secondary!)
                   setExcluded(new Set())
                 }
-              }}
-              className="btn-secondary shrink-0 px-2.5 py-1.5 text-xs"
-            >
-              {expanded === pending.secondary ? 'Rename these' : pending.secondary.label}
-            </button>
-          )}
-          <button
-            onClick={() => apply(expanded ?? pending.primary)}
-            className="btn-primary flex shrink-0 items-center gap-1 px-3 py-1.5 text-sm"
-          >
-            <CheckIcon className="h-4 w-4" /> Rename
-          </button>
-          <button
-            onClick={dismiss}
-            className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-800"
-            aria-label="Dismiss"
-          >
-            <XIcon className="h-4 w-4" />
-          </button>
-        </div>
+              },
+            }
+          }
+          primaryLabel="Rename"
+          onPrimary={() => apply(expanded ?? pending.primary)}
+          onDismiss={dismiss}
+        />
       </div>
     </div>
   ) : null

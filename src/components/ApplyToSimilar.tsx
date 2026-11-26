@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Category, Transaction } from '@moneyquiz/core/types'
 import { useStore } from '@moneyquiz/core/store'
 import { categoryOffers, merchantKey, groupLabel, displayDescription } from '@moneyquiz/core/lib/merchant'
@@ -96,50 +96,89 @@ export function useApplyToSimilar() {
           />
         )}
 
-        <div className="flex items-center gap-2 p-3">
-          <div className="min-w-0 flex-1 text-sm text-linen-600 dark:text-linen-300">
-            Also set <span className="font-semibold">{categoryLabel(pending.category)}</span> on{' '}
-            <button
-              onClick={() => setExpanded(expanded ? null : pending.primary)}
-              className="underline decoration-dotted underline-offset-2 hover:text-linen-800 dark:hover:text-linen-100"
-            >
-              {pending.primary.label}
-            </button>
-            ?
-          </div>
-          {pending.secondary && (
-            <button
-              onClick={() => {
+        <OfferBar
+          question={
+            <>
+              Also set <span className="font-semibold">{categoryLabel(pending.category)}</span> on{' '}
+              <button
+                onClick={() => setExpanded(expanded ? null : pending.primary)}
+                className="underline decoration-dotted underline-offset-2 hover:text-linen-800 dark:hover:text-linen-100"
+              >
+                {pending.primary.label}
+              </button>
+              ?
+            </>
+          }
+          secondary={
+            pending.secondary && {
+              label: expanded === pending.secondary ? 'Apply to these' : pending.secondary.label,
+              onClick: () => {
                 if (expanded === pending.secondary) apply(pending.secondary)
                 else {
                   setExpanded(pending.secondary!)
                   setExcluded(new Set())
                 }
-              }}
-              className="btn-secondary shrink-0 px-2.5 py-1.5 text-xs"
-            >
-              {expanded === pending.secondary ? 'Apply to these' : pending.secondary.label}
-            </button>
-          )}
-          <button
-            onClick={() => apply(expanded ?? pending.primary)}
-            className="btn-primary flex shrink-0 items-center gap-1 px-3 py-1.5 text-sm"
-          >
-            <CheckIcon className="h-4 w-4" /> Apply
-          </button>
-          <button
-            onClick={dismiss}
-            className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-800"
-            aria-label="Dismiss"
-          >
-            <XIcon className="h-4 w-4" />
-          </button>
-        </div>
+              },
+            }
+          }
+          primaryLabel="Apply"
+          onPrimary={() => apply(expanded ?? pending.primary)}
+          onDismiss={dismiss}
+        />
       </div>
     </div>
   ) : null
 
   return { change, node }
+}
+
+/**
+ * The question-and-buttons row shared by both bulk prompts (category and
+ * rename). The question and the buttons wrap onto separate lines when they
+ * don't fit side by side, and a long wider-option label ("all 15 Willow Bend
+ * Owners Association charges") wraps inside its own button, so the question
+ * keeps a readable width instead of being squeezed into a sliver.
+ */
+export function OfferBar({
+  question,
+  secondary,
+  primaryLabel,
+  onPrimary,
+  onDismiss,
+}: {
+  question: ReactNode
+  secondary?: { label: string; onClick: () => void }
+  primaryLabel: string
+  onPrimary: () => void
+  onDismiss: () => void
+}) {
+  return (
+    <div className="flex items-start gap-2 p-3">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-2">
+        <div className="min-w-0 flex-[1_1_12rem] text-sm text-linen-600 dark:text-linen-300">{question}</div>
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+          {secondary && (
+            <button onClick={secondary.onClick} className="btn-secondary min-w-0 px-2.5 py-1.5 text-xs">
+              {secondary.label}
+            </button>
+          )}
+          <button
+            onClick={onPrimary}
+            className="btn-primary flex shrink-0 items-center gap-1 px-3 py-1.5 text-sm"
+          >
+            <CheckIcon className="h-4 w-4" /> {primaryLabel}
+          </button>
+        </div>
+      </div>
+      <button
+        onClick={onDismiss}
+        className="shrink-0 rounded-lg p-1.5 text-linen-400 dark:text-linen-500 hover:bg-linen-100 dark:hover:bg-linen-800"
+        aria-label="Dismiss"
+      >
+        <XIcon className="h-4 w-4" />
+      </button>
+    </div>
+  )
 }
 
 /**
